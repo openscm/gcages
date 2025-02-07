@@ -5,7 +5,7 @@ description = "Global Climate Assessment of Global Emission Scenarios, typically
 authors = [
     { name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com" },
 ]
-license = { text = "placeholder" }
+license = { text = "3-Clause BSD License" }
 requires-python = ">=3.9"
 dependencies = [
     "pandas",
@@ -15,8 +15,7 @@ classifiers = [
     # Full list: https://pypi.org/classifiers/
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    ## If you apply an OSI-approved licence, you should uncomment the below
-    # "License :: OSI Approved :: BSD License",
+    "License :: OSI Approved :: BSD License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
