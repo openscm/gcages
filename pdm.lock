@@ -5,7 +5,7 @@
 groups = ["default", "all-dev", "dev", "docs", "tests", "tests-full", "tests-min"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4b8c0de18daf51623423f178e377b37c43de34d138c3d09c0ac1f58f7253c50b"
+content_hash = "sha256:47d49618f0b198ca5d906965a715b47cc08b5a4c6a6d05978a257b5790e6d08d"
 
 [[metadata.targets]]
 requires_python = ">=3.9"
@@ -1693,7 +1693,6 @@ version = "2.0.2"
 requires_python = ">=3.9"
 summary = "Fundamental package for array computing in Python"
 groups = ["default"]
-marker = "python_version <= \"3.11\" or python_version >= \"3.12\""
 files = [
     {file = "numpy-2.0.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:51129a29dbe56f9ca83438b706e2e69a39892b5eda6cedcb6b0c9fdc9b0d3ece"},
     {file = "numpy-2.0.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:f15975dfec0cf2239224d80e32c3170b1d168335eaedee69da84fbe9f1f9cd04"},
