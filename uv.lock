@@ -554,7 +554,6 @@ all-dev = [
     { name = "click" },
     { name = "colorama" },
     { name = "comm" },
-    { name = "coverage" },
     { name = "debugpy" },
     { name = "decorator" },
     { name = "defusedxml" },
@@ -800,20 +799,15 @@ docs = [
 ]
 tests = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "coverage" },
     { name = "iniconfig" },
     { name = "packaging" },
+    { name = "pandas-indexing" },
     { name = "pluggy" },
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
 tests-full = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "coverage" },
-    { name = "iniconfig" },
-    { name = "packaging" },
-    { name = "pluggy" },
-    { name = "pytest" },
+    { name = "pandas-indexing" },
     { name = "pytest-cov" },
 ]
 tests-min = [
@@ -850,7 +844,6 @@ all-dev = [
     { name = "colorama", specifier = "==0.4.6" },
     { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
     { name = "comm", specifier = "==0.2.2" },
-    { name = "coverage", specifier = "==7.6.10" },
     { name = "debugpy", specifier = "==1.8.11" },
     { name = "decorator", specifier = "==5.1.1" },
     { name = "defusedxml", specifier = "==0.7.1" },
@@ -928,7 +921,7 @@ all-dev = [
     { name = "pygments", specifier = "==2.19.1" },
     { name = "pymdown-extensions", specifier = "==10.13" },
     { name = "pytest", specifier = "==8.3.4" },
-    { name = "pytest-cov", specifier = "==6.0.0" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "python-json-logger", specifier = "==3.2.1" },
     { name = "pywin32", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'", specifier = "==308" },
@@ -1096,21 +1089,16 @@ docs = [
 ]
 tests = [
     { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
-    { name = "coverage", specifier = "==7.6.10" },
     { name = "iniconfig", specifier = "==2.0.0" },
     { name = "packaging", specifier = "==24.2" },
+    { name = "pandas-indexing", specifier = ">=0.6.3" },
     { name = "pluggy", specifier = "==1.5.0" },
     { name = "pytest", specifier = "==8.3.4" },
-    { name = "pytest-cov", specifier = "==6.0.0" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
 ]
 tests-full = [
-    { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
-    { name = "coverage", specifier = "==7.6.10" },
-    { name = "iniconfig", specifier = "==2.0.0" },
-    { name = "packaging", specifier = "==24.2" },
-    { name = "pluggy", specifier = "==1.5.0" },
-    { name = "pytest", specifier = "==8.3.4" },
-    { name = "pytest-cov", specifier = "==6.0.0" },
+    { name = "pandas-indexing", specifier = ">=0.6.3" },
+    { name = "pytest-cov", specifier = ">=6.0.0" },
 ]
 tests-min = [
     { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
