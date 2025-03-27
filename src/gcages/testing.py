@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+from pandas_openscm.io import load_timeseries_csv
 
 from gcages.exceptions import MissingOptionalDependencyError
 
@@ -36,6 +37,8 @@ KEY_TESTING_MODEL_SCENARIOS = tuple(
     [
         *AR6_IPS,
         # Other special cases
+        ("C3IAM 2.0", "2C-hybrid"),
+        ("DNE21+ V.14E1", "EMF30_BCOC-EndU"),
     ]
 )
 

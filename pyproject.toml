@@ -8,8 +8,10 @@ authors = [
 license = { text = "3-Clause BSD License" }
 requires-python = ">=3.9"
 dependencies = [
+    "aneris-iamc>=0.3.1",
     "numpy>=1.25.0",
     "pandas>=2.2.0",
+    "pandas-openscm>=0.3.2",
 ]
 readme = "README.md"
 classifiers = [
@@ -39,6 +41,18 @@ Issues = "https://github.com/openscm/gcages/issues"
 
 
 [project.optional-dependencies]
+ar6 = [
+    "aneris-iamc>=0.3.1",
+    "scipy>=1.13.0",
+]
+progress = [
+    "tqdm>=4.0.0",
+]
+full = [
+    "gcages[ar6]",
+    "gcages[progress]",
+]
+
 
 [dependency-groups]
 # The development dependencies are pinned
