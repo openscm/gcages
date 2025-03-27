@@ -515,7 +515,7 @@ wheels = [
 
 [[package]]
 name = "gcages"
-version = "0.1.0a1"
+version = "0.1.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -817,7 +817,7 @@ tests = [
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
-tests-min = [
+tests-full = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "coverage" },
     { name = "iniconfig" },
@@ -825,6 +825,13 @@ tests-min = [
     { name = "pluggy" },
     { name = "pytest" },
     { name = "pytest-cov" },
+]
+tests-min = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pytest" },
 ]
 
 [package.metadata]
@@ -1128,8 +1135,7 @@ tests = [
     { name = "pytest", specifier = "==8.3.4" },
     { name = "pytest-cov", specifier = "==6.0.0" },
 ]
-tests-full = []
-tests-min = [
+tests-full = [
     { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
     { name = "coverage", specifier = "==7.6.10" },
     { name = "iniconfig", specifier = "==2.0.0" },
@@ -1137,6 +1143,13 @@ tests-min = [
     { name = "pluggy", specifier = "==1.5.0" },
     { name = "pytest", specifier = "==8.3.4" },
     { name = "pytest-cov", specifier = "==6.0.0" },
+]
+tests-min = [
+    { name = "colorama", marker = "sys_platform == 'win32'", specifier = "==0.4.6" },
+    { name = "iniconfig", specifier = "==2.0.0" },
+    { name = "packaging", specifier = "==24.2" },
+    { name = "pluggy", specifier = "==1.5.0" },
+    { name = "pytest", specifier = "==8.3.4" },
 ]
 
 [[package]]
@@ -1938,7 +1951,6 @@ dependencies = [
     { name = "griffe" },
     { name = "mkdocstrings-python" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/79/3ee49ca07b55eb9d25fcfa38a3905cdc03af02cce5513f7a458e8211d5a9/mkdocstrings_python_xref-1.6.2.tar.gz", hash = "sha256:65e83fecc3a059d173aab9b06e4bcd50cc720b221b3cc3d6b35b11ffb6aa86d4", size = 11735 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/70/e0/dd595c056920b1cbdfd1af4372f5fc49f5fb4252072d9a07e1634146a8d1/mkdocstrings_python_xref-1.6.2-py3-none-any.whl", hash = "sha256:1492b822bcb04a9072a9b731ceabfed4b9d3f8cd23c62211cb8b22bab0cb7fc0", size = 19130 },
 ]

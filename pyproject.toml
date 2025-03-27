@@ -211,8 +211,19 @@ docs = [
 tests-min = [
     # Key dependencies
     # ----------------
-    "pytest-cov==6.0.0",
     "pytest==8.3.4",
+    # Implied by the key dependencies above
+    # -------------------------------------
+    "colorama==0.4.6 ; sys_platform == 'win32'",
+    "iniconfig==2.0.0",
+    "packaging==24.2",
+    "pluggy==1.5.0",
+]
+# Full test dependencies.
+tests-full = [
+    # Key dependencies
+    # ----------------
+    "pytest-cov==6.0.0",
     # Implied by the key dependencies above
     # -------------------------------------
     "colorama==0.4.6 ; sys_platform == 'win32'",
@@ -220,9 +231,7 @@ tests-min = [
     "iniconfig==2.0.0",
     "packaging==24.2",
     "pluggy==1.5.0",
-]
-# Full test dependencies.
-tests-full = [
+    "pytest==8.3.4",
 ]
 # Test dependencies
 # (partly split because liccheck uses toml,
