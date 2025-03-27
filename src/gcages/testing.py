@@ -75,7 +75,7 @@ def get_ar6_all_emissions(
     processed_ar6_output_data_dir
         Directory in which the AR6 was processed into individual model-scenario files
 
-        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_test_csvs.py`.)
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
     Returns
     -------
@@ -113,7 +113,7 @@ def get_ar6_raw_emissions(
     processed_ar6_output_data_dir
         Directory in which the AR6 was processed into individual model-scenario files
 
-        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_test_csvs.py`.)
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
     Returns
     -------
@@ -157,7 +157,7 @@ def get_ar6_harmonised_emissions(
     processed_ar6_output_data_dir
         Directory in which the AR6 was processed into individual model-scenario files
 
-        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_test_csvs.py`.)
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
     Returns
     -------
