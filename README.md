@@ -38,7 +38,7 @@ Some suggested options:
   and we won't reply to any issues
 -->
 
-- prototype: the project is just starting up and the code is all prototype
+- development: the project is actively being worked on
 
 <!--- --8<-- [end:description] -->
 
@@ -87,6 +87,20 @@ The (non-locked) version of gcages can be installed with
 === "pip"
     ```sh
     pip install gcages
+    ```
+
+Additional dependencies can be installed using
+
+=== "pip"
+    ```sh
+    # To add the dependencies required to run processing like AR6
+    pip install 'gcages[ar6]'
+
+    # To add progress bar-related dependencies
+    pip install 'gcages[progress]'
+
+    # To add all optional dependencies
+    pip install 'gcages[full]'
     ```
 
 ### For developers

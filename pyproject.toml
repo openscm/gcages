@@ -10,6 +10,7 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.25.0",
     "pandas>=2.2.0",
+    "pandas-openscm>=0.3.2",
 ]
 readme = "README.md"
 classifiers = [
@@ -39,6 +40,19 @@ Issues = "https://github.com/openscm/gcages/issues"
 
 
 [project.optional-dependencies]
+ar6 = [
+    "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
+    "pandas-indexing[units]>=0.6.3",
+    "scipy>=1.13.0",
+]
+progress = [
+    "tqdm>=4.0.0",
+]
+full = [
+    "gcages[ar6]",
+    "gcages[progress]",
+]
+
 
 [dependency-groups]
 # The development dependencies are pinned
@@ -54,29 +68,16 @@ dev = [
     "liccheck==0.9.2",
     "mypy==1.14.0",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
+    "pandas-indexing>=0.6.3",
+    "pandas-stubs>=2.2.2.240807",
     "pip==24.3.1",
     "pre-commit==4.0.1",
+    "pytest>=8.3.4",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
     "setuptools==75.6.0",
     "towncrier==24.8.0",
-    # Implied by the key dependencies above
-    # -------------------------------------
-    "cfgv==3.4.0",
-    "click==8.1.8",
-    "colorama==0.4.6 ; sys_platform == 'win32'",
-    "distlib==0.3.9",
-    "filelock==3.16.1",
-    "identify==2.6.5",
-    "jinja2==3.1.5",
-    "markupsafe==3.0.2",
-    "mypy-extensions==1.0.0",
-    "nodeenv==1.9.1",
-    "platformdirs==4.3.6",
-    "pyyaml==6.0.2",
-    "semantic-version==2.10.0",
-    "toml==0.10.2",
-    "typing-extensions==4.12.2",
-    "virtualenv==20.28.1",
+    "tqdm>=4.67.1",
+    "typing-extensions>=4.12.2",
 ]
 docs = [
     # Key dependencies
@@ -205,6 +206,10 @@ docs = [
     "webcolors==24.11.1",
     "webencodings==0.5.1",
     "websocket-client==1.8.0",
+    "seaborn>=0.13.2",
+    "pandas-indexing>=0.6.3",
+    "openscm-units>=0.6.3",
+    "pint>=0.24.4",
 ]
 # For minimum test dependencies.
 # These are used when running our minimum PyPI install tests.
@@ -221,17 +226,8 @@ tests-min = [
 ]
 # Full test dependencies.
 tests-full = [
-    # Key dependencies
-    # ----------------
-    "pytest-cov==6.0.0",
-    # Implied by the key dependencies above
-    # -------------------------------------
-    "colorama==0.4.6 ; sys_platform == 'win32'",
-    "coverage==7.6.10",
-    "iniconfig==2.0.0",
-    "packaging==24.2",
-    "pluggy==1.5.0",
-    "pytest==8.3.4",
+    "pandas-indexing>=0.6.3",
+    "pytest-cov>=6.0.0",
 ]
 # Test dependencies
 # (partly split because liccheck uses toml,
@@ -264,6 +260,10 @@ includes = [
 [tool.coverage.run]
 source = [
     "src",
+]
+omit = [
+    "src/gcages/aneris_helpers.py",  # should all be pushed upstream, not our problem
+    "src/gcages/ar6/*",  # requires aneris which is only available in Python 3.10+
 ]
 branch = true
 
@@ -335,6 +335,9 @@ ignore = [
     "D100",
     "E402",
     "S101",
+]
+"docs/how-to-guides/how-to-run-the-ar6-workflow.py" = [
+    "PLR2004",
 ]
 "scripts/*" = [
     "S101",
