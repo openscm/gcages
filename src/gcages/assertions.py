@@ -25,4 +25,5 @@ def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
     """
     variations_in_other_cols = indf.index.droplevel(["variable", "unit"]).unique()
     if len(variations_in_other_cols) > 1:
-        raise AssertionError(f"{variations_in_other_cols=}")
+        msg = f"variations_in_other_cols=\n{variations_in_other_cols}"
+        raise AssertionError(msg)
