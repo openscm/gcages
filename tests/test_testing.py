@@ -109,5 +109,6 @@ def test_missing_dependencies(to_call, args, exp_name, dependency, exp_dependenc
     ),
 )
 def test_assert_frame_equal(in_res, in_exp, exp):
+    pytest.importorskip("pandas_indexing")
     with exp:
         assert_frame_equal(in_res, in_exp)
