@@ -43,9 +43,12 @@ def add_historical_year_based_on_scaling(
         based on the scaling between `emissions`
         and `emissions_historical` in `year_calc_scaling`.
     """
-    if emissions.pix.unique(["model", "scenario"]).shape[0] > 1:  # type: ignore
+    mod_scen_unique = emissions.index.droplevel(
+        emissions.index.names.difference(["model", "scenario"])
+    ).unique()
+    if mod_scen_unique.shape[0] > 1:  # type: ignore
         # Processing is much trickier with multiple scenarios
-        raise NotImplementedError
+        raise NotImplementedError(mod_scen_unique)
 
     ms = ("model", "scenario")
     emissions_historical_common_vars = emissions_history.loc[
