@@ -42,6 +42,7 @@ Issues = "https://github.com/openscm/gcages/issues"
 [project.optional-dependencies]
 ar6 = [
     "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
+    "pandas-indexing>=0.6.3",
     "scipy>=1.13.0",
 ]
 progress = [

@@ -10,16 +10,11 @@ from functools import partial
 from typing import TYPE_CHECKING, Callable
 
 import pandas as pd
-import pandas_indexing as pix  # type: ignore
 from attrs import define
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 from gcages.assertions import assert_only_working_on_variable_unit_variations
-
-# from gcages.parallelisation import (
-#     assert_only_working_on_variable_unit_variations,
-#     run_parallel,
-# )
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 if TYPE_CHECKING:
@@ -61,6 +56,13 @@ def add_conditional_sums(
     :
         `indf` with conditional sums added if all enabling conditions were fulfilled.
     """
+    try:
+        import pandas_indexing as pix
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "add_conditional_sums", requirement="pandas_indexing"
+        ) from exc
+
     assert_only_working_on_variable_unit_variations(indf)
 
     if copy_on_entry:
@@ -121,6 +123,13 @@ def reclassify_variables(
     :
         `indf`, reclassified as needed.
     """
+    try:
+        import pandas_indexing as pix
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "reclassify_variables", requirement="pandas_indexing"
+        ) from exc
+
     assert_only_working_on_variable_unit_variations(indf)
 
     if copy_on_entry:
@@ -167,6 +176,13 @@ def condtionally_remove_variables(
     :
         `indf` with variables removed according to this function's logic.
     """
+    try:
+        import pandas_indexing as pix
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "condtionally_remove_variables", requirement="pandas_indexing"
+        ) from exc
+
     assert_only_working_on_variable_unit_variations(indf)
 
     if copy_on_entry:
@@ -214,6 +230,13 @@ def drop_variables_if_identical(
     :
         `indf` with variables removed according to this function's logic.
     """
+    try:
+        import pandas_indexing as pix
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "drop_variables_if_identical", requirement="pandas_indexing"
+        ) from exc
+
     assert_only_working_on_variable_unit_variations(indf)
 
     if copy_on_entry:
@@ -443,6 +466,13 @@ class AR6PreProcessor:
         :
             Pre-processed emissions
         """
+        try:
+            import pandas_indexing as pix
+        except ImportError as exc:
+            raise MissingOptionalDependencyError(
+                "AR6PreProcessor.__call__", requirement="pandas_indexing"
+            ) from exc
+
         # TODO:
         #   - enable optional checks for:
         #       - only known variable names are in the output

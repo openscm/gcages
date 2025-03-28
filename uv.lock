@@ -690,11 +690,13 @@ dependencies = [
 [package.optional-dependencies]
 ar6 = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
+    { name = "pandas-indexing" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
 ]
 full = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
+    { name = "pandas-indexing" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "tqdm" },
@@ -995,6 +997,7 @@ requires-dist = [
     { name = "gcages", extras = ["progress"], marker = "extra == 'full'" },
     { name = "numpy", specifier = ">=1.25.0" },
     { name = "pandas", specifier = ">=2.2.0" },
+    { name = "pandas-indexing", marker = "extra == 'ar6'", specifier = ">=0.6.3" },
     { name = "pandas-openscm", specifier = ">=0.3.2" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
     { name = "tqdm", marker = "extra == 'progress'", specifier = ">=4.0.0" },
