@@ -44,9 +44,9 @@ def add_historical_year_based_on_scaling(
         and `emissions_historical` in `year_calc_scaling`.
     """
     mod_scen_unique = emissions.index.droplevel(
-        emissions.index.names.difference(["model", "scenario"])
+        emissions.index.names.difference(["model", "scenario"])  # type: ignore
     ).unique()
-    if mod_scen_unique.shape[0] > 1:  # type: ignore
+    if mod_scen_unique.shape[0] > 1:
         # Processing is much trickier with multiple scenarios
         raise NotImplementedError(mod_scen_unique)
 
