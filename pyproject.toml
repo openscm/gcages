@@ -261,6 +261,10 @@ includes = [
 source = [
     "src",
 ]
+omit = [
+    "src/gcages/aneris_helpers.py",  # should all be pushed upstream, not our problem
+    "src/gcages/ar6/*",  # requires aneris which is only available in Python 3.10+
+]
 branch = true
 
 [tool.coverage.report]
