@@ -58,8 +58,8 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         out_column_type=int,
     )
 
-    res.index = res.index.set_levels(
-        res.index.levels[res.index.names.index("variable")].map(
+    res.index = res.index.set_levels(  # type: ignore # pandas-stubs confused
+        res.index.levels[res.index.names.index("variable")].map(  # type: ignore # pandas-stubs confused
             lambda x: x.replace("AR6 climate diagnostics|", "").replace(
                 "|Unharmonized", ""
             )

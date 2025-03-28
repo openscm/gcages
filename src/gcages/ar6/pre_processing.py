@@ -57,7 +57,8 @@ def add_conditional_sums(
         `indf` with conditional sums added if all enabling conditions were fulfilled.
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.core import concat
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "add_conditional_sums", requirement="pandas_indexing"
@@ -75,14 +76,14 @@ def add_conditional_sums(
         existing_vars: pd.MultiIndex = out.pix.unique("variable")  # type: ignore
         if v_target not in existing_vars:
             if all(v in existing_vars for v in v_sources):
-                locator_sources = pix.isin(variable=v_sources)
+                locator_sources = isin(variable=v_sources)
                 to_add = out.loc[locator_sources]
 
                 tmp = to_add.groupby(list(set(to_add.index.names) - {"variable"})).sum(
                     min_count=len(v_sources)
                 )
                 tmp = tmp.pix.assign(variable=v_target)
-                out = pix.concat([out.loc[~locator_sources], tmp], axis="index")
+                out = concat([out.loc[~locator_sources], tmp], axis="index")
 
     return out
 
@@ -124,7 +125,7 @@ def reclassify_variables(
         `indf`, reclassified as needed.
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "reclassify_variables", requirement="pandas_indexing"
@@ -139,10 +140,10 @@ def reclassify_variables(
         out = indf
 
     for v_target, v_sources in reclassifications.items():
-        locator_sources = pix.isin(variable=v_sources)
+        locator_sources = isin(variable=v_sources)
         to_add = out.loc[locator_sources]
         if not to_add.empty:
-            out.loc[pix.isin(variable=v_target)] += to_add.sum()
+            out.loc[isin(variable=v_target)] += to_add.sum()  # type: ignore
             out = out.loc[~locator_sources]
 
     return out
@@ -177,7 +178,7 @@ def condtionally_remove_variables(
         `indf` with variables removed according to this function's logic.
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "condtionally_remove_variables", requirement="pandas_indexing"
@@ -196,7 +197,7 @@ def condtionally_remove_variables(
         if v_drop in existing_vars and all(
             v in existing_vars for v in v_sub_components
         ):
-            out = out.loc[~pix.isin(variable=v_drop)]
+            out = out.loc[~isin(variable=v_drop)]
 
     return out
 
@@ -231,7 +232,7 @@ def drop_variables_if_identical(
         `indf` with variables removed according to this function's logic.
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "drop_variables_if_identical", requirement="pandas_indexing"
@@ -253,17 +254,17 @@ def drop_variables_if_identical(
             # e.g. C3IAM 2.0 2C-hybrid
             if (
                 (
-                    out.loc[pix.isin(variable=v_drop)]
+                    out.loc[isin(variable=v_drop)]
                     .reset_index("variable", drop=True)
                     .dropna(axis="columns")
-                    == out.loc[pix.isin(variable=v_check)]
+                    == out.loc[isin(variable=v_check)]
                     .reset_index("variable", drop=True)
                     .dropna(axis="columns")
                 )
                 .all()
                 .all()
             ):
-                out = out.loc[~pix.isin(variable=v_drop)]
+                out = out.loc[~isin(variable=v_drop)]
 
     return out
 
@@ -274,7 +275,7 @@ def run_parallel_pre_processing(  # noqa: PLR0913
     groups: tuple[str, ...] = ("model", "scenario"),
     progress: bool = True,
     progress_bar_desc: str | None = None,
-    n_processes: int = multiprocessing.cpu_count(),
+    n_processes: int | None = multiprocessing.cpu_count(),
     *args: P.args,
     **kwargs: P.kwargs,
 ) -> pd.DataFrame:
@@ -316,13 +317,14 @@ def run_parallel_pre_processing(  # noqa: PLR0913
 
     res = pd.concat(
         apply_op_parallel_progress(
-            func_to_call=func_to_call,
-            iterable_input=(gdf for _, gdf in indf.groupby(list(groups))),
-            parallel_op_config=ParallelOpConfig.from_user_facing(
+            func_to_call,
+            (gdf for _, gdf in indf.groupby(list(groups))),
+            ParallelOpConfig.from_user_facing(
                 progress=progress,
                 progress_results_kwargs=dict(desc=progress_bar_desc),
                 max_workers=n_processes,
             ),
+            *args,
             **kwargs,
         )
     )
@@ -467,7 +469,7 @@ class AR6PreProcessor:
             Pre-processed emissions
         """
         try:
-            import pandas_indexing as pix
+            from pandas_indexing.selectors import isin, ismatch
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "AR6PreProcessor.__call__", requirement="pandas_indexing"
@@ -534,7 +536,7 @@ class AR6PreProcessor:
             )
 
         # Negative value handling
-        co2_locator = pix.ismatch(variable="**CO2**")
+        co2_locator = ismatch(variable="**CO2**")
         in_emissions.loc[~co2_locator] = in_emissions.loc[~co2_locator].where(
             # Where these conditions are true, keep the original data.
             (in_emissions.loc[~co2_locator] > 0)
@@ -544,7 +546,7 @@ class AR6PreProcessor:
             other=0.0,
         )
 
-        res: pd.DataFrame = in_emissions.loc[pix.isin(variable=self.emissions_out)]
+        res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Strip out any units that won't play nice with pint
         res = strip_pint_incompatible_characters_from_units(

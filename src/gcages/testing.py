@@ -121,7 +121,7 @@ def get_ar6_raw_emissions(
         All raw emissions from AR6 for `model`-`scenario`
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import ismatch
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_raw_emissions", requirement="pandas_indexing"
@@ -132,7 +132,7 @@ def get_ar6_raw_emissions(
         scenario=scenario,
         processed_ar6_output_data_dir=processed_ar6_output_data_dir,
     )
-    res: pd.DataFrame = all_emissions.loc[pix.ismatch(variable="Emissions**")].dropna(
+    res: pd.DataFrame = all_emissions.loc[ismatch(variable="Emissions**")].dropna(
         how="all", axis="columns"
     )
 
@@ -165,7 +165,7 @@ def get_ar6_harmonised_emissions(
         All harmonised emissions from AR6 for `model`-`scenario`
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import ismatch
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_harmonised_emissions", requirement="pandas_indexing"
@@ -176,9 +176,9 @@ def get_ar6_harmonised_emissions(
         scenario=scenario,
         processed_ar6_output_data_dir=processed_ar6_output_data_dir,
     )
-    res: pd.DataFrame = all_emissions.loc[
-        pix.ismatch(variable="**Harmonized**")
-    ].dropna(how="all", axis="columns")
+    res: pd.DataFrame = all_emissions.loc[ismatch(variable="**Harmonized**")].dropna(
+        how="all", axis="columns"
+    )
 
     return res
 

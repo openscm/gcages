@@ -69,6 +69,7 @@ dev = [
     "mypy==1.14.0",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
     "pandas-indexing>=0.6.3",
+    "pandas-stubs>=2.2.2.240807",
     "pip==24.3.1",
     "pre-commit==4.0.1",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
@@ -205,6 +206,9 @@ docs = [
     "webencodings==0.5.1",
     "websocket-client==1.8.0",
     "seaborn>=0.13.2",
+    "pandas-indexing>=0.6.3",
+    "openscm-units>=0.6.3",
+    "pint>=0.24.4",
 ]
 # For minimum test dependencies.
 # These are used when running our minimum PyPI install tests.

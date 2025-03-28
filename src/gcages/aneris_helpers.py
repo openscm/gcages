@@ -33,7 +33,7 @@ class MissingHarmonisationYear(ValueError):
 
 def _check_data(hist: pd.DataFrame, scen: pd.DataFrame, year: int) -> None:
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.core import projectlevel
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -43,7 +43,7 @@ def _check_data(hist: pd.DataFrame, scen: pd.DataFrame, year: int) -> None:
     check = ["region", "variable"]
 
     def downselect(df: pd.DataFrame) -> pd.Index[Any]:
-        res: pd.Index[Any] = pix.projectlevel(df.index, check)
+        res: pd.Index[Any] = projectlevel(df.index, check)
 
         return res
 
@@ -65,7 +65,8 @@ def _convert_units_to_match(
     start: pd.DataFrame, match: pd.DataFrame, copy_on_entry: bool = True
 ) -> pd.DataFrame:
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.core import concat, projectlevel
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -78,17 +79,17 @@ def _convert_units_to_match(
     else:
         out = start
 
-    differences = pix.projectlevel(match.index, ["variable", "unit"]).difference(
-        pix.projectlevel(start.index, ["variable", "unit"])
+    differences = projectlevel(match.index, ["variable", "unit"]).difference(
+        projectlevel(start.index, ["variable", "unit"])
     )
     if not differences.empty:
         updated = []
         for variable, target_unit in differences:
-            v_loc = pix.isin(variable=variable)
+            v_loc = isin(variable=variable)
             updated.append(out.loc[v_loc].pix.convert_unit(target_unit))
             out = out.loc[~v_loc]
 
-        out = pix.concat([out, *updated])
+        out = concat([out, *updated])
 
     return out
 
@@ -113,7 +114,7 @@ def _knead_overrides(
         Something, TBD what
     """
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -134,7 +135,7 @@ def _knead_overrides(
     # if data is provided per model and scenario, get those explicitly
     elif set(["model", "scenario"]).issubset(set(overrides.index.names)):
         _overrides = overrides.loc[
-            pix.isin(model=scen.model, scenario=scen.scenario)
+            isin(model=scen.model, scenario=scen.scenario)
         ].droplevel(["model", "scenario"])
     # some of expected idx in cols, make it a multiindex
     elif isinstance(overrides, pd.DataFrame) and set(harm_idx) & set(overrides.columns):
@@ -235,14 +236,15 @@ def harmonise_all(
         the harmonisation method for a given timeseries.
     """
     try:
-        from aneris.harmonize import Harmonizer
+        from aneris.harmonize import Harmonizer  # type: ignore
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="aneris"
         ) from exc
 
     try:
-        import pandas_indexing as pix
+        from pandas_indexing.core import concat, semijoin
+        from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -253,12 +255,12 @@ def harmonise_all(
     dfs = []
     for (model, scenario), msdf in scenarios.groupby(["model", "scenario"]):
         hist_msdf = history.loc[
-            pix.isin(region=msdf.pix.unique("region"))  # type: ignore
-            & pix.isin(variable=msdf.pix.unique("variable"))  # type: ignore
+            isin(region=msdf.pix.unique("region"))  # type: ignore
+            & isin(variable=msdf.pix.unique("variable"))  # type: ignore
         ]
-        _check_data(hist_msdf, msdf, year)  # type: ignore
+        _check_data(hist_msdf, msdf, year)
 
-        hist_msdf = _convert_units_to_match(start=hist_msdf, match=msdf)  # type: ignore
+        hist_msdf = _convert_units_to_match(start=hist_msdf, match=msdf)
 
         # need to convert to aneris' internal datastructure
         level_order = ["model", "scenario", "region", "variable", "unit"]
@@ -281,7 +283,7 @@ def harmonise_all(
         )
 
     # realign indicies as needed
-    result = pix.concat(dfs)
-    result = pix.semijoin(result, sidx, how="right").reorder_levels(sidx.names)
+    result = concat(dfs)
+    result = semijoin(result, sidx, how="right").reorder_levels(sidx.names)
 
     return result

@@ -45,9 +45,9 @@ def strip_pint_incompatible_characters_from_units(
         removed from the `units_index_level` of its index.
     """
     res = indf.copy()
-    res.index = res.index.remove_unused_levels()
-    res.index = res.index.set_levels(
-        res.index.levels[res.index.names.index(units_index_level)].map(
+    res.index = res.index.remove_unused_levels()  # type: ignore # not in pandas-stubs
+    res.index = res.index.set_levels(  # type: ignore # pandas-stubs out of date
+        res.index.levels[res.index.names.index(units_index_level)].map(  # type: ignore # pandas-stubs out of date
             strip_pint_incompatible_characters_from_unit_string
         ),
         level=units_index_level,
