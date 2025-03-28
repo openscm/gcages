@@ -32,7 +32,7 @@ def add_conditional_sums(
     copy_on_entry: bool = True,
 ) -> pd.DataFrame:
     """
-    Add sums to a [pandas.DataFrame][pd.DataFrame] if all components are present
+    Add sums to a [pd.DataFrame][pandas.DataFrame] if all components are present
 
     Parameters
     ----------

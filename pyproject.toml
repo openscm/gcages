@@ -42,7 +42,7 @@ Issues = "https://github.com/openscm/gcages/issues"
 [project.optional-dependencies]
 ar6 = [
     "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
-    "pandas-indexing>=0.6.3",
+    "pandas-indexing[units]>=0.6.3",
     "scipy>=1.13.0",
 ]
 progress = [
@@ -204,6 +204,7 @@ docs = [
     "webcolors==24.11.1",
     "webencodings==0.5.1",
     "websocket-client==1.8.0",
+    "seaborn>=0.13.2",
 ]
 # For minimum test dependencies.
 # These are used when running our minimum PyPI install tests.
@@ -325,6 +326,9 @@ ignore = [
     "D100",
     "E402",
     "S101",
+]
+"docs/how-to-guides/how-to-run-the-ar6-workflow.py" = [
+    "PLR2004",
 ]
 "scripts/*" = [
     "S101",
