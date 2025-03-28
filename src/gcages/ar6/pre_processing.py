@@ -7,7 +7,7 @@ from __future__ import annotations
 import multiprocessing
 from collections.abc import Mapping
 from functools import partial
-from typing import Callable, Concatenate, ParamSpec
+from typing import TYPE_CHECKING, Callable
 
 import pandas as pd
 import pandas_indexing as pix  # type: ignore
@@ -22,7 +22,10 @@ from gcages.assertions import assert_only_working_on_variable_unit_variations
 # )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
-P = ParamSpec("P")
+if TYPE_CHECKING:
+    from typing_extensions import Concatenate, ParamSpec
+
+    P = ParamSpec("P")
 
 
 # As a note, if you wanted to re-use these helpers somewhere else,

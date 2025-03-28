@@ -69,66 +69,67 @@ def add_historical_year_based_on_scaling(
     return out
 
 
-def add_harmonisation_year_if_needed(
-    indf: pd.DataFrame,
-    harmonisation_year: int,
-    calc_scaling_year: int,
-    emissions_history: pd.DataFrame,
-) -> pd.DataFrame:
-    """
-    Add data for the harmonisation year if needed
-
-    If the harmonisation year needs to be added,
-    it is added based on [add_historical_year_based_on_scaling][]
-    (this could be made more flexible of course).
-
-    Parameters
-    ----------
-    indf
-        Input data to check and potentially add data to
-
-    harmonisation_year
-        Year that is being used for harmonisation
-
-    calc_scaling_year
-        Year to use for calculating a scaling factor from historical
-
-        Only used if `harmonisation_year` has missing data in `indf`.
-
-    emissions_history
-        Emissions history to use to calculate
-        the fill values based on scaling
-
-    Returns
-    -------
-    :
-        `indf` with `harmonisation_year` data added where needed
-    """
-    if harmonisation_year not in indf:
-        emissions_to_harmonise = add_historical_year_based_on_scaling(
-            year_to_add=harmonisation_year,
-            year_calc_scaling=calc_scaling_year,
-            emissions=indf,
-            emissions_history=emissions_history,
-        )
-
-    elif indf[harmonisation_year].isnull().any():
-        null_emms_in_harm_year = indf[harmonisation_year].isnull()
-
-        dont_change = indf[~null_emms_in_harm_year]
-
-        updated = add_historical_year_based_on_scaling(
-            year_to_add=harmonisation_year,
-            year_calc_scaling=calc_scaling_year,
-            emissions=indf[null_emms_in_harm_year].drop(
-                harmonisation_year, axis="columns"
-            ),
-            emissions_history=emissions_history,
-        )
-
-        emissions_to_harmonise = pd.concat([dont_change, updated])
-
-    else:
-        emissions_to_harmonise = indf
-
-    return emissions_to_harmonise
+# Add back in if needed
+# def add_harmonisation_year_if_needed(
+#     indf: pd.DataFrame,
+#     harmonisation_year: int,
+#     calc_scaling_year: int,
+#     emissions_history: pd.DataFrame,
+# ) -> pd.DataFrame:
+#     """
+#     Add data for the harmonisation year if needed
+#
+#     If the harmonisation year needs to be added,
+#     it is added based on [add_historical_year_based_on_scaling][]
+#     (this could be made more flexible of course).
+#
+#     Parameters
+#     ----------
+#     indf
+#         Input data to check and potentially add data to
+#
+#     harmonisation_year
+#         Year that is being used for harmonisation
+#
+#     calc_scaling_year
+#         Year to use for calculating a scaling factor from historical
+#
+#         Only used if `harmonisation_year` has missing data in `indf`.
+#
+#     emissions_history
+#         Emissions history to use to calculate
+#         the fill values based on scaling
+#
+#     Returns
+#     -------
+#     :
+#         `indf` with `harmonisation_year` data added where needed
+#     """
+#     if harmonisation_year not in indf:
+#         emissions_to_harmonise = add_historical_year_based_on_scaling(
+#             year_to_add=harmonisation_year,
+#             year_calc_scaling=calc_scaling_year,
+#             emissions=indf,
+#             emissions_history=emissions_history,
+#         )
+#
+#     elif indf[harmonisation_year].isnull().any():
+#         null_emms_in_harm_year = indf[harmonisation_year].isnull()
+#
+#         dont_change = indf[~null_emms_in_harm_year]
+#
+#         updated = add_historical_year_based_on_scaling(
+#             year_to_add=harmonisation_year,
+#             year_calc_scaling=calc_scaling_year,
+#             emissions=indf[null_emms_in_harm_year].drop(
+#                 harmonisation_year, axis="columns"
+#             ),
+#             emissions_history=emissions_history,
+#         )
+#
+#         emissions_to_harmonise = pd.concat([dont_change, updated])
+#
+#     else:
+#         emissions_to_harmonise = indf
+#
+#     return emissions_to_harmonise

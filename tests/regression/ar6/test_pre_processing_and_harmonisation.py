@@ -30,6 +30,8 @@ AR6_HISTORICAL_EMISSIONS_FILE = (
 )
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
+pytest.importorskip("aneris")
+
 
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):
