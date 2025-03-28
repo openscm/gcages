@@ -30,8 +30,6 @@ AR6_HISTORICAL_EMISSIONS_FILE = (
 )
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
-pytest.importorskip("aneris")
-
 
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):
@@ -51,6 +49,8 @@ def test_individual_scenario(model, scenario):
         progress=False,
     )
 
+    # Only works if aneris installed
+    pytest.importorskip("aneris")
     harmoniser = AR6Harmoniser.from_ar6_config(
         ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
         run_checks=False,
@@ -105,6 +105,8 @@ def test_key_testing_scenarios_all_at_once_parallel():
         # progress=False,
     )
 
+    # Only works if aneris installed
+    pytest.importorskip("aneris")
     harmoniser = AR6Harmoniser.from_ar6_config(
         ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
         run_checks=False,
