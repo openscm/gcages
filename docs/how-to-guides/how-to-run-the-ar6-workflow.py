@@ -36,13 +36,18 @@ import numpy as np
 import openscm_units
 import pandas as pd
 import pandas_indexing as pix
+import pandas_openscm.accessors
 import pint
 import seaborn as sns
 
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
 
 # %%
-# Setup pint
+# Setup pandas-openscm accessor (used for help with plotting)
+pandas_openscm.accessors.register_pandas_accessor()
+
+# %%
+# Setup pint (unit handling)
 pint.set_application_registry(openscm_units.unit_registry)
 
 # %% [markdown]
@@ -55,8 +60,9 @@ pint.set_application_registry(openscm_units.unit_registry)
 # and years as the columns.
 #
 # We will come to the emissions variables that are supported in the next part.
-# For now, we are going to create a basic scenario
-# with CO2 fossil and CH4 emissions.
+# For now, we are going to create basic scenarios
+# with CO<sub>2</sub> fossil and CH<sub>4</sub> emissions.
+# The data is obviously just made up, don't read too much into the exact values.
 
 # %%
 # All the code to generate these demo timeseries
@@ -134,7 +140,7 @@ start = pd.DataFrame(
         names=["model", "scenario", "region", "variable", "unit"],
     ),
 )
-start = start.T.interpolate("index").T
+start = start.T.interpolate("index").T.loc[:, [2015, *range(2020, 2100 + 1, 10)]]
 start
 
 # %%
@@ -149,9 +155,7 @@ relplot_in_emms = partial(
     style="scenario",
     col_wrap=2,
 )
-fg = relplot_in_emms(
-    data=start.melt(ignore_index=False, var_name="year").reset_index(),
-)
+fg = relplot_in_emms(data=start.openscm.to_long_data(time_col_name="year"))
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
@@ -225,6 +229,8 @@ harmoniser = AR6Harmoniser.from_ar6_config(
 
 # %%
 harmonised = harmoniser(pre_processed)
+# You'll notice here that the harmonisation step
+# also interpolated in AR6.
 harmonised
 
 # %% [markdown]
@@ -234,19 +240,15 @@ harmonised
 # the same idea is applied to all variables.
 
 # %%
-pdf = (
-    pix.concat(
-        [
-            pre_processed.pix.assign(stage="pre_processed"),
-            harmonised.pix.assign(stage="harmonised"),
-            harmoniser.historical_emissions.pix.assign(
-                stage="history", scenario="history"
-            ).loc[pix.isin(variable=pre_processed.pix.unique("variable"))],
-        ]
-    )
-    .melt(ignore_index=False, var_name="year")
-    .reset_index()
-)
+pdf = pix.concat(
+    [
+        pre_processed.pix.assign(stage="pre_processed"),
+        harmonised.pix.assign(stage="harmonised"),
+        harmoniser.historical_emissions.pix.assign(
+            stage="history", scenario="history"
+        ).loc[pix.isin(variable=pre_processed.pix.unique("variable"))],
+    ]
+).openscm.to_long_data(time_col_name="year")
 pdf["variable"] = pdf["variable"].str.replace("AR6 climate diagnostics|Harmonized|", "")
 
 fg = relplot_in_emms(

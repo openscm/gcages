@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.25.0",
     "pandas>=2.2.0",
-    "pandas-openscm>=0.3.2",
+    "pandas-openscm>=0.3.3",
 ]
 readme = "README.md"
 classifiers = [
