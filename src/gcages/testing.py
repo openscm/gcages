@@ -10,6 +10,8 @@ when you turn your tests into a package using `__init__.py` files
 from __future__ import annotations
 
 import functools
+import os
+import platform
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -226,6 +228,46 @@ def get_ar6_infilled_emissions(
     )
 
     return res
+
+
+def get_magicc_exe_path() -> Path:
+    """
+    Get the path to the MAGICC executable
+
+    Uses the `MAGICC_EXECUTABLE_7` environment variable.
+    If that isn't set, it guesses.
+
+    Returns
+    -------
+    :
+        Path to the MAGICC executable
+
+    Raises
+    ------
+    FileNotFoundError
+        The guessed path to the MAGICC executable does not exist
+    """
+    env_var = os.environ.get("MAGICC_EXECUTABLE_7", None)
+    if env_var is not None:
+        return Path(env_var)
+
+    guess = None
+    if platform.system() == "Darwin":
+        if platform.processor() == "arm":
+            guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc-darwin-arm64"
+
+    elif platform.system() == "Windows":
+        guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc.exe"
+
+    if guess is not None:
+        if guess.exists():
+            return guess
+
+        msg = f"Guessed that the MAGICC executable was in: {guess}"
+        raise FileNotFoundError(msg)
+
+    msg = "No guess about where the MAGICC executable is for your system"
+    raise FileNotFoundError(msg)
 
 
 def assert_frame_equal(

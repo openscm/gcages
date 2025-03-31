@@ -372,7 +372,7 @@ class AR6Infiller:
     Should progress bars be shown for each operation?
     """
 
-    n_processes: int | None = (None,)  # better off in serial with silicone
+    n_processes: int | None = None  # better off in serial with silicone
     """
     Number of processes to use for parallel processing.
 
@@ -468,7 +468,7 @@ class AR6Infiller:
         n_processes: int | None = None,  # better off in serial with silicone
     ) -> AR6Infiller:
         """
-        Initialise from config (exactly) like what was used in AR6
+        Initialise from the config used in AR6
 
         Parameters
         ----------

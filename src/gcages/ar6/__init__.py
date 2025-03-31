@@ -9,8 +9,8 @@ from .infilling import AR6Infiller
 
 # from .post_processing import AR6PostProcessor
 from .pre_processing import AR6PreProcessor
+from .scm_running import AR6SCMRunner
 
-# from .scm_running import AR6SCMRunner
 # from .workflow import run_ar6_workflow
 
 __all__ = [
@@ -18,6 +18,6 @@ __all__ = [
     "AR6Infiller",
     # "AR6PostProcessor",
     "AR6PreProcessor",
-    # "AR6SCMRunner",
+    "AR6SCMRunner",
     # "run_ar6_workflow",
 ]
