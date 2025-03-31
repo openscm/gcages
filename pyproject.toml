@@ -8,9 +8,18 @@ authors = [
 license = { text = "3-Clause BSD License" }
 requires-python = ">=3.9"
 dependencies = [
+    "filelock>=3.16.1",
+    "loguru>=0.7.3",
     "numpy>=1.25.0",
+    "openscm-units>=0.6.3",
     "pandas>=2.2.0",
     "pandas-openscm>=0.3.3",
+    "pyarrow>=19.0.1",
+    "pymagicc>=2.1.5",
+    "scipy>=1.13.1",
+    "silicone>=1.3.0",
+    "tqdm>=4.67.1",
+    "typer>=0.15.2",
 ]
 readme = "README.md"
 classifiers = [
