@@ -49,7 +49,7 @@ def test_individual_scenario(model, scenario):
         progress=False,
     )
 
-    # Only works if aneris installed
+    # Only works if aneris is installed
     pytest.importorskip("aneris")
     harmoniser = AR6Harmoniser.from_ar6_config(
         ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
