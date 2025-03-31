@@ -39,6 +39,7 @@ KEY_TESTING_MODEL_SCENARIOS = tuple(
         # Other special cases
         ("C3IAM 2.0", "2C-hybrid"),
         ("DNE21+ V.14E1", "EMF30_BCOC-EndU"),
+        ("IMACLIM-NLU 1.0", "EMF33_tax_hi_none"),
     ]
 )
 
