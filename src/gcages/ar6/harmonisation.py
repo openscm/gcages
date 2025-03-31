@@ -44,10 +44,11 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         `filepath` points to a file that does not have the expected hash
     """
     fp_hash = get_file_hash(filepath, algorithm="sha256")
-    if fp_hash != "b0538b63aca8e0846a4bb55da50529e72f83cb0c7373f26eac4c2a80ca6e3ac1":
+    fp_hash_exp = "b0538b63aca8e0846a4bb55da50529e72f83cb0c7373f26eac4c2a80ca6e3ac1"
+    if fp_hash != fp_hash_exp:
         msg = (
             f"The sha256 hash of {filepath} is {fp_hash}. "
-            "This does not match what we expect."
+            f"This does not match what we expect ({fp_hash_exp=})."
         )
         raise AssertionError(msg)
 
@@ -225,11 +226,11 @@ class AR6Harmoniser:
     Should progress bars be shown for each operation?
     """
 
-    n_processes: int = multiprocessing.cpu_count()
+    n_processes: int | None = multiprocessing.cpu_count()
     """
     Number of processes to use for parallel processing.
 
-    Set to 1 to process in serial.
+    Set to `None` to process in serial.
     """
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -264,9 +265,8 @@ class AR6Harmoniser:
                 parallel_op_config=ParallelOpConfig.from_user_facing(
                     progress=self.progress,
                     max_workers=self.n_processes,
+                    progress_results_kwargs=dict(desc="Scenarios to harmonise"),
                 ),
-                # input_desc="model-scenario combinations to harmonise",
-                # n_processes=self.n_processes,
                 history=self.historical_emissions,
                 year=self.harmonisation_year,
                 overrides=self.aneris_overrides,
@@ -298,7 +298,7 @@ class AR6Harmoniser:
         ar6_historical_emissions_file: Path,
         run_checks: bool = True,
         progress: bool = True,
-        n_processes: int = multiprocessing.cpu_count(),
+        n_processes: int | None = multiprocessing.cpu_count(),
     ) -> AR6Harmoniser:
         """
         Initialise from the config used in AR6
@@ -320,7 +320,7 @@ class AR6Harmoniser:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to 1 to process in serial.
+            Set to `None` to process in serial.
 
         Returns
         -------

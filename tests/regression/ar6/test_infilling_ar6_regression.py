@@ -14,10 +14,12 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from gcages.ar6 import AR6Infiller
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_ar6_harmonised_emissions,
+    get_ar6_infilled_emissions,
     get_key_testing_model_scenario_parameters,
 )
 
@@ -25,8 +27,11 @@ pix = pytest.importorskip("pandas_indexing")
 # Only works if silicone installed
 pytest.importorskip("silicone")
 
-AR6_HISTORICAL_EMISSIONS_FILE = (
-    Path(__file__).parents[0] / "ar6-workflow-inputs" / "history_ar6.csv"
+AR6_INFILLING_DB_FILE = (
+    Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6.csv"
+)
+AR6_INFILLING_DB_CFCS_FILE = (
+    Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6_cfcs.csv"
 )
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
@@ -40,6 +45,7 @@ def test_individual_scenario(model, scenario):
             processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
         )
         # Ignore aggregate stuff
+        # (but keep CO2 total, that is needed)
         .loc[~pix.ismatch(variable=["**Kyoto**", "**F-Gases", "**HFC", "**PFC"])]
     )
     if harmonised.empty:
@@ -47,6 +53,8 @@ def test_individual_scenario(model, scenario):
         raise AssertionError(msg)
 
     infiller = AR6Infiller.from_ar6_config(
+        ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
+        ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
         run_checks=False,
         n_processes=None,  # not parallel
         progress=False,
@@ -56,7 +64,9 @@ def test_individual_scenario(model, scenario):
 
     exp = (
         get_ar6_infilled_emissions(
-            model=model, scenario=scenario, test_data_dir=TEST_DATA_DIR
+            model=model,
+            scenario=scenario,
+            processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
         )
         # Ignore aggregate stuff
         .loc[
@@ -77,6 +87,9 @@ def test_key_testing_scenarios_all_at_once_parallel():
                 scenario=scenario,
                 processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
             )
+            # Ignore aggregate stuff
+            # (but keep CO2 total, that is needed)
+            .loc[~pix.ismatch(variable=["**Kyoto**", "**F-Gases", "**HFC", "**PFC"])]
         )
         exp_l.append(
             get_ar6_infilled_emissions(
@@ -96,9 +109,11 @@ def test_key_testing_scenarios_all_at_once_parallel():
     exp = pd.concat(exp_l)
 
     infiller = AR6Infiller.from_ar6_config(
+        ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
+        ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
         run_checks=False,
-        n_processes=None,  # not parallel
-        progress=False,
+        # n_processes=None,  # not parallel
+        # progress=False,
     )
 
     res = infiller(harmonised)

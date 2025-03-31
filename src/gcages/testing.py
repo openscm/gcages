@@ -183,6 +183,50 @@ def get_ar6_harmonised_emissions(
     return res
 
 
+@functools.cache
+def get_ar6_infilled_emissions(
+    model: str, scenario: str, processed_ar6_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get all infilled emissions from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    processed_ar6_output_data_dir
+        Directory in which the AR6 was processed into individual model-scenario files
+
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
+
+    Returns
+    -------
+    :
+        All infilled emissions from AR6 for `model`-`scenario`
+    """
+    try:
+        from pandas_indexing.selectors import ismatch
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_ar6_harmonised_emissions", requirement="pandas_indexing"
+        ) from exc
+
+    all_emissions = get_ar6_all_emissions(
+        model=model,
+        scenario=scenario,
+        processed_ar6_output_data_dir=processed_ar6_output_data_dir,
+    )
+    res: pd.DataFrame = all_emissions.loc[ismatch(variable="**Infilled**")].dropna(
+        how="all", axis="columns"
+    )
+
+    return res
+
+
 def assert_frame_equal(
     res: pd.DataFrame, exp: pd.DataFrame, rtol: float = 1e-8, **kwargs: Any
 ) -> None:
