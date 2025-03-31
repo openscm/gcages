@@ -76,7 +76,7 @@ def get_ar6_all_emissions(
         Scenario
 
     processed_ar6_output_data_dir
-        Directory in which the AR6 was processed into individual model-scenario files
+        Directory in which the AR6 output was processed into model-scenario files
 
         (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
@@ -114,7 +114,7 @@ def get_ar6_raw_emissions(
         Scenario
 
     processed_ar6_output_data_dir
-        Directory in which the AR6 was processed into individual model-scenario files
+        Directory in which the AR6 output was processed into model-scenario files
 
         (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
@@ -158,7 +158,7 @@ def get_ar6_harmonised_emissions(
         Scenario
 
     processed_ar6_output_data_dir
-        Directory in which the AR6 was processed into individual model-scenario files
+        Directory in which the AR6 output was processed into model-scenario files
 
         (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
@@ -202,7 +202,7 @@ def get_ar6_infilled_emissions(
         Scenario
 
     processed_ar6_output_data_dir
-        Directory in which the AR6 was processed into individual model-scenario files
+        Directory in which the AR6 output was processed into model-scenario files
 
         (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
@@ -226,6 +226,80 @@ def get_ar6_infilled_emissions(
     res: pd.DataFrame = all_emissions.loc[ismatch(variable="**Infilled**")].dropna(
         how="all", axis="columns"
     )
+
+    return res
+
+
+@functools.cache
+def get_ar6_temperature_outputs(
+    model: str, scenario: str, processed_ar6_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get temperature outputs we've downloaded from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    processed_ar6_output_data_dir
+        Directory in which the AR6 output was processed into model-scenario files
+
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
+
+    Returns
+    -------
+    :
+        All temperature outputs we've downloaded from AR6 for `model`-`scenario`
+    """
+    # TODO: check this
+    filename_temperatures = f"ar6_scenarios__{model}__{scenario}__temperatures.csv"
+    filename_temperatures = filename_temperatures.replace("/", "_").replace(" ", "_")
+    temperatures_file = processed_ar6_output_data_dir / filename_temperatures
+
+    res = load_timeseries_csv(
+        temperatures_file,
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_column_type=int,
+    )
+
+    return res
+
+
+@functools.cache
+def get_ar6_metadata_outputs(
+    model: str,
+    scenario: str,
+    ar6_output_data_dir: Path,
+    filename="AR6_Scenarios_Database_metadata_indicators_v1.1_meta.csv",
+) -> pd.DataFrame:
+    """
+    Get metadata from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    ar6_output_data_dir
+        Directory in which the AR6 output was saved
+
+    Returns
+    -------
+    :
+        Metadata from AR6 for `model`-`scenario`
+    """
+    # TODO: check this
+    res = load_timeseries_csv(
+        ar6_output_data_dir / filename,
+        index_columns=["model", "scenario"],
+    ).loc[model, scenario]
 
     return res
 

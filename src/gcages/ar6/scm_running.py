@@ -11,18 +11,77 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
-# import openscm_runner.adapters
-# import openscm_runner.run
 import pandas as pd
-
-# import scmdata
-# import tqdm.autonotebook as tqdman
 from attrs import define, field
 from pandas_openscm.db import EmptyDBError, OpenSCMDB
+from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.parallelisation import ParallelOpConfig
 
-from gcages.convention_mapping import transform_iamc_to_openscm_runner_variable
+from gcages.convention_mapping import (
+    convert_openscm_runner_output_names_to_magicc_output_names,
+    transform_iamc_to_openscm_runner_variable,
+)
+from gcages.exceptions import MissingOptionalDependencyError
+from gcages.hashing import get_file_hash
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+
+AR6_OUTPUT_VARIABLES: tuple[str, ...] = (
+    # GSAT
+    "Surface Air Temperature Change",
+    # GMST
+    "Surface Air Ocean Blended Temperature Change",
+    # ERFs
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|CFC11",
+    "Effective Radiative Forcing|CFC12",
+    "Effective Radiative Forcing|HCFC22",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|HFC125",
+    "Effective Radiative Forcing|HFC134a",
+    "Effective Radiative Forcing|HFC143a",
+    "Effective Radiative Forcing|HFC227ea",
+    "Effective Radiative Forcing|HFC23",
+    "Effective Radiative Forcing|HFC245fa",
+    "Effective Radiative Forcing|HFC32",
+    "Effective Radiative Forcing|HFC4310mee",
+    "Effective Radiative Forcing|CF4",
+    "Effective Radiative Forcing|C6F14",
+    "Effective Radiative Forcing|C2F6",
+    "Effective Radiative Forcing|SF6",
+    # Heat uptake
+    "Heat Uptake",
+    # "Heat Uptake|Ocean",
+    # Atmospheric concentrations
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|N2O",
+    # carbon cycle
+    "Net Atmosphere to Land Flux|CO2",
+    "Net Atmosphere to Ocean Flux|CO2",
+    # permafrost
+    "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
+    "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
+)
+"""
+Output variables captured in AR6
+
+Note that it can be a bit of work
+to get these variables to actually appear in the output,
+depending on which model you're using.
+"""
 
 
 def run_scm(  # noqa: PLR0913
@@ -31,10 +90,26 @@ def run_scm(  # noqa: PLR0913
     output_variables: tuple[str, ...],
     n_processes: int,
     db: OpenSCMDB | None = None,
+    verbose: bool = True,
+    progress: bool = True,
     batch_size_scenarios: int | None = None,
     force_interpolate_to_yearly: bool = True,
     force_rerun: bool = False,
 ) -> pd.DataFrame:
+    try:
+        import openscm_runner.run
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "run_scm", requirement="openscm_runner"
+        ) from exc
+
+    try:
+        import scmdata
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "run_scm", requirement="openscm_runner"
+        ) from exc
+
     if force_interpolate_to_yearly:
         # Interpolate to ensure no nans.
         for y in range(scenarios.columns.min(), scenarios.columns.max() + 1):
@@ -46,7 +121,12 @@ def run_scm(  # noqa: PLR0913
     mod_scens_to_run = scenarios.pix.unique(["model", "scenario"])
     climate_models_cfgs_iter = climate_models_cfgs.items()
     if progress:
-        climate_models_cfgs_iter = tqdm.auto.tqdm(
+        pconfig = ParallelOpConfig.from_user_facing(
+            progress=progress,
+            progress_results_kwargs=dict(desc="Climate models"),
+            max_workers=None,
+        )
+        climate_models_cfgs_iter = pconfig.progress_results(
             climate_models_cfgs_iter, desc="Climate models"
         )
 
@@ -76,9 +156,16 @@ def run_scm(  # noqa: PLR0913
                 )
 
         if progress:
-            scenario_batches = tqdm.auto.tqdm(scenario_batches, desc="Scenario batch")
+            pconfig = ParallelOpConfig.from_user_facing(
+                progress=progress,
+                progress_results_kwargs=dict(desc="Scenario batches"),
+                max_workers=None,
+            )
+            scenario_batches = pconfig.progress_results(
+                scenario_batches, desc="Scenario batch"
+            )
 
-        if db is not None:
+        if db is None:
             res_l = []
 
         for scenario_batch in scenario_batches:
@@ -156,6 +243,63 @@ def run_scm(  # noqa: PLR0913
         res = pd.concat(res_l)
 
     return res
+
+
+def check_ar6_magicc7_version() -> None:
+    """
+    Check that the MAGICC7 version is what was used in AR6
+    """
+    try:
+        import openscm_runner.adapters
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "check_ar6_magicc7_version", requirement="openscm_runner"
+        ) from exc
+
+    if openscm_runner.adapters.MAGICC7.get_version() != "v7.5.3":
+        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())
+
+
+def load_ar6_magicc_probabilistic_config(filepath: Path) -> list[dict[str, Any]]:
+    """
+    Load the probabilistic config used with MAGICC in AR6
+
+    Parameters
+    ----------
+    filepath
+        Filepath from which to load the probabilistic configuration
+
+    Returns
+    -------
+    :
+        Probabilistic configuration used with MAGICC in AR6
+
+    Raises
+    ------
+    AssertionError
+        `filepath` points to a file that does not have the expected hash
+    """
+    fp_hash = get_file_hash(filepath, algorithm="sha256")
+    fp_hash_exp = "f4481549e2309e3f32de9095bcfc1adc531b8ce985201690fd889d49def8a02f"
+    if fp_hash != fp_hash_exp:
+        msg = (
+            f"The sha256 hash of {filepath} is {fp_hash}. "
+            f"This does not match what we expect ({fp_hash_exp=})."
+        )
+        raise AssertionError(msg)
+
+    with open(filepath) as fh:
+        cfgs_raw = json.load(fh)
+
+    cfgs = [
+        {
+            "run_id": c["paraset_id"],
+            **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
+        }
+        for c in cfgs_raw["configurations"]
+    ]
+
+    return cfgs
 
 
 @define
@@ -322,6 +466,7 @@ class AR6SCMRunner:
         cls,
         magicc_exe_path: Path,
         magicc_prob_distribution_path: Path,
+        output_variables: tuple[str, ...] = AR6_OUTPUT_VARIABLES,
         db: OpenSCMDB | None = None,
         run_checks: bool = True,
         progress: bool = True,
@@ -341,6 +486,9 @@ class AR6SCMRunner:
             Path to the MAGICC probabilistic distribution.
 
             This should be the AR6 probabilistic distribution.
+
+        output_variables
+            Variables to include in the output
 
         db
             Database to use for storing results.
@@ -367,84 +515,13 @@ class AR6SCMRunner:
             Initialised SCM runner
         """
         os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
+        check_ar6_magicc7_version()
 
-        explode_move_to_func
-        if openscm_runner.adapters.MAGICC7.get_version() != "v7.5.3":
-            raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())
-
-        explode_move_to_func
-        # Check MAGICC prob. distribution
-        with open(magicc_prob_distribution_path) as fh:
-            cfgs_raw = json.load(fh)
-
-        expected_description = (
-            "IPCC AR6 config drawn on 9th Feb 2021. "
-            "Sub-sample set 0fd0f62 from derived metrics set f023edb. "
-            "Drawn in 532_plot_and_save_subsampled_distribution.ipynb."
+        magicc_ar6_prob_cfg = load_ar6_magicc_probabilistic_config(
+            magicc_prob_distribution_path
         )
-        if cfgs_raw["description"] != expected_description:
-            msg = "This probabilistic config doesn't match what we expect"
-            raise AssertionError(msg)
-
-        base_cfgs = [
-            {
-                "run_id": c["paraset_id"],
-                **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
-            }
-            for c in cfgs_raw["configurations"]
-        ]
 
         startyear = 1750
-        output_variables = (
-            # GSAT
-            "Surface Air Temperature Change",
-            # GMST
-            "Surface Air Ocean Blended Temperature Change",
-            # ERFs
-            "Effective Radiative Forcing",
-            "Effective Radiative Forcing|Anthropogenic",
-            "Effective Radiative Forcing|Aerosols",
-            "Effective Radiative Forcing|Aerosols|Direct Effect",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-            "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-            "Effective Radiative Forcing|Aerosols|Indirect Effect",
-            "Effective Radiative Forcing|Greenhouse Gases",
-            "Effective Radiative Forcing|CO2",
-            "Effective Radiative Forcing|CH4",
-            "Effective Radiative Forcing|N2O",
-            "Effective Radiative Forcing|F-Gases",
-            "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-            "Effective Radiative Forcing|CFC11",
-            "Effective Radiative Forcing|CFC12",
-            "Effective Radiative Forcing|HCFC22",
-            "Effective Radiative Forcing|Ozone",
-            "Effective Radiative Forcing|HFC125",
-            "Effective Radiative Forcing|HFC134a",
-            "Effective Radiative Forcing|HFC143a",
-            "Effective Radiative Forcing|HFC227ea",
-            "Effective Radiative Forcing|HFC23",
-            "Effective Radiative Forcing|HFC245fa",
-            "Effective Radiative Forcing|HFC32",
-            "Effective Radiative Forcing|HFC4310mee",
-            "Effective Radiative Forcing|CF4",
-            "Effective Radiative Forcing|C6F14",
-            "Effective Radiative Forcing|C2F6",
-            "Effective Radiative Forcing|SF6",
-            # Heat uptake
-            "Heat Uptake",
-            # "Heat Uptake|Ocean",
-            # Atmospheric concentrations
-            "Atmospheric Concentrations|CO2",
-            "Atmospheric Concentrations|CH4",
-            "Atmospheric Concentrations|N2O",
-            # carbon cycle
-            "Net Atmosphere to Land Flux|CO2",
-            "Net Atmosphere to Ocean Flux|CO2",
-            # permafrost
-            "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-            "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-        )
         common_cfg = {
             "startyear": startyear,
             "out_dynamic_vars": convert_openscm_runner_output_names_to_magicc_output_names(  # noqa: E501
@@ -454,13 +531,7 @@ class AR6SCMRunner:
             "out_binary_format": 2,
         }
 
-        run_config = [
-            {
-                **common_cfg,
-                **base_cfg,
-            }
-            for base_cfg in base_cfgs
-        ]
+        run_config = [{**common_cfg, **base_cfg} for base_cfg in magicc_ar6_prob_cfg]
         magicc_full_distribution_n_config = 600
         if len(run_config) != magicc_full_distribution_n_config:
             raise AssertionError(len(run_config))
@@ -471,6 +542,6 @@ class AR6SCMRunner:
             db=db,
             run_checks=run_checks,
             n_processes=n_processes,
-            force_interpolate_to_yearly=True,
-            res_column_type=int,
+            force_interpolate_to_yearly=True,  # MAGICC safer with annual input
+            res_column_type=int,  # annual output by default
         )

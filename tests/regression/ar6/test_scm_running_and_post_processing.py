@@ -16,11 +16,13 @@ import pandas as pd
 import pytest
 from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
 
-from gcages.ar6 import AR6SCMRunner
+from gcages.ar6 import AR6PostProcessor, AR6SCMRunner
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_ar6_infilled_emissions,
+    get_ar6_metadata_outputs,
+    get_ar6_temperature_outputs,
     get_key_testing_model_scenario_parameters,
     get_magicc_exe_path,
 )
@@ -74,6 +76,7 @@ def test_individual_scenario(model, scenario):
             variable="AR6 climate diagnostics|Surface Temperature (GSAT)|*|*Percentile"
         )
     ]
+    assert False, "Up to here"
     exp_temperature_percentiles = get_ar6_temperature_outputs(
         model=model,
         scenario=scenario,
