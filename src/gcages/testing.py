@@ -232,7 +232,7 @@ def get_ar6_infilled_emissions(
 
 @functools.cache
 def get_ar6_temperature_outputs(
-    model: str, scenario: str, processed_ar6_output_data_dir: Path
+    model: str, scenario: str, processed_ar6_output_data_dir: Path, dropna: bool = True
 ) -> pd.DataFrame:
     """
     Get temperature outputs we've downloaded from AR6 for a given model-scenario
@@ -250,12 +250,14 @@ def get_ar6_temperature_outputs(
 
         (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
 
+    dropna
+        Drop time columns that only contain NaN
+
     Returns
     -------
     :
         All temperature outputs we've downloaded from AR6 for `model`-`scenario`
     """
-    # TODO: check this
     filename_temperatures = f"ar6_scenarios__{model}__{scenario}__temperatures.csv"
     filename_temperatures = filename_temperatures.replace("/", "_").replace(" ", "_")
     temperatures_file = processed_ar6_output_data_dir / filename_temperatures
@@ -265,6 +267,8 @@ def get_ar6_temperature_outputs(
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_column_type=int,
     )
+    if dropna:
+        res = res.dropna(axis="columns", how="all")
 
     return res
 
@@ -295,11 +299,10 @@ def get_ar6_metadata_outputs(
     :
         Metadata from AR6 for `model`-`scenario`
     """
-    # TODO: check this
     res = load_timeseries_csv(
         ar6_output_data_dir / filename,
         index_columns=["model", "scenario"],
-    ).loc[model, scenario]
+    ).loc[[(model, scenario)]]
 
     return res
 

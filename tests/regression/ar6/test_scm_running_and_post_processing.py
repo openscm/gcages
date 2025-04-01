@@ -35,6 +35,7 @@ AR6_MAGICC_PROBABILISTIC_CONFIG_FILE = (
     / "magicc-ar6-0fd0f62-f023edb-drawnset"
     / "0fd0f62-derived-metrics-id-f023edb-drawnset.json"
 )
+AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
@@ -76,14 +77,12 @@ def test_individual_scenario(model, scenario):
             variable="AR6 climate diagnostics|Surface Temperature (GSAT)|*|*Percentile"
         )
     ]
-    assert False, "Up to here"
+
     exp_temperature_percentiles = get_ar6_temperature_outputs(
         model=model,
         scenario=scenario,
         processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
     )
-    # Put this in retrieval function
-    # .dropna(axis="columns", how="all")
 
     assert_frame_equal(
         res_temperature_percentiles.loc[:, exp_temperature_percentiles.columns],
@@ -94,10 +93,15 @@ def test_individual_scenario(model, scenario):
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
-        processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
+        ar6_output_data_dir=AR6_OUTPUT_DIR,
     )
 
-    metadata_compare_cols = ["category", "category_name"]
+    metadata_compare_cols = [
+        "category",
+        "category_name",
+        "median peak warming (magiccv7.5.3)",
+        "median warming in 2100 (magiccv7.5.3)",
+    ]
     assert_frame_equal(
         post_processed_metadata[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
