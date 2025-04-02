@@ -301,8 +301,11 @@ def get_ar6_metadata_outputs(
     """
     res = load_timeseries_csv(
         ar6_output_data_dir / filename,
-        index_columns=["model", "scenario"],
+        lower_column_names=False,
+        index_columns=["Model", "Scenario"],
     ).loc[[(model, scenario)]]
+
+    res.index = res.index.rename({"Model": "model", "Scenario": "scenario"})
 
     return res
 

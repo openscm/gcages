@@ -85,7 +85,9 @@ def test_individual_scenario(model, scenario):
     )
 
     assert_frame_equal(
-        res_temperature_percentiles.loc[:, exp_temperature_percentiles.columns],
+        res_temperature_percentiles.loc[
+            :, exp_temperature_percentiles.columns
+        ].reorder_levels(exp_temperature_percentiles.index.names),
         exp_temperature_percentiles,
         rtol=1e-5,
     )
@@ -97,14 +99,22 @@ def test_individual_scenario(model, scenario):
     )
 
     metadata_compare_cols = [
-        "category",
-        "category_name",
-        "median peak warming (magiccv7.5.3)",
-        "median warming in 2100 (magiccv7.5.3)",
+        "Category",
+        "Category_name",
+        "Median peak warming (MAGICCv7.5.3)",
+        "Median warming in 2100 (MAGICCv7.5.3)",
+        "Exceedance Probability 1.5C (MAGICCv7.5.3)",
+        "Exceedance Probability 2.0C (MAGICCv7.5.3)",
     ]
-    assert_frame_equal(
+    exp_metadata[list(set(metadata_compare_cols) - {"Category", "Category_name"})] = (
+        exp_metadata[
+            list(set(metadata_compare_cols) - {"Category", "Category_name"})
+        ].astype(float)
+    )
+    pd.testing.assert_frame_equal(
         post_processed_metadata[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
+        rtol=1e-5,
     )
 
 
