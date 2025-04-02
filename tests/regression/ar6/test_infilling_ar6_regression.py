@@ -37,6 +37,7 @@ PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
 @get_key_testing_model_scenario_parameters()
+@pytest.mark.slow
 def test_individual_scenario(model, scenario):
     harmonised = (
         get_ar6_harmonised_emissions(
@@ -77,6 +78,7 @@ def test_individual_scenario(model, scenario):
     assert_frame_equal(res, exp)
 
 
+@pytest.mark.slow
 def test_key_testing_scenarios_all_at_once_parallel():
     harmonised_l = []
     exp_l = []

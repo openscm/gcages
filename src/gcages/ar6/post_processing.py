@@ -492,7 +492,9 @@ class AR6PostProcessor:
 
         peak_warming_out = peak_warming.copy()
         peak_warming_out = peak_warming_out.pix.assign(
-            quantile=peak_warming.pix.unique("quantile").map(get_out_quantile)
+            quantile=peak_warming.index.get_level_values("quantile").map(
+                get_out_quantile
+            )
         )
         peak_warming_out = peak_warming_out.pix.format(
             out_name="{quantile} peak warming ({climate_model})"
@@ -504,7 +506,9 @@ class AR6PostProcessor:
 
         eoc_warming_out = eoc_warming.copy()
         eoc_warming_out = eoc_warming_out.pix.assign(
-            quantile=eoc_warming.pix.unique("quantile").map(get_out_quantile)
+            quantile=eoc_warming.index.get_level_values("quantile").map(
+                get_out_quantile
+            )
         )
         eoc_warming_out = eoc_warming_out.pix.format(
             out_name="{quantile} warming in 2100 ({climate_model})"
@@ -516,7 +520,9 @@ class AR6PostProcessor:
 
         exceedance_probabilities_out = exceedance_probabilities.copy()
         exceedance_probabilities_out = exceedance_probabilities_out.pix.assign(
-            threshold=exceedance_probabilities.pix.unique("threshold").round(1)
+            threshold=exceedance_probabilities.index.get_level_values(
+                "threshold"
+            ).round(1)
         )
         exceedance_probabilities_out = exceedance_probabilities_out.pix.format(
             out_name="Exceedance Probability {threshold}C ({climate_model})"

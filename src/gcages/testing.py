@@ -389,5 +389,10 @@ def assert_frame_equal(
             raise AssertionError(msg)
 
     pd.testing.assert_frame_equal(
-        res.T, exp.T, check_like=True, check_exact=False, rtol=rtol, **kwargs
+        res.reorder_levels(exp.index.names).T,
+        exp.T,
+        check_like=True,
+        check_exact=False,
+        rtol=rtol,
+        **kwargs,
     )

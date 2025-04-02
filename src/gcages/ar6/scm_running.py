@@ -467,6 +467,7 @@ class AR6SCMRunner:
         magicc_exe_path: Path,
         magicc_prob_distribution_path: Path,
         output_variables: tuple[str, ...] = AR6_OUTPUT_VARIABLES,
+        batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
         run_checks: bool = True,
         progress: bool = True,
@@ -489,6 +490,9 @@ class AR6SCMRunner:
 
         output_variables
             Variables to include in the output
+
+        batch_size_scenarios
+            The number of scenarios to run at a time
 
         db
             Database to use for storing results.
@@ -539,6 +543,7 @@ class AR6SCMRunner:
         return cls(
             climate_models_cfgs={"MAGICC7": run_config},
             output_variables=output_variables,
+            batch_size_scenarios=batch_size_scenarios,
             db=db,
             run_checks=run_checks,
             n_processes=n_processes,

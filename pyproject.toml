@@ -307,6 +307,10 @@ formats = "ipynb,py:percent"
 addopts = [
     "--import-mode=importlib",
 ]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
+]
 
 [tool.ruff]
 src = [

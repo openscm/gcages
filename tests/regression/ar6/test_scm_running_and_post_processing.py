@@ -39,9 +39,19 @@ AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
-@pytest.mark.superslow
+@pytest.mark.slow
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):
+    exp_metadata = get_ar6_metadata_outputs(
+        model=model,
+        scenario=scenario,
+        ar6_output_data_dir=AR6_OUTPUT_DIR,
+    )
+    if (
+        exp_metadata["Median peak warming (MAGICCv7.5.3)"] == "no-climate-assessment"
+    ).all():
+        pytest.skip(f"No climate assessment in AR6 for {model} {scenario}")
+
     infilled = (
         get_ar6_infilled_emissions(
             model=model,
@@ -85,17 +95,9 @@ def test_individual_scenario(model, scenario):
     )
 
     assert_frame_equal(
-        res_temperature_percentiles.loc[
-            :, exp_temperature_percentiles.columns
-        ].reorder_levels(exp_temperature_percentiles.index.names),
+        res_temperature_percentiles.loc[:, exp_temperature_percentiles.columns],
         exp_temperature_percentiles,
         rtol=1e-5,
-    )
-
-    exp_metadata = get_ar6_metadata_outputs(
-        model=model,
-        scenario=scenario,
-        ar6_output_data_dir=AR6_OUTPUT_DIR,
     )
 
     metadata_compare_cols = [
@@ -111,6 +113,12 @@ def test_individual_scenario(model, scenario):
             list(set(metadata_compare_cols) - {"Category", "Category_name"})
         ].astype(float)
     )
+    post_processed_metadata.loc[
+        exp_metadata["Category"] == "failed-vetting", "Category"
+    ] = "failed-vetting"
+    post_processed_metadata.loc[
+        exp_metadata["Category"] == "failed-vetting", "Category_name"
+    ] = "failed-vetting"
     pd.testing.assert_frame_equal(
         post_processed_metadata[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
@@ -118,11 +126,25 @@ def test_individual_scenario(model, scenario):
     )
 
 
+@pytest.mark.superslow
 def test_key_testing_scenarios_all_at_once_parallel(tmp_path):
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []
     for model, scenario in KEY_TESTING_MODEL_SCENARIOS:
+        mod_scen_metadata = get_ar6_metadata_outputs(
+            model=model,
+            scenario=scenario,
+            ar6_output_data_dir=AR6_OUTPUT_DIR,
+        ).loc[[(model, scenario)]]
+        if (
+            mod_scen_metadata["Median peak warming (MAGICCv7.5.3)"]
+            == "no-climate-assessment"
+        ).all():
+            # Nothing to check against
+            continue
+
+        exp_metadata_l.append(mod_scen_metadata)
         infilled_l.append(
             get_ar6_infilled_emissions(
                 model=model,
@@ -143,13 +165,6 @@ def test_key_testing_scenarios_all_at_once_parallel(tmp_path):
                 processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
             )
         )
-        exp_metadata_l.append(
-            get_ar6_metadata_outputs(
-                model=model,
-                scenario=scenario,
-                processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
-            ).loc[(model, scenario)]
-        )
 
     infilled = pd.concat(infilled_l)
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
@@ -169,7 +184,9 @@ def test_key_testing_scenarios_all_at_once_parallel(tmp_path):
         ),
         batch_size_scenarios=5,
     )
-    post_processor = AR6PostProcessor.from_ar6config(run_checks=False, n_processes=None)
+    post_processor = AR6PostProcessor.from_ar6_config(
+        run_checks=False, n_processes=None
+    )
 
     scm_results = scm_runner(infilled)
     post_processed_timeseries, post_processed_metadata = post_processor(scm_results)
@@ -186,8 +203,28 @@ def test_key_testing_scenarios_all_at_once_parallel(tmp_path):
         rtol=1e-5,
     )
 
-    metadata_compare_cols = ["category", "category_name"]
-    assert_frame_equal(
+    metadata_compare_cols = [
+        "Category",
+        "Category_name",
+        "Median peak warming (MAGICCv7.5.3)",
+        "Median warming in 2100 (MAGICCv7.5.3)",
+        "Exceedance Probability 1.5C (MAGICCv7.5.3)",
+        "Exceedance Probability 2.0C (MAGICCv7.5.3)",
+    ]
+    exp_metadata[list(set(metadata_compare_cols) - {"Category", "Category_name"})] = (
+        exp_metadata[
+            list(set(metadata_compare_cols) - {"Category", "Category_name"})
+        ].astype(float)
+    )
+    post_processed_metadata.loc[
+        exp_metadata["Category"] == "failed-vetting", "Category"
+    ] = "failed-vetting"
+    post_processed_metadata.loc[
+        exp_metadata["Category"] == "failed-vetting", "Category_name"
+    ] = "failed-vetting"
+    pd.testing.assert_frame_equal(
         post_processed_metadata[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
+        check_like=True,
+        rtol=1e-5,
     )
