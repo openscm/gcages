@@ -22,8 +22,7 @@ dependencies = [
     "silicone>=1.3.0",
     "tqdm>=4.67.1",
     "typer>=0.15.2",
-    # TODO: reinstall as I've hacked this into the venv for now
-    # "xarray>=2024.9.0,<2025",
+    "xarray<2025",
 ]
 readme = "README.md"
 classifiers = [

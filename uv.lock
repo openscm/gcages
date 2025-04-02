@@ -896,6 +896,7 @@ dependencies = [
     { name = "silicone" },
     { name = "tqdm" },
     { name = "typer" },
+    { name = "xarray" },
 ]
 
 [package.optional-dependencies]
@@ -1235,6 +1236,7 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.67.1" },
     { name = "tqdm", marker = "extra == 'progress'", specifier = ">=4.0.0" },
     { name = "typer", specifier = ">=0.15.2" },
+    { name = "xarray", specifier = "<2025" },
 ]
 
 [package.metadata.requires-dev]
@@ -4677,8 +4679,7 @@ dependencies = [
     { name = "six" },
     { name = "tqdm" },
     { name = "typing-extensions" },
-    { name = "xarray", version = "2024.7.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "xarray", version = "2025.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "xarray" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/de/fe/9370c8da3ac25870343f2c26238fe4cfe6515bfa7a70d6623324bf828498/scmdata-0.17.0.tar.gz", hash = "sha256:ae11feaa7f2141ca5a5859dad0c8fbe91c9743df76f5f78399940854769552a3", size = 70826 }
 wheels = [
@@ -5327,40 +5328,15 @@ wheels = [
 name = "xarray"
 version = "2024.7.0"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version < '3.10' and sys_platform == 'win32'",
-    "python_full_version < '3.10' and sys_platform != 'win32'",
-]
 dependencies = [
     { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "packaging", marker = "python_full_version < '3.10'" },
-    { name = "pandas", marker = "python_full_version < '3.10'" },
+    { name = "numpy", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "packaging" },
+    { name = "pandas" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/84/e8/8ee12706df0d34ad04b3737621a73432458d47bc8abfbd6f049e51ca89c3/xarray-2024.7.0.tar.gz", hash = "sha256:4cae512d121a8522d41e66d942fb06c526bc1fd32c2c181d5fe62fe65b671638", size = 3728663 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/45/95/233e1f9c939f5ba314297315df709e6a5e823bf3cade7211991b15aa65d2/xarray-2024.7.0-py3-none-any.whl", hash = "sha256:1b0fd51ec408474aa1f4a355d75c00cc1c02bd425d97b2c2e551fd21810e7f64", size = 1176466 },
-]
-
-[[package]]
-name = "xarray"
-version = "2025.3.1"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'win32'",
-    "python_full_version == '3.11.*' and sys_platform == 'win32'",
-    "python_full_version == '3.10.*' and sys_platform == 'win32'",
-    "python_full_version >= '3.12' and sys_platform != 'win32'",
-    "python_full_version == '3.11.*' and sys_platform != 'win32'",
-    "python_full_version == '3.10.*' and sys_platform != 'win32'",
-]
-dependencies = [
-    { name = "numpy", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "packaging", marker = "python_full_version >= '3.10'" },
-    { name = "pandas", marker = "python_full_version >= '3.10'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/7c/c4/6931c37cd418658d596e78794bdd1bcb67efec0aac3cdb720e37e03c1ea1/xarray-2025.3.1.tar.gz", hash = "sha256:0252c96a73528b29d1ed7f0ab28d928d2ec00ad809e47369803b184dece1e447", size = 3300778 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/fd/973deafd9f87085136a58573600646b408ae7af47859f35151f0d83d5090/xarray-2025.3.1-py3-none-any.whl", hash = "sha256:3404e313930c226db70a945377441ea3c957225d8ba2d429e764c099bb91a546", size = 1279327 },
 ]
 
 [[package]]
