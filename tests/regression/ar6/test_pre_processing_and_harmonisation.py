@@ -43,8 +43,6 @@ def test_individual_scenario(model, scenario):
         raise AssertionError(msg)
 
     pre_processor = AR6PreProcessor.from_ar6_config(
-        # TODO: set run_checks=True
-        run_checks=False,
         n_processes=None,  # not parallel
         progress=False,
     )
@@ -53,7 +51,6 @@ def test_individual_scenario(model, scenario):
     pytest.importorskip("aneris")
     harmoniser = AR6Harmoniser.from_ar6_config(
         ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
-        run_checks=False,
         n_processes=None,  # not parallel
         progress=False,
     )

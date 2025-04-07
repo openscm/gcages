@@ -4,7 +4,144 @@ Useful assertions
 
 from __future__ import annotations
 
+from collections.abc import Collection
+from typing import Any
+
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
+
+
+class DataIsNotAllNumericError(ValueError):
+    """
+    Raised when not all data in a [pd.DataFrame][pandas.DataFrame] is numeric
+    """
+
+    def __init__(self, df: pd.DataFrame, non_numeric_cols: Collection[Any]) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        df
+            [pd.DataFrame][pandas.DataFrame] containing non-numeric data
+
+        non_numeric_cols
+            The columns that contain non-numeric data
+        """
+        # Including df in API, but not sure how to use it well right now
+        # (not easy to just get the non-numeric values in a column,
+        # because that's not a trivial question to ask [is "0" non-numeric or not?])
+        error_msg = (
+            f"The following columns contain non-numeric data: {non_numeric_cols}"
+        )
+        super().__init__(error_msg)
+
+
+def assert_data_is_all_numeric(df: pd.DataFrame) -> None:
+    """
+    Assert that all data in a [pd.DataFrame][pandas.DataFrame] is numeric
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to check
+
+    Raises
+    ------
+    DataIsNotAllNumericError
+        If there are columns in `df` are not numeric
+    """
+    non_numeric = tuple(c for c in df if not is_numeric_dtype(df[c]))
+    if non_numeric:
+        raise DataIsNotAllNumericError(df=df, non_numeric_cols=non_numeric)
+
+
+class MissingIndexLevelsError(KeyError):
+    """
+    Raised when a [pd.DataFrame][pandas.DataFrame] is missing expected index levels
+    """
+
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        missing_levels: Collection[Any],
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        df
+            [pd.DataFrame][pandas.DataFrame] that is missing expected index levels
+
+        missing_levels
+            Levels that are missing from `df.index`
+        """
+        error_msg = (
+            f"The DataFrame is missing the following index levels: {missing_levels}. "
+            f"Available index levels: {df.index.names}"
+        )
+        super().__init__(error_msg)
+
+
+def assert_df_has_index_levels(df: pd.DataFrame, levels: list[Any]) -> None:
+    """
+    Assert that a [pd.DataFrame][pandas.DataFrame] has all the given levels in its index
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to check
+
+    levels
+        Levels that we expect to be in the index of `df`
+
+    Raises
+    ------
+    MissingIndexLevelsError
+        The index of `df` does not contain all levels in `levels`
+    """
+    missing_levels = [v for v in levels if v not in df.index.names]
+    if missing_levels:
+        raise MissingIndexLevelsError(df=df, missing_levels=missing_levels)
+
+
+class IndexIsNotMultiIndexError(TypeError):
+    """
+    Raised when the index is not a [pd.MultiIndex][pandas.MultiIndex]
+    """
+
+    def __init__(self, df: pd.DataFrame) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        df
+            [pd.DataFrame][pandas.DataFrame]
+        """
+        error_msg = (
+            f"The index is not a `pd.MultiIndex`, instead we have {type(df.index)=}"
+        )
+        super().__init__(error_msg)
+
+
+def assert_index_is_multiindex(df: pd.DataFrame) -> None:
+    """
+    Assert that the index is a [pd.MultiIndex][pandas.MultiIndex]
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to check
+
+    Raises
+    ------
+    IndexIsNotMultiIndexError
+        The index of `df` is not a [pd.MultiIndex][pandas.MultiIndex]
+    """
+    if not isinstance(df.index, pd.MultiIndex):
+        raise IndexIsNotMultiIndexError(df)
 
 
 def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
