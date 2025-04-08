@@ -7,9 +7,11 @@ from __future__ import annotations
 import importlib
 import multiprocessing
 from pathlib import Path
+from typing import Any
 
+import attr
 import pandas as pd
-from attrs import define
+from attrs import define, field
 from pandas_openscm.io import load_timeseries_csv
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
@@ -176,7 +178,7 @@ class AR6Harmoniser:
     initialise using [`from_ar6_like_config`][(c)]
     """
 
-    historical_emissions: pd.DataFrame
+    historical_emissions: pd.DataFrame = field()
     """
     Historical emissions to use for harmonisation
     """
@@ -232,6 +234,26 @@ class AR6Harmoniser:
     Set to 1 to process in serial.
     """
 
+    @historical_emissions.validator
+    def validate_historical_emissions(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame
+    ) -> None:
+        """
+        Validate the historical emissions value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if not self.run_checks:
+            return
+
+        assert_index_is_multiindex(value)
+        assert_data_is_all_numeric(value)
+        assert_df_has_index_levels(value, ["variable", "unit"])
+        assert_df_has_data_for_times(
+            value, times=[self.harmonisation_year], allow_nan=False
+        )
+        # TODO: Check self.aneris_overrides names against self.historical_emissions
+
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Harmonise
@@ -247,13 +269,21 @@ class AR6Harmoniser:
             Harmonised emissions
         """
         if self.run_checks:
-            raise NotImplementedError
-
-        # TODO:
-        #   - enable optional checks for:
-        #       - only known variable names are in raw_emissions
-        #       - only data with a useable time axis is in there
-        #       - metadata is appropriate/usable
+            assert_index_is_multiindex(in_emissions)
+            assert_data_is_all_numeric(in_emissions)
+            assert_df_has_index_levels(
+                in_emissions, ["variable", "unit", "model", "scenario"]
+            )
+            assert_df_has_data_for_times(
+                value, times=[self.harmonisation_year], allow_nan=False
+            )
+            assert_metadata_values_all_allowed(
+                in_emissions,
+                index_level="variable",
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    "variable"
+                ).unique(),
+            )
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
@@ -282,13 +312,15 @@ class AR6Harmoniser:
             variable="AR6 climate diagnostics|Harmonized|{variable}"
         )
 
-        # TODO:
-        #   - enable optional checks for:
-        #       - input and output metadata is identical
-        #           - no mangled variable names
-        #           - no mangled units
-        #           - output timesteps are from harmonisation year onwards only
-        #       - output scenarios all have common starting point
+        if self.run_checks:
+            pass
+            # TODO:
+            #   - enable optional checks for:
+            #       - input and output metadata is identical
+            #           - no mangled variable names
+            #           - no mangled units
+            #           - output timesteps are from harmonisation year onwards only
+            #       - output scenarios are in fact harmonised to self.historical_emissions
 
         return out
 
