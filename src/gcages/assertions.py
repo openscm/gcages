@@ -4,7 +4,7 @@ Useful assertions
 
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Iterable
 from typing import Any
 
 import pandas as pd
@@ -56,6 +56,85 @@ def assert_data_is_all_numeric(df: pd.DataFrame) -> None:
         raise DataIsNotAllNumericError(df=df, non_numeric_cols=non_numeric)
 
 
+class MissingDataForTimesError(KeyError):
+    """
+    Raised when a [pd.DataFrame][pandas.DataFrame] is missing data for expected times
+    """
+
+    def __init__(
+        self, df: pd.DataFrame, missing_times: Collection[Any], allow_nan: bool
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        df
+            [pd.DataFrame][pandas.DataFrame] that is missing expected index levels
+
+        missing_times
+            Times in `df` that are missing data
+
+        allow_nan
+            Were NaN values allowed in the values of `times` when checking the data?
+        """
+        if allow_nan:
+            error_msg = (
+                f"The DataFrame is missing data for the following times: "
+                f"{missing_times}. "
+                f"Available times: {df.columns}"
+            )
+
+        else:
+            tmp = df[missing_times]
+            nan_view = tmp[tmp.isnull().any(axis="columns")]
+            error_msg = (
+                f"The DataFrame has NaNs for the following times: {missing_times}. "
+                f"Rows with Nans:\n{nan_view}"
+            )
+
+        super().__init__(error_msg)
+
+
+def assert_has_data_for_times(
+    df: pd.DataFrame, times: Iterable[Any], allow_nan: bool
+) -> None:
+    """
+    Assert that a [pd.DataFrame][pandas.DataFrame] has data for the given times
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to check
+
+    times
+        Times (i.e. columns) that we expect to have data in `df`
+
+    allow_nan
+        Are NaN values allowed in the values of `times` (or should all data be non-Nan)?
+
+    Raises
+    ------
+    MissingDataForTimesError
+        The data in `df` does not contain all times in `times`.
+
+        If `not allow_nan`, this will also be raised if any of the data in `df`
+        contains NaN for a time in `times`.
+    """
+    missing_times = [v for v in times if v not in df.columns]
+    if missing_times:
+        raise MissingDataForTimesError(
+            df=df, missing_times=missing_times, allow_nan=allow_nan
+        )
+
+    if not allow_nan:
+        nan_times = [v for v in times if df[v].isnull().any()]
+        if nan_times:
+            raise MissingDataForTimesError(
+                df=df, missing_times=nan_times, allow_nan=allow_nan
+            )
+
+
 class MissingIndexLevelsError(KeyError):
     """
     Raised when a [pd.DataFrame][pandas.DataFrame] is missing expected index levels
@@ -84,7 +163,7 @@ class MissingIndexLevelsError(KeyError):
         super().__init__(error_msg)
 
 
-def assert_df_has_index_levels(df: pd.DataFrame, levels: list[Any]) -> None:
+def assert_has_index_levels(df: pd.DataFrame, levels: Iterable[Any]) -> None:
     """
     Assert that a [pd.DataFrame][pandas.DataFrame] has all the given levels in its index
 

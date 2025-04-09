@@ -16,7 +16,12 @@ from pandas_openscm.io import load_timeseries_csv
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 from gcages.aneris_helpers import harmonise_all
-from gcages.assertions import assert_only_working_on_variable_unit_variations
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+    assert_only_working_on_variable_unit_variations,
+)
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import add_historical_year_based_on_scaling
 from gcages.hashing import get_file_hash
@@ -248,7 +253,7 @@ class AR6Harmoniser:
 
         assert_index_is_multiindex(value)
         assert_data_is_all_numeric(value)
-        assert_df_has_index_levels(value, ["variable", "unit"])
+        assert_has_index_levels(value, ["variable", "unit"])
         assert_df_has_data_for_times(
             value, times=[self.harmonisation_year], allow_nan=False
         )
@@ -271,7 +276,7 @@ class AR6Harmoniser:
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
-            assert_df_has_index_levels(
+            assert_has_index_levels(
                 in_emissions, ["variable", "unit", "model", "scenario"]
             )
             assert_df_has_data_for_times(

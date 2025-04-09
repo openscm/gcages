@@ -15,7 +15,7 @@ from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_p
 
 from gcages.assertions import (
     assert_data_is_all_numeric,
-    assert_df_has_index_levels,
+    assert_has_index_levels,
     assert_index_is_multiindex,
     assert_only_working_on_variable_unit_variations,
 )
@@ -483,17 +483,14 @@ class AR6PreProcessor:
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
-            assert_df_has_index_levels(in_emissions, ["variable", "unit"])
+            assert_has_index_levels(in_emissions, ["variable", "unit"])
+            # AR6 required emissions for these years, for some reason
+            required_years = list(range(2020, 2100 + 1, 10))
+            assert_df_has_data_for_times(value, times=required_years, allow_nan=False)
 
-        # Remove any rows with only zero
+        # Remove any rows with only zero (custom AR6 thing)
         in_emissions = in_emissions[
             ~(((in_emissions == 0.0) | in_emissions.isnull()).all(axis="columns"))
-        ]
-
-        # Remove any rows that have NaN in required years
-        required_years = list(range(2020, 2100 + 1, 10))
-        in_emissions = in_emissions[
-            ~in_emissions[required_years].isnull().any(axis="columns")
         ]
 
         rp = partial(

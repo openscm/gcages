@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.assertions import MissingIndexLevelsError, assert_df_has_index_levels
+from gcages.assertions import MissingIndexLevelsError, assert_has_index_levels
 
 
 def get_df_with_index_levels(index_levels):
@@ -104,4 +104,4 @@ def get_df_with_index_levels(index_levels):
 )
 def test_assert_df_has_index_levels(inp, expected_levels, exp):
     with exp:
-        assert_df_has_index_levels(inp, levels=expected_levels)
+        assert_has_index_levels(inp, levels=expected_levels)
