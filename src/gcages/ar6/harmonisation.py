@@ -17,7 +17,9 @@ from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_p
 
 from gcages.aneris_helpers import harmonise_all
 from gcages.assertions import (
+    MissingDataForTimesError,
     assert_data_is_all_numeric,
+    assert_has_data_for_times,
     assert_has_index_levels,
     assert_index_is_multiindex,
     assert_only_working_on_variable_unit_variations,
@@ -254,7 +256,7 @@ class AR6Harmoniser:
         assert_index_is_multiindex(value)
         assert_data_is_all_numeric(value)
         assert_has_index_levels(value, ["variable", "unit"])
-        assert_df_has_data_for_times(
+        assert_has_data_for_times(
             value, times=[self.harmonisation_year], allow_nan=False
         )
         # TODO: Check self.historical_emissions names against self.aneris_overrides
@@ -279,9 +281,27 @@ class AR6Harmoniser:
             assert_has_index_levels(
                 in_emissions, ["variable", "unit", "model", "scenario"]
             )
-            assert_df_has_data_for_times(
-                value, times=[self.harmonisation_year], allow_nan=False
-            )
+            try:
+                assert_has_data_for_times(
+                    in_emissions, times=[self.harmonisation_year], allow_nan=False
+                )
+            except MissingDataForTimesError as exc_hy:
+                try:
+                    assert_has_data_for_times(
+                        in_emissions, times=[self.calc_scaling_year], allow_nan=False
+                    )
+                except MissingDataForTimesError as exc_csy:
+                    msg = (
+                        f"We require data for either {self.harmonisation_year} "
+                        f"or {self.calc_scaling_year} "
+                        "but neither had the required data. "
+                        f"Error from checking for {self.harmonisation_year} data: "
+                        f"{exc_hy}. "
+                        f"Error from checking for {self.calc_scaling_year} data: "
+                        f"{exc_csy}. "
+                    )
+                    raise KeyError(msg)
+
             assert_metadata_values_all_allowed(
                 in_emissions,
                 index_level="variable",
