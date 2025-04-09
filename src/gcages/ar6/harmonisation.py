@@ -252,7 +252,7 @@ class AR6Harmoniser:
         assert_df_has_data_for_times(
             value, times=[self.harmonisation_year], allow_nan=False
         )
-        # TODO: Check self.aneris_overrides names against self.historical_emissions
+        # TODO: Check self.historical_emissions names against self.aneris_overrides
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
@@ -313,14 +313,14 @@ class AR6Harmoniser:
         )
 
         if self.run_checks:
-            pass
             # TODO:
             #   - enable optional checks for:
             #       - input and output metadata is identical
             #           - no mangled variable names
             #           - no mangled units
-            #           - output timesteps are from harmonisation year onwards only
-            #       - output scenarios are in fact harmonised to self.historical_emissions
+            assert_metadata_unchanged(out, in_emissions)
+            assert_column_type_unchanged(out, in_emissions)
+            assert_harmonised(out, self.historical_emissions)
 
         return out
 
