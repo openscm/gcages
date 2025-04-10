@@ -200,7 +200,7 @@ class AR6Harmoniser:
     This logic was perculiar to AR6, it may not be repeated.
     """
 
-    aneris_overrides: pd.DataFrame | None
+    aneris_overrides: pd.DataFrame | None = field()
     """
     Overrides to supply to `aneris.convenience.harmonise_all`
 
@@ -230,6 +230,37 @@ class AR6Harmoniser:
     Set to 1 to process in serial.
     """
 
+    @aneris_overrides.validator
+    def validate_aneris_overrides(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame | None
+    ) -> None:
+        """
+        Validate the aneris overrides value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if value is None:
+            return
+
+        if not self.run_checks:
+            return
+
+        value_check = pd.DataFrame(
+            value["method"].values,
+            columns=["method"],
+            index=pd.MultiIndex.from_frame(
+                value[value.columns.difference(["method"]).tolist()]
+            ),
+        )
+        for index_level in value_check.index.names:
+            assert_metadata_values_all_allowed(
+                value_check,
+                metadata_key=index_level,
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    index_level
+                ).unique(),
+            )
+
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame
@@ -248,7 +279,6 @@ class AR6Harmoniser:
         assert_has_data_for_times(
             value, times=[self.harmonisation_year], allow_nan=False
         )
-        # TODO: Check self.historical_emissions names against self.aneris_overrides
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
