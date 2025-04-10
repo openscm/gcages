@@ -257,6 +257,64 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
             does_not_raise(),
             id="partial-and-all-nans-allow-nans",
         ),
+        pytest.param(
+            pd.DataFrame(
+                [
+                    [1, 2],
+                    [3, np.nan],
+                    [5, 6],
+                ],
+                columns=[2010, 2020],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "ua"),
+                        ("sb", "vb", "ub"),
+                        ("sc", "vc", "uc"),
+                    ],
+                    names=["scenario", "variable", "unit"],
+                ),
+            ),
+            [2010, 2020, 2025],
+            True,
+            pytest.raises(
+                MissingDataForTimesError,
+                match=re.escape(
+                    "The DataFrame is missing data for the following times: "
+                    f"{[2025]}. "
+                    "Available times:"
+                ),
+            ),
+            id="missing-allow-nans",
+        ),
+        pytest.param(
+            pd.DataFrame(
+                [
+                    [1, 2],
+                    [3, np.nan],
+                    [5, 6],
+                ],
+                columns=[2010, 2020],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "ua"),
+                        ("sb", "vb", "ub"),
+                        ("sc", "vc", "uc"),
+                    ],
+                    names=["scenario", "variable", "unit"],
+                ),
+            ),
+            [2010, 2020, 2025],
+            False,
+            pytest.raises(
+                MissingDataForTimesError,
+                match=re.escape(
+                    "The DataFrame is missing data for the following times: "
+                    f"{[2025]}. "
+                    "Available times:"
+                ),
+            ),
+            id="missing-dont-allow-nans",
+        ),
     ),
 )
 def test_assert_has_data_for_times_nan_handling(inp, expected_times, allow_nan, exp):

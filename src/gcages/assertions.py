@@ -124,7 +124,10 @@ def assert_has_data_for_times(
     missing_times = [v for v in times if v not in df.columns]
     if missing_times:
         raise MissingDataForTimesError(
-            df=df, missing_times=missing_times, allow_nan=allow_nan
+            df=df,
+            missing_times=missing_times,
+            # Failed before we even considered NaN
+            allow_nan=True,
         )
 
     if not allow_nan:
