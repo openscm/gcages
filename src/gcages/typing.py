@@ -4,11 +4,13 @@ Type hints that are used throughout
 
 from __future__ import annotations
 
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 import numpy as np
 import pandas as pd
-from typing_extensions import TypeAlias
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 NUMERIC_DATA: TypeAlias = Union[float, int, np.floating, np.integer]
 """
