@@ -22,10 +22,11 @@ from gcages.assertions import (
     assert_has_data_for_times,
     assert_has_index_levels,
     assert_index_is_multiindex,
+    assert_metadata_values_all_allowed,
     assert_only_working_on_variable_unit_variations,
 )
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.harmonisation import add_historical_year_based_on_scaling
+from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
@@ -338,13 +339,18 @@ class AR6Harmoniser:
         )
 
         if self.run_checks:
-            # TODO:
-            #   - enable optional checks for:
+            # # TODO: enable when we switch naming schemes
             #       - input and output metadata is identical
             #           - no mangled variable names
             #           - no mangled units
-            assert_metadata_unchanged(out, in_emissions)
-            assert_column_type_unchanged(out, in_emissions)
+            # assert_metadata_unchanged(out, in_emissions)
+            if out.columns.dtype != in_emissions.columns.dtype:
+                msg = (
+                    "Column type has changed: "
+                    f"{out.columns.dtype=} {in_emissions.columns.dtype=}"
+                )
+                raise AssertionError(msg)
+
             assert_harmonised(out, self.historical_emissions)
 
         return out

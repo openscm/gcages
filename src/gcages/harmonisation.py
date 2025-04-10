@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
+
+from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
 
 
 def add_historical_year_based_on_scaling(
@@ -136,3 +140,116 @@ def add_historical_year_based_on_scaling(
 #         emissions_to_harmonise = indf
 #
 #     return emissions_to_harmonise
+
+
+class NotHarmonisedError(ValueError):
+    """
+    Raised when a [pd.DataFrame][pandas.DataFrame] is not harmonised
+    """
+
+    def __init__(
+        self,
+        comparison: pd.DataFrame,
+        harmonisation_year: TIME_POINT,
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        comparison
+            Results of comparing the data and history
+
+        mismatches
+            Differences between `df` and `history`
+        """
+        error_msg = (
+            f"The DataFrame is not harmonised in {harmonisation_year}. "
+            f"comparison=\n{comparison}"
+        )
+        super().__init__(error_msg)
+
+
+def align_history_to_data_in_year(
+    df: TimeseriesDataFrame, *, history: TimeseriesDataFrame, col: Any
+) -> tuple[pd.Series[NUMERIC_DATA], pd.Series[NUMERIC_DATA]]:
+    """
+    Align history to a given set of data for a given column
+
+    Parameters
+    ----------
+    df
+        Data to which to align history
+
+    history
+        History data to align
+
+    col
+        Column for which to align the data
+
+    Returns
+    -------
+    :
+        History, aligned with `df` for the given column
+
+    Raises
+    ------
+    AssertionError
+        `df` and `history` could not be aligned for some reason
+    """
+    df_year_aligned, history_year_aligned = df[col].align(history[col], join="left")
+    if history_year_aligned.isnull().any():
+        # Implicitly assuming that people have already checked
+        # that they have history values for all timeseries in `df`
+        msg_l = ["history did not align properly with df"]
+        if df.index.names == history.index.names:
+            msg_l.append(
+                "history and df have the same index levels "
+                f"({list(history.index.names)}). "
+                "You probably need to drop some of history's index levels "
+                "so alignment can happen along the levels of interest "
+                "(usually dropping everything except variable and unit (or similar)). "
+            )
+
+        msg = ". ".join(msg_l)
+        raise AssertionError(msg)
+
+    return df_year_aligned, history_year_aligned
+
+
+def assert_harmonised(
+    df: TimeseriesDataFrame,
+    *,
+    history: TimeseriesDataFrame,
+    harmonisation_year: TIME_POINT,
+) -> None:
+    """
+    Assert that a given [TimeseriesDataFrame][] is harmonised
+
+    Parameters
+    ----------
+    df
+        Data to check
+
+    history
+        History to which `df` should be harmonised
+
+    harmonisation_year
+        Year in which `df` should be harmonised to `history`
+
+
+    Raises
+    ------
+    NotHarmonisedError
+        `df` is not harmonised to `history`
+    """
+    df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_in_year(
+        df, history=history, col=harmonisation_year
+    )
+    comparison = df_harm_year_aligned.compare(
+        history_harm_year_aligned, result_names=("df", "history")
+    )
+    if not comparison.empty:
+        raise NotHarmonisedError(
+            comparison=comparison, harmonisation_year=harmonisation_year
+        )
