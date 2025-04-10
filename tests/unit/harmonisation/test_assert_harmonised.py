@@ -333,7 +333,7 @@ def test_assert_harmonised(df, history, harmonisation_time, exp):
         assert_harmonised(df, history=history, harmonisation_time=harmonisation_time)
 
 
-def test_align_history_to_data_in_year_error():
+def test_align_history_to_data_in_year_same_index_error():
     df = pd.DataFrame(
         [
             [1.0, 2.1],
@@ -373,6 +373,51 @@ def test_align_history_to_data_in_year_error():
             "history did not align properly with df. "
             "history and df have the same index levels "
             "(['scenario', 'variable', 'unit'])"
+        ),
+    ):
+        align_history_to_data_at_time(df, history=history, time=2015)
+
+
+def test_align_history_to_data_in_year_different_units_error():
+    df = pd.DataFrame(
+        [
+            [1.0, 2.1],
+            [3.0, 2.0],
+            [1.0, 2.2],
+            [3.0, 2.3],
+        ],
+        columns=[2015, 2100],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("sa", "va", "W / m^2"),
+                ("sa", "vb", "t / yr"),
+                ("sb", "va", "W / m^2"),
+                ("sb", "vb", "t/yr"),
+            ],
+            names=["scenario", "variable", "unit"],
+        ),
+    )
+    history = pd.DataFrame(
+        [
+            [1.1, 1.0],
+            [2.2, 3.0],
+        ],
+        columns=[2010, 2015],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("va", "W/m^2"),
+                ("vb", "t/yr"),
+            ],
+            names=["variable", "unit"],
+        ),
+    )
+
+    with pytest.raises(
+        AssertionError,
+        match=re.escape(
+            "history did not align properly with df. "
+            "The following units only appear in `df`, "
+            "which might be why the data isn't aligned: ['W / m^2', 't / yr']."
         ),
     ):
         align_history_to_data_at_time(df, history=history, time=2015)

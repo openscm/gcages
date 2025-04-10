@@ -200,10 +200,13 @@ def align_history_to_data_at_time(
         `df` and `history` could not be aligned for some reason
     """
     df_year_aligned, history_year_aligned = df[time].align(history[time], join="left")
+
+    # Implicitly assuming that people have already checked
+    # that they have history values for all timeseries in `df`,
+    # so any null is an obvious issue.
     if history_year_aligned.isnull().any():
-        # Implicitly assuming that people have already checked
-        # that they have history values for all timeseries in `df`
         msg_l = ["history did not align properly with df"]
+
         if df.index.names == history.index.names:
             msg_l.append(
                 "history and df have the same index levels "
@@ -212,6 +215,26 @@ def align_history_to_data_at_time(
                 "so alignment can happen along the levels of interest "
                 "(usually dropping everything except variable and unit (or similar)). "
             )
+
+        # # Might be useful, pandas might handle it
+        # names_only_in_hist = history.index.names.difference(df.index.names)
+
+        for unit_col_guess in ["unit", "units"]:
+            if (
+                unit_col_guess in df.index.names
+                and unit_col_guess in history.index.names
+            ):
+                df_units_guess = df.index.get_level_values(unit_col_guess)
+                history_units_guess = history.index.get_level_values(unit_col_guess)
+
+                differing_units = (
+                    df_units_guess.difference(history_units_guess).unique().tolist()
+                )
+                msg_l.append(
+                    "The following units only appear in `df`, "
+                    f"which might be why the data isn't aligned: {differing_units}. "
+                    f"{df_units_guess=} {history_units_guess=}"
+                )
 
         msg = ". ".join(msg_l)
         raise AssertionError(msg)
@@ -228,6 +251,10 @@ def assert_harmonised(
 ) -> None:
     """
     Assert that a given [TimeseriesDataFrame][] is harmonised
+
+    Note: currently, this does not support unit conversion
+    (i.e. units have to match exactly, equivalent units e.g. "Mt CO2" and "MtCO2"
+    will result in a `NotHarmonisedError`).
 
     Parameters
     ----------
