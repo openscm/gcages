@@ -339,8 +339,6 @@ class AR6Harmoniser:
                     progress=self.progress,
                     max_workers=self.n_processes,
                 ),
-                # input_desc="model-scenario combinations to harmonise",
-                # n_processes=self.n_processes,
                 history=self.historical_emissions,
                 year=self.harmonisation_year,
                 overrides=self.aneris_overrides,
@@ -348,36 +346,24 @@ class AR6Harmoniser:
             )
         )
 
-        # Not sure why this is happening, anyway
-        harmonised_df.columns = harmonised_df.columns.astype(int)
-
-        # Apply AR6 naming scheme
-        out: pd.DataFrame = harmonised_df.pix.format(
-            variable="AR6 climate diagnostics|Harmonized|{variable}"
-        )
-
         if self.run_checks:
-            # # TODO: enable when we switch naming schemes
-            #       - input and output metadata is identical
-            #           - no mangled variable names
-            #           - no mangled units
-            # assert_metadata_unchanged(out, in_emissions)
-            if out.columns.dtype != in_emissions.columns.dtype:
-                msg = (
-                    "Column type has changed: "
-                    f"{out.columns.dtype=} {in_emissions.columns.dtype=}"
-                )
-                raise AssertionError(msg)
-
             assert_harmonised(
-                # Switch to out when we switch naming schemes
-                # out,
                 harmonised_df,
                 history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
             )
 
-        return out
+            pd.testing.assert_index_equal(
+                harmonised_df.index, in_emissions.index, check_order=False
+            )
+            if harmonised_df.columns.dtype != in_emissions.columns.dtype:
+                msg = (
+                    "Column type has changed: "
+                    f"{harmonised_df.columns.dtype=} {in_emissions.columns.dtype=}"
+                )
+                raise AssertionError(msg)
+
+        return harmonised_df
 
     @classmethod
     def from_ar6_config(
