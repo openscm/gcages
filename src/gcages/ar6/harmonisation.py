@@ -29,6 +29,7 @@ from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.index_manipulation import update_index_levels
+from gcages.renaming import convert_iamc_variable_to_gcages
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -420,6 +421,11 @@ class AR6Harmoniser:
             },
         )
 
+        # Update variable names
+        historical_emissions.index = update_index_levels(
+            historical_emissions.index, {"variable": convert_iamc_variable_to_gcages}
+        )
+
         # Strip out any units that won't play nice with pint
         historical_emissions = strip_pint_incompatible_characters_from_units(
             historical_emissions, units_index_level="unit"
@@ -540,6 +546,9 @@ class AR6Harmoniser:
                     "variable": "Emissions|VOC",
                 },
             ]
+        )
+        aneris_overrides_ar6["variable"] = aneris_overrides_ar6["variable"].map(
+            convert_iamc_variable_to_gcages
         )
 
         return cls(
