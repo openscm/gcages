@@ -38,7 +38,7 @@ def update_index_levels(
     KeyError
         `functions` refers to a level that is not in `ini.names`
     """
-    levels = list(ini.levels)
+    levels: list[pd.Index[Any]] = list(ini.levels)
     for level, level_func in functions.items():
         if level not in ini.names:
             msg = (
@@ -47,7 +47,7 @@ def update_index_levels(
             raise KeyError(msg)
 
         level_idx = ini.names.index(level)
-        levels[level_idx] = [level_func(v) for v in levels[level_idx]]
+        levels[level_idx] = [level_func(v) for v in levels[level_idx]]  # type: ignore # pandas-stubs not working
 
     res = pd.MultiIndex(
         levels=levels,

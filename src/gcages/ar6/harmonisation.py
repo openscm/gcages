@@ -420,13 +420,13 @@ class AR6Harmoniser:
 
         # Drop out all metadata except region, variable and unit
         historical_emissions = historical_emissions.reset_index(
-            historical_emissions.index.names.difference(["variable", "region", "unit"]),
+            historical_emissions.index.names.difference(["variable", "region", "unit"]),  # type: ignore # pandas-stubs out of date
             drop=True,
         )
 
         # Strip off prefix
         historical_emissions.index = update_index_levels(
-            historical_emissions.index,
+            historical_emissions.index,  # type: ignore # pandas-stubs can't track when index is MultiIndex
             {
                 "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
                     "|Unharmonized", ""

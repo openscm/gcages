@@ -61,7 +61,7 @@ def add_historical_year_based_on_scaling(
     ]
 
     emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
-        emissions_historical_common_vars.index.names.difference(
+        emissions_historical_common_vars.index.names.difference(  # type: ignore # pandas-stubs not up to date
             ["region", "variable", "unit"]
         ),
         drop=True,
@@ -174,7 +174,7 @@ class NotHarmonisedError(ValueError):
 
 def align_history_to_data_at_time(
     df: TimeseriesDataFrame, *, history: TimeseriesDataFrame, time: Any
-) -> tuple[pd.Series[NUMERIC_DATA], pd.Series[NUMERIC_DATA]]:
+) -> tuple[pd.Series[NUMERIC_DATA], pd.Series[NUMERIC_DATA]]:  # type: ignore # pandas-stubs not up to date
     """
     Align history to a given set of data for a given column
 
@@ -251,7 +251,7 @@ def assert_harmonised(
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
         df, history=history, time=harmonisation_time
     )
-    comparison = df_harm_year_aligned.round(rounding).compare(
+    comparison = df_harm_year_aligned.round(rounding).compare(  # type: ignore # pandas-stubs out of date
         history_harm_year_aligned.round(rounding), result_names=("df", "history")
     )
     if not comparison.empty:

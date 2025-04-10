@@ -4,7 +4,7 @@ Type hints that are used throughout
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import numpy as np
 import pandas as pd
@@ -12,7 +12,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-NUMERIC_DATA: TypeAlias = Union[float, int, np.floating, np.integer]
+NUMERIC_DATA: TypeAlias = Union[float, int, np.floating[Any], np.integer[Any]]
 """
 Type alias for a value that can be used in the data of a [TimeseriesDataFrame][(m).]
 """
