@@ -28,6 +28,7 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
+from gcages.index_manipulation import update_index_levels
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -67,18 +68,6 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         index_columns=["model", "scenario", "variable", "unit", "region"],
         out_column_type=int,
     )
-
-    res.index = res.index.set_levels(  # type: ignore # pandas-stubs confused
-        res.index.levels[res.index.names.index("variable")].map(  # type: ignore # pandas-stubs confused
-            lambda x: x.replace("AR6 climate diagnostics|", "").replace(
-                "|Unharmonized", ""
-            )
-        ),
-        level="variable",
-    )
-
-    # Strip out any units that won't play nice with pint
-    res = strip_pint_incompatible_characters_from_units(res, units_index_level="unit")
 
     return res
 
@@ -120,8 +109,7 @@ def harmonise_scenario(
 
     assert_only_working_on_variable_unit_variations(indf)
 
-    # TODO: move these fixes out into pre-processing
-    # A bunch of other fix ups that were applied in AR6
+    # In AR6, if the year we needed wasn't there, we tried some workarounds
     if year not in indf:
         emissions_to_harmonise = add_historical_year_based_on_scaling(
             year_to_add=year,
@@ -305,7 +293,7 @@ class AR6Harmoniser:
 
             assert_metadata_values_all_allowed(
                 in_emissions,
-                index_level="variable",
+                metadata_key="variable",
                 allowed_values=self.historical_emissions.index.get_level_values(
                     "variable"
                 ).unique(),
@@ -351,7 +339,13 @@ class AR6Harmoniser:
                 )
                 raise AssertionError(msg)
 
-            assert_harmonised(out, self.historical_emissions)
+            assert_harmonised(
+                # Switch to out when we switch naming schemes
+                # out,
+                harmonised_df,
+                history=self.historical_emissions,
+                harmonisation_time=self.harmonisation_year,
+            )
 
         return out
 
@@ -393,6 +387,30 @@ class AR6Harmoniser:
         historical_emissions = load_ar6_historical_emissions(
             ar6_historical_emissions_file
         )
+
+        # Drop out all metadata except region, variable and unit
+        historical_emissions = historical_emissions.reset_index(
+            historical_emissions.index.names.difference(["variable", "region", "unit"]),
+            drop=True,
+        )
+
+        # Strip off prefix
+        historical_emissions.index = update_index_levels(
+            historical_emissions.index,
+            {
+                "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
+                    "|Unharmonized", ""
+                )
+            },
+        )
+
+        # Strip out any units that won't play nice with pint
+        historical_emissions = strip_pint_incompatible_characters_from_units(
+            historical_emissions, units_index_level="unit"
+        )
+
+        # Drop out rows with all NaNs
+        historical_emissions = historical_emissions.dropna(how="all")
 
         # We don't need historical emissions after 1990
         # (probably even later, but this is fine).

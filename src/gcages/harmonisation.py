@@ -54,7 +54,6 @@ def add_historical_year_based_on_scaling(
         # Processing is much trickier with multiple scenarios
         raise NotImplementedError(mod_scen_unique)
 
-    ms = ("model", "scenario")
     emissions_historical_common_vars = emissions_history.loc[
         emissions_history.index.get_level_values("variable").isin(
             emissions.index.get_level_values("variable")
@@ -62,7 +61,10 @@ def add_historical_year_based_on_scaling(
     ]
 
     emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
-        ms, drop=True
+        emissions_historical_common_vars.index.names.difference(
+            ["region", "variable", "unit"]
+        ),
+        drop=True,
     )
 
     scale_factor = emissions[year_calc_scaling].divide(
@@ -170,8 +172,8 @@ class NotHarmonisedError(ValueError):
         super().__init__(error_msg)
 
 
-def align_history_to_data_in_year(
-    df: TimeseriesDataFrame, *, history: TimeseriesDataFrame, col: Any
+def align_history_to_data_at_time(
+    df: TimeseriesDataFrame, *, history: TimeseriesDataFrame, time: Any
 ) -> tuple[pd.Series[NUMERIC_DATA], pd.Series[NUMERIC_DATA]]:
     """
     Align history to a given set of data for a given column
@@ -184,8 +186,8 @@ def align_history_to_data_in_year(
     history
         History data to align
 
-    col
-        Column for which to align the data
+    time
+        Time (i.e. column) for which to align the data
 
     Returns
     -------
@@ -197,7 +199,7 @@ def align_history_to_data_in_year(
     AssertionError
         `df` and `history` could not be aligned for some reason
     """
-    df_year_aligned, history_year_aligned = df[col].align(history[col], join="left")
+    df_year_aligned, history_year_aligned = df[time].align(history[time], join="left")
     if history_year_aligned.isnull().any():
         # Implicitly assuming that people have already checked
         # that they have history values for all timeseries in `df`
@@ -221,7 +223,8 @@ def assert_harmonised(
     df: TimeseriesDataFrame,
     *,
     history: TimeseriesDataFrame,
-    harmonisation_year: TIME_POINT,
+    harmonisation_time: TIME_POINT,
+    rounding: int = 10,
 ) -> None:
     """
     Assert that a given [TimeseriesDataFrame][] is harmonised
@@ -234,22 +237,24 @@ def assert_harmonised(
     history
         History to which `df` should be harmonised
 
-    harmonisation_year
-        Year in which `df` should be harmonised to `history`
+    harmonisation_time
+        Time at which `df` should be harmonised to `history`
 
+    rounding
+        Rounding to apply to the data before comparing
 
     Raises
     ------
     NotHarmonisedError
         `df` is not harmonised to `history`
     """
-    df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_in_year(
-        df, history=history, col=harmonisation_year
+    df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
+        df, history=history, time=harmonisation_time
     )
-    comparison = df_harm_year_aligned.compare(
-        history_harm_year_aligned, result_names=("df", "history")
+    comparison = df_harm_year_aligned.round(rounding).compare(
+        history_harm_year_aligned.round(rounding), result_names=("df", "history")
     )
     if not comparison.empty:
         raise NotHarmonisedError(
-            comparison=comparison, harmonisation_year=harmonisation_year
+            comparison=comparison, harmonisation_year=harmonisation_time
         )

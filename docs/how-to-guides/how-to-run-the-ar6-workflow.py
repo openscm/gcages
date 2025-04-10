@@ -166,8 +166,6 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %%
 pre_processor = AR6PreProcessor.from_ar6_config(
-    # TODO: set run_checks=True
-    run_checks=False,
     n_processes=None,  # run serially
 )
 
@@ -216,7 +214,6 @@ if not AR6_HISTORICAL_EMISSIONS_FILE.exists():
 # %%
 harmoniser = AR6Harmoniser.from_ar6_config(
     ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
-    run_checks=False,
     n_processes=None,  # not parallel
 )
 

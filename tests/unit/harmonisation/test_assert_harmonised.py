@@ -11,7 +11,7 @@ import pytest
 
 from gcages.harmonisation import (
     NotHarmonisedError,
-    align_history_to_data_in_year,
+    align_history_to_data_at_time,
     assert_harmonised,
 )
 
@@ -25,7 +25,7 @@ def get_df(index):
 
 
 @pytest.mark.parametrize(
-    "df, history, harmonisation_year, exp",
+    "df, history, harmonisation_time, exp",
     (
         pytest.param(
             pd.DataFrame(
@@ -328,9 +328,9 @@ def get_df(index):
         ),
     ),
 )
-def test_assert_harmonised(df, history, harmonisation_year, exp):
+def test_assert_harmonised(df, history, harmonisation_time, exp):
     with exp:
-        assert_harmonised(df, history=history, harmonisation_year=harmonisation_year)
+        assert_harmonised(df, history=history, harmonisation_time=harmonisation_time)
 
 
 def test_align_history_to_data_in_year_error():
@@ -375,4 +375,4 @@ def test_align_history_to_data_in_year_error():
             "(['scenario', 'variable', 'unit'])"
         ),
     ):
-        align_history_to_data_in_year(df, history=history, year=2015)
+        align_history_to_data_at_time(df, history=history, time=2015)

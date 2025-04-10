@@ -485,9 +485,6 @@ class AR6PreProcessor:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
             assert_has_index_levels(in_emissions, ["variable", "unit"])
-            # AR6 required emissions for these years, for some reason
-            required_years = list(range(2020, 2100 + 1, 10))
-            assert_has_data_for_times(value, times=required_years, allow_nan=False)
 
         # Remove any rows with only zero (custom AR6 thing)
         in_emissions = in_emissions[
@@ -554,6 +551,12 @@ class AR6PreProcessor:
         res = strip_pint_incompatible_characters_from_units(
             res, units_index_level="unit"
         )
+
+        if self.run_checks:
+            # AR6 required emissions for these years after pre-processing,
+            # for some reason
+            required_years = list(range(2020, 2100 + 1, 10))
+            assert_has_data_for_times(res, times=required_years, allow_nan=False)
 
         return res
 
