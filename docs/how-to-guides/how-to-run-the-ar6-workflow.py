@@ -112,24 +112,24 @@ start = pd.DataFrame(
                 "flatline",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
-            ("demo", "flatline", "World", "Emissions|CH4", "MtCH4/yr"),
+            ("demo", "flatline", "World", "Emissions|CH4", "Mt CH4/yr"),
             (
                 "demo",
                 "flatline-co2-only",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
             (
                 "demo",
                 "decline",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
-            ("demo", "decline", "World", "Emissions|CH4", "MtCH4/yr"),
+            ("demo", "decline", "World", "Emissions|CH4", "Mt CH4/yr"),
         ],
         names=["model", "scenario", "region", "variable", "unit"],
     ),
@@ -166,9 +166,7 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %%
 pre_processor = AR6PreProcessor.from_ar6_config(
-    # TODO: set run_checks=True
-    run_checks=False,
-    n_processes=None,  # run serially
+    n_processes=None,  # run serially for this demo
 )
 
 # %%
@@ -216,8 +214,7 @@ if not AR6_HISTORICAL_EMISSIONS_FILE.exists():
 # %%
 harmoniser = AR6Harmoniser.from_ar6_config(
     ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
-    run_checks=False,
-    n_processes=None,  # not parallel
+    n_processes=None,  # run serially for this demo
 )
 
 # %% [markdown]
@@ -240,7 +237,7 @@ pdf = (
             pre_processed.pix.assign(stage="pre_processed"),
             harmonised.pix.assign(stage="harmonised"),
             harmoniser.historical_emissions.pix.assign(
-                stage="history", scenario="history"
+                stage="history", scenario="history", model="history"
             ).loc[pix.isin(variable=pre_processed.pix.unique("variable"))],
         ]
     )

@@ -7,17 +7,28 @@ from __future__ import annotations
 import importlib
 import multiprocessing
 from pathlib import Path
+from typing import Any
 
+import attr
 import pandas as pd
-from attrs import define
+from attrs import define, field
 from pandas_openscm.io import load_timeseries_csv
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 from gcages.aneris_helpers import harmonise_all
-from gcages.assertions import assert_only_working_on_variable_unit_variations
+from gcages.assertions import (
+    MissingDataForTimesError,
+    assert_data_is_all_numeric,
+    assert_has_data_for_times,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+    assert_metadata_values_all_allowed,
+    assert_only_working_on_variable_unit_variations,
+)
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.harmonisation import add_historical_year_based_on_scaling
+from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
+from gcages.index_manipulation import update_index_levels
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -57,18 +68,6 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         index_columns=["model", "scenario", "variable", "unit", "region"],
         out_column_type=int,
     )
-
-    res.index = res.index.set_levels(  # type: ignore # pandas-stubs confused
-        res.index.levels[res.index.names.index("variable")].map(  # type: ignore # pandas-stubs confused
-            lambda x: x.replace("AR6 climate diagnostics|", "").replace(
-                "|Unharmonized", ""
-            )
-        ),
-        level="variable",
-    )
-
-    # Strip out any units that won't play nice with pint
-    res = strip_pint_incompatible_characters_from_units(res, units_index_level="unit")
 
     return res
 
@@ -110,8 +109,7 @@ def harmonise_scenario(
 
     assert_only_working_on_variable_unit_variations(indf)
 
-    # TODO: move these fixes out into pre-processing
-    # A bunch of other fix ups that were applied in AR6
+    # In AR6, if the year we needed wasn't there, we tried some workarounds
     if year not in indf:
         emissions_to_harmonise = add_historical_year_based_on_scaling(
             year_to_add=year,
@@ -176,7 +174,7 @@ class AR6Harmoniser:
     initialise using [`from_ar6_like_config`][(c)]
     """
 
-    historical_emissions: pd.DataFrame
+    historical_emissions: pd.DataFrame = field()
     """
     Historical emissions to use for harmonisation
     """
@@ -202,7 +200,7 @@ class AR6Harmoniser:
     This logic was perculiar to AR6, it may not be repeated.
     """
 
-    aneris_overrides: pd.DataFrame | None
+    aneris_overrides: pd.DataFrame | None = field()
     """
     Overrides to supply to `aneris.convenience.harmonise_all`
 
@@ -232,6 +230,56 @@ class AR6Harmoniser:
     Set to 1 to process in serial.
     """
 
+    @aneris_overrides.validator
+    def validate_aneris_overrides(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame | None
+    ) -> None:
+        """
+        Validate the aneris overrides value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if value is None:
+            return
+
+        if not self.run_checks:
+            return
+
+        value_check = pd.DataFrame(
+            value["method"].values,
+            columns=["method"],
+            index=pd.MultiIndex.from_frame(
+                value[value.columns.difference(["method"]).tolist()]
+            ),
+        )
+        for index_level in value_check.index.names:
+            assert_metadata_values_all_allowed(
+                value_check,
+                metadata_key=index_level,
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    index_level
+                ).unique(),
+            )
+
+    @historical_emissions.validator
+    def validate_historical_emissions(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame
+    ) -> None:
+        """
+        Validate the historical emissions value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if not self.run_checks:
+            return
+
+        assert_index_is_multiindex(value)
+        assert_data_is_all_numeric(value)
+        assert_has_index_levels(value, ["variable", "unit"])
+        assert_has_data_for_times(
+            value, times=[self.harmonisation_year], allow_nan=False
+        )
+
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Harmonise
@@ -247,13 +295,39 @@ class AR6Harmoniser:
             Harmonised emissions
         """
         if self.run_checks:
-            raise NotImplementedError
+            assert_index_is_multiindex(in_emissions)
+            assert_data_is_all_numeric(in_emissions)
+            assert_has_index_levels(
+                in_emissions, ["variable", "unit", "model", "scenario"]
+            )
+            try:
+                assert_has_data_for_times(
+                    in_emissions, times=[self.harmonisation_year], allow_nan=False
+                )
+            except MissingDataForTimesError as exc_hy:
+                try:
+                    assert_has_data_for_times(
+                        in_emissions, times=[self.calc_scaling_year], allow_nan=False
+                    )
+                except MissingDataForTimesError as exc_csy:
+                    msg = (
+                        f"We require data for either {self.harmonisation_year} "
+                        f"or {self.calc_scaling_year} "
+                        "but neither had the required data. "
+                        f"Error from checking for {self.harmonisation_year} data: "
+                        f"{exc_hy}. "
+                        f"Error from checking for {self.calc_scaling_year} data: "
+                        f"{exc_csy}. "
+                    )
+                    raise KeyError(msg)
 
-        # TODO:
-        #   - enable optional checks for:
-        #       - only known variable names are in raw_emissions
-        #       - only data with a useable time axis is in there
-        #       - metadata is appropriate/usable
+            assert_metadata_values_all_allowed(
+                in_emissions,
+                metadata_key="variable",
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    "variable"
+                ).unique(),
+            )
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
@@ -282,13 +356,26 @@ class AR6Harmoniser:
             variable="AR6 climate diagnostics|Harmonized|{variable}"
         )
 
-        # TODO:
-        #   - enable optional checks for:
-        #       - input and output metadata is identical
-        #           - no mangled variable names
-        #           - no mangled units
-        #           - output timesteps are from harmonisation year onwards only
-        #       - output scenarios all have common starting point
+        if self.run_checks:
+            # # TODO: enable when we switch naming schemes
+            #       - input and output metadata is identical
+            #           - no mangled variable names
+            #           - no mangled units
+            # assert_metadata_unchanged(out, in_emissions)
+            if out.columns.dtype != in_emissions.columns.dtype:
+                msg = (
+                    "Column type has changed: "
+                    f"{out.columns.dtype=} {in_emissions.columns.dtype=}"
+                )
+                raise AssertionError(msg)
+
+            assert_harmonised(
+                # Switch to out when we switch naming schemes
+                # out,
+                harmonised_df,
+                history=self.historical_emissions,
+                harmonisation_time=self.harmonisation_year,
+            )
 
         return out
 
@@ -330,6 +417,30 @@ class AR6Harmoniser:
         historical_emissions = load_ar6_historical_emissions(
             ar6_historical_emissions_file
         )
+
+        # Drop out all metadata except region, variable and unit
+        historical_emissions = historical_emissions.reset_index(
+            historical_emissions.index.names.difference(["variable", "region", "unit"]),  # type: ignore # pandas-stubs out of date
+            drop=True,
+        )
+
+        # Strip off prefix
+        historical_emissions.index = update_index_levels(
+            historical_emissions.index,  # type: ignore # pandas-stubs can't track when index is MultiIndex
+            {
+                "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
+                    "|Unharmonized", ""
+                )
+            },
+        )
+
+        # Strip out any units that won't play nice with pint
+        historical_emissions = strip_pint_incompatible_characters_from_units(
+            historical_emissions, units_index_level="unit"
+        )
+
+        # Drop out rows with all NaNs
+        historical_emissions = historical_emissions.dropna(how="all")
 
         # We don't need historical emissions after 1990
         # (probably even later, but this is fine).

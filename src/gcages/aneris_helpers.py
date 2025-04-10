@@ -267,7 +267,10 @@ def harmonise_all(
         msdf_aneris = msdf.reorder_levels(level_order)
         # Drop out any years that are all nan before passing to aneris
         msdf_aneris = msdf_aneris.dropna(how="all", axis="columns")
-        hist_msdf_aneris = hist_msdf.reorder_levels(level_order)
+        # Convert to format expected by aneris
+        hist_msdf_aneris = hist_msdf.pix.assign(
+            model="history", scenario="scen"
+        ).reorder_levels(level_order)
 
         h = Harmonizer(msdf_aneris, hist_msdf_aneris, harm_idx=["variable", "region"])
 

@@ -13,7 +13,13 @@ import pandas as pd
 from attrs import define
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
-from gcages.assertions import assert_only_working_on_variable_unit_variations
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_data_for_times,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+    assert_only_working_on_variable_unit_variations,
+)
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
@@ -475,21 +481,14 @@ class AR6PreProcessor:
                 "AR6PreProcessor.__call__", requirement="pandas_indexing"
             ) from exc
 
-        # TODO:
-        #   - enable optional checks for:
-        #       - only known variable names are in the output
-        #       - only data with a useable time axis is in there
-        #       - metadata is appropriate/usable
+        if self.run_checks:
+            assert_index_is_multiindex(in_emissions)
+            assert_data_is_all_numeric(in_emissions)
+            assert_has_index_levels(in_emissions, ["variable", "unit"])
 
-        # Remove any rows with only zero
+        # Remove any rows with only zero (custom AR6 thing)
         in_emissions = in_emissions[
             ~(((in_emissions == 0.0) | in_emissions.isnull()).all(axis="columns"))
-        ]
-
-        # Remove any rows that have NaN in required years
-        required_years = list(range(2020, 2100 + 1, 10))
-        in_emissions = in_emissions[
-            ~in_emissions[required_years].isnull().any(axis="columns")
         ]
 
         rp = partial(
@@ -553,12 +552,18 @@ class AR6PreProcessor:
             res, units_index_level="unit"
         )
 
+        if self.run_checks:
+            # AR6 required emissions for these years after pre-processing,
+            # for some reason
+            required_years = list(range(2020, 2100 + 1, 10))
+            assert_has_data_for_times(res, times=required_years, allow_nan=False)
+
         return res
 
     @classmethod
     def from_ar6_config(
         cls,
-        run_checks: bool,
+        run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
     ) -> AR6PreProcessor:
