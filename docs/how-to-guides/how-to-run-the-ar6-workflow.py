@@ -112,24 +112,24 @@ start = pd.DataFrame(
                 "flatline",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
-            ("demo", "flatline", "World", "Emissions|CH4", "MtCH4/yr"),
+            ("demo", "flatline", "World", "Emissions|CH4", "Mt CH4/yr"),
             (
                 "demo",
                 "flatline-co2-only",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
             (
                 "demo",
                 "decline",
                 "World",
                 "Emissions|CO2|Energy and Industrial Processes",
-                "MtCO2/yr",
+                "Mt CO2/yr",
             ),
-            ("demo", "decline", "World", "Emissions|CH4", "MtCH4/yr"),
+            ("demo", "decline", "World", "Emissions|CH4", "Mt CH4/yr"),
         ],
         names=["model", "scenario", "region", "variable", "unit"],
     ),
@@ -237,7 +237,7 @@ pdf = (
             pre_processed.pix.assign(stage="pre_processed"),
             harmonised.pix.assign(stage="harmonised"),
             harmoniser.historical_emissions.pix.assign(
-                stage="history", scenario="history"
+                stage="history", scenario="history", model="history"
             ).loc[pix.isin(variable=pre_processed.pix.unique("variable"))],
         ]
     )

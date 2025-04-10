@@ -152,7 +152,7 @@ class NotHarmonisedError(ValueError):
     def __init__(
         self,
         comparison: pd.DataFrame,
-        harmonisation_year: TIME_POINT,
+        harmonisation_time: TIME_POINT,
     ) -> None:
         """
         Initialise the error
@@ -162,11 +162,11 @@ class NotHarmonisedError(ValueError):
         comparison
             Results of comparing the data and history
 
-        mismatches
-            Differences between `df` and `history`
+        harmonisation_time
+            Expected harmonisation time
         """
         error_msg = (
-            f"The DataFrame is not harmonised in {harmonisation_year}. "
+            f"The DataFrame is not harmonised in {harmonisation_time}. "
             f"comparison=\n{comparison}"
         )
         super().__init__(error_msg)
@@ -250,7 +250,7 @@ def assert_harmonised(
     rounding: int = 10,
 ) -> None:
     """
-    Assert that a given [TimeseriesDataFrame][] is harmonised
+    Assert that a given [TimeseriesDataFrame][(p).typing] is harmonised
 
     Note: currently, this does not support unit conversion
     (i.e. units have to match exactly, equivalent units e.g. "Mt CO2" and "MtCO2"
@@ -283,5 +283,5 @@ def assert_harmonised(
     )
     if not comparison.empty:
         raise NotHarmonisedError(
-            comparison=comparison, harmonisation_year=harmonisation_time
+            comparison=comparison, harmonisation_time=harmonisation_time
         )
