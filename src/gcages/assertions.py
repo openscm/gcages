@@ -223,6 +223,79 @@ def assert_index_is_multiindex(df: pd.DataFrame) -> None:
         raise IndexIsNotMultiIndexError(df)
 
 
+class NotAllowedMetadataValuesError(ValueError):
+    """
+    Raised when a [pd.DataFrame][pandas.DataFrame] contains disallowed metadata values
+    """
+
+    def __init__(
+        self,
+        df: pd.DataFrame,
+        metadata_key: Any,
+        disallowed_values: Collection[Any],
+        allowed_values: Collection[Any],
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        df
+            [pd.DataFrame][pandas.DataFrame] that contains diasallowed metadata values
+
+        metadata_key
+            The metadata key which is being considered (e.g. "variable", "unit")
+
+        disallowed_values
+            The values which are not allowed but appear in `df`
+
+        allowed_values
+            The values which are allowed for `metadata_key`
+        """
+        error_msg = (
+            f"The DataFrame contains disallowed values for {metadata_key}: "
+            f"{disallowed_values}. "
+            f"Allowed values: {allowed_values}"
+        )
+        super().__init__(error_msg)
+
+
+def assert_metadata_values_all_allowed(
+    df: pd.DataFrame, metadata_key: Any, allowed_values: Collection[Any]
+) -> None:
+    """
+    Assert that a [pd.DataFrame][pandas.DataFrame] only contains allowed metadata values
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to check
+
+    metadata_key
+        The metadata key to check (e.g. "variable", "unit")
+
+    allowed_values
+        The values which are allowed for this metadata key
+
+    Raises
+    ------
+    NotAllowedMetadataValuesError
+        There is metadata for `metadata_key` in `df` that is not in `allowed_values`.
+    """
+    disallowed_values = [
+        v
+        for v in df.index.get_level_values(metadata_key).unique()
+        if v not in allowed_values
+    ]
+    if disallowed_values:
+        raise NotAllowedMetadataValuesError(
+            df=df,
+            metadata_key=metadata_key,
+            disallowed_values=disallowed_values,
+            allowed_values=allowed_values,
+        )
+
+
 def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
     """
     Assert that we're only working on variations in variable and unit
