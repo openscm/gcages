@@ -100,6 +100,41 @@ def get_df(index):
         pytest.param(
             pd.DataFrame(
                 [
+                    [1.0, 2.1],
+                    [3.0, 2.0],
+                    [1.0, 2.2],
+                ],
+                columns=[2015, 2100],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "W"),
+                        ("sa", "vb", "W"),
+                        ("sb", "va", "W"),
+                    ],
+                    names=["scenario", "variable", "unit"],
+                ),
+            ),
+            pd.DataFrame(
+                [
+                    [1.1, 1.0],
+                    [2.2, 3.0],
+                ],
+                columns=[2010, 2015],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("va", "W"),
+                        ("vb", "W"),
+                    ],
+                    names=["variable", "unit"],
+                ),
+            ),
+            2015,
+            does_not_raise(),
+            id="harmonised-multiple-scenarios-different-variables",
+        ),
+        pytest.param(
+            pd.DataFrame(
+                [
                     [1.0, 2.0],
                     [3.0, 2.0],
                 ],
