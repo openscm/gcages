@@ -1,5 +1,9 @@
 """
 Renaming between naming conventions
+
+At present, the naming convention for both sides is implicit.
+We are considering adding the concept of controlled vocabularies
+to help clarify this, but have not done so yet.
 """
 
 from __future__ import annotations

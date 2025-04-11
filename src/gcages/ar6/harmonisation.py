@@ -355,7 +355,9 @@ class AR6Harmoniser:
             )
 
             pd.testing.assert_index_equal(
-                harmonised_df.index, in_emissions.index, check_order=False
+                harmonised_df.index,
+                in_emissions.index,
+                check_order=False,  # type: ignore # pandas-stubs out of date
             )
             if harmonised_df.columns.dtype != in_emissions.columns.dtype:
                 msg = (
