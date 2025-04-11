@@ -12,6 +12,7 @@ from typing import Any
 import attr
 import pandas as pd
 from attrs import define, field
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
@@ -28,7 +29,6 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
-from gcages.index_manipulation import update_index_levels
 from gcages.renaming import convert_iamc_variable_to_gcages
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
@@ -413,19 +413,17 @@ class AR6Harmoniser:
             drop=True,
         )
 
-        # Strip off prefix
-        historical_emissions.index = update_index_levels(
-            historical_emissions.index,  # type: ignore # pandas-stubs can't track when index is MultiIndex
+        # Strip off prefix and update variable names
+        historical_emissions = update_index_levels_func(
+            historical_emissions,
             {
-                "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
-                    "|Unharmonized", ""
+                "variable": lambda x: convert_iamc_variable_to_gcages(
+                    x.replace("AR6 climate diagnostics|", "").replace(
+                        "|Unharmonized", ""
+                    )
                 )
             },
-        )
-
-        # Update variable names
-        historical_emissions.index = update_index_levels(
-            historical_emissions.index, {"variable": convert_iamc_variable_to_gcages}
+            copy=False,
         )
 
         # Strip out any units that won't play nice with pint

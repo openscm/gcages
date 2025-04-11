@@ -13,9 +13,9 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
-from gcages.index_manipulation import update_index_levels
 from gcages.renaming import (
     convert_gcages_variable_to_iamc,
     convert_iamc_variable_to_gcages,
@@ -37,27 +37,29 @@ PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
 def strip_off_ar6_prefix_and_convert_to_gcages(indf: pd.DataFrame) -> pd.DataFrame:
-    indf.index = update_index_levels(
-        indf.index,
+    indf = update_index_levels_func(
+        indf,
         {
             "variable": lambda x: convert_iamc_variable_to_gcages(
                 x.replace("AR6 climate diagnostics|", "").replace("|Unharmonized", "")
             )
         },
+        copy=False,
     )
 
     return indf
 
 
 def add_ar6_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
-    indf.index = update_index_levels(
-        indf.index,
+    indf = update_index_levels_func(
+        indf,
         {
             "variable": lambda x: (
                 "AR6 climate diagnostics|Harmonized|"
                 f"{convert_gcages_variable_to_iamc(x)}"
             )
         },
+        copy=False,
     )
 
     return indf
