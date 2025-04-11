@@ -1121,7 +1121,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.25.0" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
-    { name = "pandas-openscm", specifier = ">=0.3.2" },
+    { name = "pandas-openscm", specifier = ">=0.4.0" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
     { name = "tqdm", marker = "extra == 'progress'", specifier = ">=4.0.0" },
 ]
@@ -2952,7 +2952,7 @@ units = [
 
 [[package]]
 name = "pandas-openscm"
-version = "0.3.2"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -2960,9 +2960,9 @@ dependencies = [
     { name = "numpy", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/e3/4e13bf7013d228688063b23f854fbfb05a6973186305fdf53424b04afa55/pandas_openscm-0.3.2.tar.gz", hash = "sha256:ae962f03e492c46706e7f986edf186486907910f88413e27eeca47b72da1d166", size = 1482497 }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/4f/44452fee41873cf9799a78fffa8429876ea504164ef64062836989ab4c81/pandas_openscm-0.4.0.tar.gz", hash = "sha256:28a6cb48c680fbd9d5884761eaaa2f283abc1fed8e61900317f64ff67f8aa0d5", size = 1485773 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/95/9fb6eaf276da9dae6e34f03ef4bf291fa88ce4bf5375e6400e31b130dce8/pandas_openscm-0.3.2-py3-none-any.whl", hash = "sha256:3871f7211ffcadf43e558533464da0981b70177b0b1d344b5638e21e60412307", size = 59098 },
+    { url = "https://files.pythonhosted.org/packages/31/82/2542d7baed6f3837ad2827086f3a091fb95b9d3c89aa7ea971b09557a788/pandas_openscm-0.4.0-py3-none-any.whl", hash = "sha256:b5b76023dacd03f230368dc033fba9ccf6de1237d3b9eee1bc508c052b79b71b", size = 61266 },
 ]
 
 [[package]]
