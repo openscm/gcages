@@ -243,7 +243,7 @@ def harmonise_all(
         ) from exc
 
     try:
-        from pandas_indexing.core import concat, semijoin
+        from pandas_indexing.core import assignlevel, concat, semijoin
         from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
@@ -280,9 +280,10 @@ def harmonise_all(
 
         # convert out of internal datastructure
         dfs.append(
-            result.assign(model=model, scenario=scenario).set_index(
-                ["model", "scenario"], append=True
-            )
+            assignlevel(result, model=model, scenario=scenario)
+            # .set_index(
+            #     ["model", "scenario"], append=True
+            # )
         )
 
     # realign indicies as needed

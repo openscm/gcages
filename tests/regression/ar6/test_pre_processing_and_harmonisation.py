@@ -15,6 +15,11 @@ import pandas as pd
 import pytest
 
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
+from gcages.index_manipulation import update_index_levels
+from gcages.renaming import (
+    convert_gcages_variable_to_iamc,
+    convert_iamc_variable_to_gcages,
+)
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -31,6 +36,33 @@ AR6_HISTORICAL_EMISSIONS_FILE = (
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
+def strip_off_ar6_prefix_and_convert_to_gcages(indf: pd.DataFrame) -> pd.DataFrame:
+    indf.index = update_index_levels(
+        indf.index,
+        {
+            "variable": lambda x: convert_iamc_variable_to_gcages(
+                x.replace("AR6 climate diagnostics|", "").replace("|Unharmonized", "")
+            )
+        },
+    )
+
+    return indf
+
+
+def add_ar6_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
+    indf.index = update_index_levels(
+        indf.index,
+        {
+            "variable": lambda x: (
+                "AR6 climate diagnostics|Harmonized|"
+                f"{convert_gcages_variable_to_iamc(x)}"
+            )
+        },
+    )
+
+    return indf
+
+
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):
     raw = get_ar6_raw_emissions(
@@ -41,6 +73,8 @@ def test_individual_scenario(model, scenario):
     if raw.empty:
         msg = f"No test data for {model=} {scenario=}?"
         raise AssertionError(msg)
+
+    raw = strip_off_ar6_prefix_and_convert_to_gcages(raw)
 
     pre_processor = AR6PreProcessor.from_ar6_config(
         n_processes=None,  # not parallel
@@ -58,6 +92,7 @@ def test_individual_scenario(model, scenario):
     pre_processed = pre_processor(raw)
     res = harmoniser(pre_processed)
 
+    res_comparable = add_ar6_prefix_and_convert_to_iamc(res)
     exp = (
         get_ar6_harmonised_emissions(
             model=model,
@@ -68,7 +103,7 @@ def test_individual_scenario(model, scenario):
         .loc[~pix.ismatch(variable=["**Kyoto**", "**F-Gases", "**HFC", "**PFC"])]
     )
 
-    assert_frame_equal(res, exp)
+    assert_frame_equal(res_comparable, exp)
 
 
 def test_key_testing_scenarios_all_at_once_parallel():
@@ -92,7 +127,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
             .loc[~pix.ismatch(variable=["**Kyoto**", "**F-Gases", "**HFC", "**PFC"])]
         )
 
-    raw = pd.concat(raw_l)
+    raw = strip_off_ar6_prefix_and_convert_to_gcages(pd.concat(raw_l))
     exp = pd.concat(exp_l)
 
     pre_processor = AR6PreProcessor.from_ar6_config(
@@ -115,5 +150,6 @@ def test_key_testing_scenarios_all_at_once_parallel():
 
     pre_processed = pre_processor(raw)
     res = harmoniser(pre_processed)
+    res_comparable = add_ar6_prefix_and_convert_to_iamc(res)
 
-    assert_frame_equal(res, exp)
+    assert_frame_equal(res_comparable, exp)

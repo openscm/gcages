@@ -21,6 +21,7 @@ from gcages.assertions import (
     assert_only_working_on_variable_unit_variations,
 )
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.renaming import convert_iamc_variable_to_gcages
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 if TYPE_CHECKING:
@@ -591,35 +592,38 @@ class AR6PreProcessor:
         :
             Initialised Pre-processor
         """
-        ar6_emissions_for_harmonisation = (
-            "Emissions|BC",
-            "Emissions|PFC|C2F6",
-            "Emissions|PFC|C6F14",
-            "Emissions|PFC|CF4",
-            "Emissions|CO",
-            "Emissions|CO2",
-            "Emissions|CO2|AFOLU",
-            "Emissions|CO2|Energy and Industrial Processes",
-            "Emissions|CH4",
-            # "Emissions|F-Gases",  # Not used
-            # "Emissions|HFC",  # Not used
-            "Emissions|HFC|HFC125",
-            "Emissions|HFC|HFC134a",
-            "Emissions|HFC|HFC143a",
-            "Emissions|HFC|HFC227ea",
-            "Emissions|HFC|HFC23",
-            # 'Emissions|HFC|HFC245ca',  # all nan in historical dataset (RCMIP)
-            # "Emissions|HFC|HFC245fa",  # not in historical dataset (RCMIP)
-            "Emissions|HFC|HFC32",
-            "Emissions|HFC|HFC43-10",
-            "Emissions|N2O",
-            "Emissions|NH3",
-            "Emissions|NOx",
-            "Emissions|OC",
-            # "Emissions|PFC",  # Not used
-            "Emissions|SF6",
-            "Emissions|Sulfur",
-            "Emissions|VOC",
+        ar6_emissions_for_harmonisation = tuple(
+            convert_iamc_variable_to_gcages(v)
+            for v in (
+                "Emissions|BC",
+                "Emissions|PFC|C2F6",
+                "Emissions|PFC|C6F14",
+                "Emissions|PFC|CF4",
+                "Emissions|CO",
+                "Emissions|CO2",
+                "Emissions|CO2|AFOLU",
+                "Emissions|CO2|Energy and Industrial Processes",
+                "Emissions|CH4",
+                # "Emissions|F-Gases",  # Not used
+                # "Emissions|HFC",  # Not used
+                "Emissions|HFC|HFC125",
+                "Emissions|HFC|HFC134a",
+                "Emissions|HFC|HFC143a",
+                "Emissions|HFC|HFC227ea",
+                "Emissions|HFC|HFC23",
+                # 'Emissions|HFC|HFC245ca',  # all nan in historical dataset (RCMIP)
+                # "Emissions|HFC|HFC245fa",  # not in historical dataset (RCMIP)
+                "Emissions|HFC|HFC32",
+                "Emissions|HFC|HFC43-10",
+                "Emissions|N2O",
+                "Emissions|NH3",
+                "Emissions|NOx",
+                "Emissions|OC",
+                # "Emissions|PFC",  # Not used
+                "Emissions|SF6",
+                "Emissions|Sulfur",
+                "Emissions|VOC",
+            )
         )
         conditional_sums = (
             (
