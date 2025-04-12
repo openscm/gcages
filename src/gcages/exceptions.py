@@ -4,6 +4,9 @@ Exceptions that are used throughout
 
 from __future__ import annotations
 
+from collections.abc import Collection
+from typing import Any
+
 
 class MissingOptionalDependencyError(ImportError):
     """
@@ -25,4 +28,42 @@ class MissingOptionalDependencyError(ImportError):
             The name of the requirement
         """
         error_msg = f"`{callable_name}` requires {requirement} to be installed"
+        super().__init__(error_msg)
+
+
+class UnrecognisedValueError(ValueError):
+    """
+    Raised when a value is not recognised
+
+    In this context, recognised means 'known'
+    in the sense of being part of some set of values
+    that are understood and defined.
+    For example, this error could be raised when a value
+    is not be part of a set of a controlled vocabulary/known definitions.
+    """
+
+    def __init__(
+        self, unrecognised_value: Any, metadata_key: Any, known_values: Collection[Any]
+    ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        unrecognised_value
+            The unrecognised value
+
+        metadata_key
+            The metadata key from which this value is drawn
+
+            For example, `value` might be `"Emissions|junk"`
+            and `metadata_key` could be `"variable"`
+
+        known_values
+            The known values for `metadata_key`
+        """
+        error_msg = (
+            f"{unrecognised_value!r} is not a recognised value for {metadata_key}. "
+            f"Known values are: {known_values}"
+        )
         super().__init__(error_msg)
