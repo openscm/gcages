@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Callable
 
 import pandas as pd
 from attrs import define
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 from gcages.assertions import (
@@ -553,6 +554,11 @@ class AR6PreProcessor:
             res, units_index_level="unit"
         )
 
+        # Convert to gcages naming conventions
+        res = update_index_levels_func(
+            res, {"variable": convert_iamc_variable_to_gcages}
+        )
+
         if self.run_checks:
             # AR6 required emissions for these years after pre-processing,
             # for some reason
@@ -592,8 +598,8 @@ class AR6PreProcessor:
         :
             Initialised Pre-processor
         """
-        ar6_emissions_for_harmonisation = tuple(
-            convert_iamc_variable_to_gcages(v)
+        ar6_emissions_for_harmonisation_iamc = tuple(
+            v
             for v in (
                 "Emissions|BC",
                 "Emissions|PFC|C2F6",
@@ -655,7 +661,7 @@ class AR6PreProcessor:
         )
 
         return cls(
-            emissions_out=ar6_emissions_for_harmonisation,
+            emissions_out=ar6_emissions_for_harmonisation_iamc,
             negative_value_not_small_threshold=-0.1,
             conditional_sums=conditional_sums,
             reclassifications=reclassifications,

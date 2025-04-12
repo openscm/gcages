@@ -413,16 +413,59 @@ class AR6Harmoniser:
             drop=True,
         )
 
-        # Strip off prefix and update variable names
+        # Strip off prefix
         historical_emissions = update_index_levels_func(
             historical_emissions,
             {
-                "variable": lambda x: convert_iamc_variable_to_gcages(
-                    x.replace("AR6 climate diagnostics|", "").replace(
-                        "|Unharmonized", ""
-                    )
+                "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
+                    "|Unharmonized", ""
                 )
             },
+            copy=False,
+        )
+
+        # Drop down to only the variables we care about
+        historical_emissions = historical_emissions.loc[
+            historical_emissions.index.get_level_values("variable").isin(
+                [
+                    "Emissions|BC",
+                    "Emissions|PFC|C2F6",
+                    "Emissions|PFC|C6F14",
+                    "Emissions|PFC|CF4",
+                    "Emissions|CO",
+                    "Emissions|CO2",
+                    "Emissions|CO2|AFOLU",
+                    "Emissions|CO2|Energy and Industrial Processes",
+                    "Emissions|CH4",
+                    # "Emissions|F-Gases",  # Not used
+                    # "Emissions|HFC",  # Not used
+                    "Emissions|HFC|HFC125",
+                    "Emissions|HFC|HFC134a",
+                    "Emissions|HFC|HFC143a",
+                    "Emissions|HFC|HFC227ea",
+                    "Emissions|HFC|HFC23",
+                    # 'Emissions|HFC|HFC245ca',  # all nan in historical dataset (RCMIP)
+                    # "Emissions|HFC|HFC245fa",  # not in historical dataset (RCMIP)
+                    "Emissions|HFC|HFC32",
+                    "Emissions|HFC|HFC43-10",
+                    "Emissions|N2O",
+                    "Emissions|NH3",
+                    "Emissions|NOx",
+                    "Emissions|OC",
+                    # "Emissions|PFC",  # Not used
+                    "Emissions|SF6",
+                    "Emissions|Sulfur",
+                    "Emissions|VOC",
+                ]
+            )
+        ]
+
+        # Update variable names
+        # TODO: remove this
+        historical_emissions.index = historical_emissions.index.remove_unused_levels()
+        historical_emissions = update_index_levels_func(
+            historical_emissions,
+            {"variable": convert_iamc_variable_to_gcages},
             copy=False,
         )
 
@@ -441,11 +484,12 @@ class AR6Harmoniser:
         # All variables not mentioned here use aneris' default decision tree
         aneris_overrides_ar6 = pd.DataFrame(
             [
-                {
-                    # high historical variance (cov=16.2)
-                    "method": "reduce_ratio_2150_cov",
-                    "variable": "Emissions|PFC",
-                },
+                # Not used
+                # {
+                #     # high historical variance (cov=16.2)
+                #     "method": "reduce_ratio_2150_cov",
+                #     "variable": "Emissions|PFC",
+                # },
                 {
                     # high historical variance (cov=16.2)
                     "method": "reduce_ratio_2150_cov",
@@ -483,18 +527,20 @@ class AR6Harmoniser:
                     "method": "reduce_ratio_2080",
                     "variable": "Emissions|CO2|Energy and Industrial Processes",
                 },
-                {
-                    # basket not used in infilling
-                    # (sum of f-gases with low model reporting confidence)
-                    "method": "constant_ratio",
-                    "variable": "Emissions|F-Gases",
-                },
-                {
-                    # basket not used in infilling
-                    # (sum of subset of f-gases with low model reporting confidence)
-                    "method": "constant_ratio",
-                    "variable": "Emissions|HFC",
-                },
+                # Not used
+                # {
+                #     # basket not used in infilling
+                #     # (sum of f-gases with low model reporting confidence)
+                #     "method": "constant_ratio",
+                #     "variable": "Emissions|F-Gases",
+                # },
+                # Not used
+                # {
+                #     # basket not used in infilling
+                #     # (sum of subset of f-gases with low model reporting confidence)
+                #     "method": "constant_ratio",
+                #     "variable": "Emissions|HFC",
+                # },
                 {
                     # minor f-gas with low model reporting confidence
                     "method": "constant_ratio",
