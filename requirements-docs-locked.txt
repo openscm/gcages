@@ -100,7 +100,7 @@ packaging==24.2
 paginate==0.5.7
 pandas==2.2.3
 pandas-indexing==0.6.3
-pandas-openscm==0.4.0
+pandas-openscm==0.4.1
 pandocfilters==1.5.1
 parso==0.8.4
 pathspec==0.12.1

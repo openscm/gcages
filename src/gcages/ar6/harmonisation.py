@@ -461,8 +461,6 @@ class AR6Harmoniser:
         ]
 
         # Update variable names
-        # TODO: remove this
-        historical_emissions.index = historical_emissions.index.remove_unused_levels()
         historical_emissions = update_index_levels_func(
             historical_emissions,
             {"variable": convert_iamc_variable_to_gcages},
