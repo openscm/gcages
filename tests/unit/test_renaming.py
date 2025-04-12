@@ -13,7 +13,9 @@ from gcages.renaming import (
     convert_gcages_variable_to_iamc,
     convert_gcages_variable_to_openscm_runner,
     convert_iamc_variable_to_gcages,
+    convert_iamc_variable_to_openscm_runner,
     convert_openscm_runner_variable_to_gcages,
+    convert_openscm_runner_variable_to_iamc,
 )
 
 cases_to_check_iamc = pytest.mark.parametrize(
@@ -238,4 +240,20 @@ def test_round_tripping_openscm_runner(openscm_runner_variable, gcages_variable)
             convert_gcages_variable_to_openscm_runner(gcages_variable)
         )
         == gcages_variable
+    )
+
+
+@cases_to_check_openscm_runner
+def test_circularity(openscm_runner_variable, gcages_variable):
+    assert openscm_runner_variable == convert_iamc_variable_to_openscm_runner(
+        convert_gcages_variable_to_iamc(
+            convert_openscm_runner_variable_to_gcages(openscm_runner_variable)
+        )
+    )
+
+    # And in reverse
+    assert openscm_runner_variable == convert_gcages_variable_to_openscm_runner(
+        convert_iamc_variable_to_gcages(
+            convert_openscm_runner_variable_to_iamc(openscm_runner_variable)
+        )
     )
