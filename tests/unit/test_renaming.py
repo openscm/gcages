@@ -144,7 +144,7 @@ cases_to_check_openscm_runner = pytest.mark.parametrize(
             ("Emissions|CF4", "Emissions|CF4"),
             ("Emissions|CH4", "Emissions|CH4"),
             ("Emissions|CO", "Emissions|CO"),
-            ("Emissions|CO2|AFOLU", "Emissions|CO2|Biosphere"),
+            ("Emissions|CO2|MAGICC AFOLU", "Emissions|CO2|Biosphere"),
             (
                 "Emissions|CO2|MAGICC Fossil and Industrial",
                 "Emissions|CO2|Fossil",

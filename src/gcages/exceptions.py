@@ -43,7 +43,7 @@ class UnrecognisedValueError(ValueError):
     """
 
     def __init__(
-        self, unrecognised_value: Any, metadata_key: Any, known_values: Collection[Any]
+        self, unrecognised_value: Any, name: Any, known_values: Collection[Any]
     ) -> None:
         """
         Initialise the error
@@ -53,17 +53,17 @@ class UnrecognisedValueError(ValueError):
         unrecognised_value
             The unrecognised value
 
-        metadata_key
-            The metadata key from which this value is drawn
+        name
+            The name of the thing that has the unrecognised value
 
-            For example, `value` might be `"Emissions|junk"`
-            and `metadata_key` could be `"variable"`
+            For example, `unrecognised_value` might be `"Emissions|junk"`
+            and `name` could be `"variable"`.
 
         known_values
             The known values for `metadata_key`
         """
         error_msg = (
-            f"{unrecognised_value!r} is not a recognised value for {metadata_key}. "
+            f"{unrecognised_value!r} is not a recognised value for {name}. "
             f"Known values are: {known_values}"
         )
         super().__init__(error_msg)
