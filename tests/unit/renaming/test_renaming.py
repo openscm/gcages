@@ -99,10 +99,10 @@ def test_convert_variable_name_unknown_error(from_nc):
             pytest.param(
                 from_nc,
                 to_nc,
-                id=f"{from_nc}-{to_nc}",
+                id=f"{from_nc.name}-{to_nc.name}",
             )
             for from_nc, to_nc in itertools.combinations(
-                [v.name for v in SupportedNamingConventions], 2
+                [v for v in SupportedNamingConventions], 2
             )
         ]
     ),
@@ -111,7 +111,7 @@ def test_all_combos(gcages_variable, from_nc, to_nc):
     # Get starting point
     start = convert_variable_name(
         gcages_variable,
-        from_convention=SupportedNamingConventions.gcages,
+        from_convention=SupportedNamingConventions.GCAGES,
         to_convention=from_nc,
     )
 
