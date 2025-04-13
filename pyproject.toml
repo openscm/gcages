@@ -10,7 +10,7 @@ requires-python = ">=3.9"
 dependencies = [
     "numpy>=1.25.0",
     "pandas>=2.2.0",
-    "pandas-openscm>=0.4.0",
+    "pandas-openscm>=0.4.1",
 ]
 readme = "README.md"
 classifiers = [
@@ -337,6 +337,7 @@ ignore = [
     "S101",
 ]
 "docs/how-to-guides/how-to-run-the-ar6-workflow.py" = [
+    "E501",
     "PLR2004",
 ]
 "scripts/*" = [

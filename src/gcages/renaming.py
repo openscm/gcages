@@ -8,49 +8,71 @@ to help clarify this, but have not done so yet.
 
 from __future__ import annotations
 
+from typing import cast
 
-def convert_iamc_variable_to_gcages(iamc_variable: str, separator: str = "|") -> str:
+import pandas as pd
+
+from gcages.exceptions import UnrecognisedValueError
+
+
+def lookup_mapping(
+    from_key: str,
+    from_value: str,
+    to_key: str,
+    database: pd.DataFrame,
+    variable_used_for_lookup: str,
+) -> str:
     """
-    Convert an IAMC variable name to a gcages variable name
+    Lookup a mapping
 
     Parameters
     ----------
-    iamc_variable
-        IAMC variable to convert
+    from_key
+        Key/column to map from
 
-    separator
-        Separator between levels within the IAMC variable
+    from_value
+        Value to map from (i.e. what to look up in the `from_key` column)
+
+    to_key
+        Key/column to map to
+
+    database
+        Database in which to look up the mapping
+
+        (Not a real database, just a [pd.DataFrame][pandas.DataFrame],
+        but it performs the same function.)
+
+    variable_used_for_lookup
+        The name of the variable being used for mapping
+
+        This is only used to provide a helpful error message.
 
     Returns
     -------
     :
-        gcages equivalent of `iamc_variable`
+        Mapped value i.e. the equivalent value to `from_value` in `to_key`
+
+    Raises
+    ------
+    UnrecognisedValueError
+        `from_value` is not a recognised value in `from_key` for the given `database`
     """
-    if "HFC" in iamc_variable:
-        toks = iamc_variable.split(separator)
-        res = separator.join([toks[0], toks[-1]])
+    res_l = database.loc[database[from_key] == from_value, to_key].tolist()
 
-        if res.endswith(f"{separator}HFC43-10"):
-            res = res.replace(f"{separator}HFC43-10", f"{separator}HFC4310mee")
+    if len(res_l) < 1:
+        raise UnrecognisedValueError(
+            unrecognised_value=from_value,
+            name=variable_used_for_lookup,
+            known_values=sorted(list(database[from_key].tolist())),
+        )
 
-        return res
+    if len(res_l) > 1:  # pragma: no cover
+        raise AssertionError(res_l)
 
-    if "Montreal Gases" in iamc_variable:
-        toks = iamc_variable.split(separator)
-        res = separator.join([toks[0], toks[-1]])
-
-        return res
-
-    if iamc_variable.endswith(f"{separator}Sulfur"):
-        return iamc_variable.replace(f"{separator}Sulfur", f"{separator}SOx")
-
-    if iamc_variable.endswith(f"{separator}VOC"):
-        return iamc_variable.replace(f"{separator}VOC", f"{separator}NMVOC")
-
-    return iamc_variable
+    return cast(str, res_l[0])
 
 
-def convert_gcages_variable_to_iamc(gcages_variable: str, separator: str = "|") -> str:
+def convert_gcages_variable_to_iamc(gcages_variable: str) -> str:
     """
     Convert a gcages variable name to an IAMC variable name
 
@@ -59,58 +81,157 @@ def convert_gcages_variable_to_iamc(gcages_variable: str, separator: str = "|") 
     gcages_variable
         gcages variable to convert
 
-    separator
-        Separator between levels within the gcages variable
+    Returns
+    -------
+    :
+        IAMC equivalent of `gcages_variable`
+
+    Raises
+    ------
+    UnrecognisedValueError
+        We do not know how to map `gcages_variable`
+    """
+    from gcages.databases import EMISSIONS_VARIABLES
+
+    return lookup_mapping(
+        from_key="gcages",
+        from_value=gcages_variable,
+        variable_used_for_lookup="gcages_variable",
+        to_key="iamc",
+        database=EMISSIONS_VARIABLES,
+    )
+
+
+def convert_gcages_variable_to_openscm_runner(gcages_variable: str) -> str:
+    """
+    Convert a gcages variable name to an OpenSCM-Runner variable name
+
+    Parameters
+    ----------
+    gcages_variable
+        gcages variable to convert
+
+    Returns
+    -------
+    :
+        OpenSCM-Runner equivalent of `gcages_variable`
+    """
+    from gcages.databases import EMISSIONS_VARIABLES
+
+    return lookup_mapping(
+        from_key="gcages",
+        from_value=gcages_variable,
+        variable_used_for_lookup="gcages_variable",
+        to_key="openscm_runner",
+        database=EMISSIONS_VARIABLES,
+    )
+
+
+def convert_iamc_variable_to_gcages(iamc_variable: str) -> str:
+    """
+    Convert an IAMC variable name to a gcages variable name
+
+    Parameters
+    ----------
+    iamc_variable
+        IAMC variable to convert
 
     Returns
     -------
     :
         gcages equivalent of `iamc_variable`
+
+    Raises
+    ------
+    UnrecognisedValueError
+        We do not know how to map `iamc_variable`
     """
-    if "HFC" in gcages_variable:
-        toks = gcages_variable.split(separator)
+    from gcages.databases import EMISSIONS_VARIABLES
 
-        res = separator.join([toks[0], "HFC", *toks[1:]])
-        if res.endswith(f"{separator}HFC4310mee"):
-            res = res.replace(f"{separator}HFC4310mee", f"{separator}HFC43-10")
-
-        return res
-
-    montreal_gases = (
-        "CCl4",
-        "CFC11",
-        "CFC113",
-        "CFC114",
-        "CFC115",
-        "CFC12",
-        "CH2Cl2",
-        "CH3Br",
-        "CH3CCl3",
-        "CH3Cl",
-        "CHCl3",
-        "HCFC141b",
-        "HCFC142b",
-        "HCFC22",
-        "Halon1202",
-        "Halon1211",
-        "Halon1301",
-        "Halon2402",
+    return lookup_mapping(
+        from_key="iamc",
+        from_value=iamc_variable,
+        variable_used_for_lookup="iamc_variable",
+        to_key="gcages",
+        database=EMISSIONS_VARIABLES,
     )
-    if any(gcages_variable.endswith(suffix) for suffix in montreal_gases):
-        toks = gcages_variable.split(separator)
 
-        insertions = ["Montreal Gases"]
-        if f"{separator}CFC" in gcages_variable:
-            insertions.append("CFC")
 
-        res = separator.join([toks[0], *insertions, *toks[1:]])
+def convert_iamc_variable_to_openscm_runner(iamc_variable: str) -> str:
+    """
+    Convert an IAMC variable name to an OpenSCM-Runner variable name
 
-        return res
+    Parameters
+    ----------
+    iamc_variable
+        IAMC variable to convert
 
-    if gcages_variable.endswith(f"{separator}SOx"):
-        return gcages_variable.replace(f"{separator}SOx", f"{separator}Sulfur")
+    Returns
+    -------
+    :
+        OpenSCM-Runner equivalent of `iamc_variable`
 
-    if gcages_variable.endswith(f"{separator}NMVOC"):
-        return gcages_variable.replace(f"{separator}NMVOC", f"{separator}VOC")
+    Raises
+    ------
+    UnrecognisedValueError
+        We do not know how to map `iamc_variable`
+    """
+    from gcages.databases import EMISSIONS_VARIABLES
 
-    return gcages_variable
+    return lookup_mapping(
+        from_key="iamc",
+        from_value=iamc_variable,
+        variable_used_for_lookup="iamc_variable",
+        to_key="openscm_runner",
+        database=EMISSIONS_VARIABLES,
+    )
+
+
+def convert_openscm_runner_variable_to_gcages(openscm_runner_variable: str) -> str:
+    """
+    Convert an OpenSCM-Runner variable name to a gcages variable name
+
+    Parameters
+    ----------
+    openscm_runner_variable
+        OpenSCM-Runner variable to convert
+
+    Returns
+    -------
+    :
+        gcages equivalent of `openscm_runner_variable`
+    """
+    from gcages.databases import EMISSIONS_VARIABLES
+
+    return lookup_mapping(
+        from_key="openscm_runner",
+        from_value=openscm_runner_variable,
+        variable_used_for_lookup="openscm_runner_variable",
+        to_key="gcages",
+        database=EMISSIONS_VARIABLES,
+    )
+
+
+def convert_openscm_runner_variable_to_iamc(openscm_runner_variable: str) -> str:
+    """
+    Convert an OpenSCM-Runner variable name to an IAMC variable name
+
+    Parameters
+    ----------
+    openscm_runner_variable
+        OpenSCM-Runner variable to convert
+
+    Returns
+    -------
+    :
+        IAMC equivalent of `openscm_runner_variable`
+    """
+    from gcages.databases import EMISSIONS_VARIABLES
+
+    return lookup_mapping(
+        from_key="openscm_runner",
+        from_value=openscm_runner_variable,
+        variable_used_for_lookup="openscm_runner_variable",
+        to_key="iamc",
+        database=EMISSIONS_VARIABLES,
+    )

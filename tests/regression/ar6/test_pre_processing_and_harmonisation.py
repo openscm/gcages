@@ -16,10 +16,7 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
-from gcages.renaming import (
-    convert_gcages_variable_to_iamc,
-    convert_iamc_variable_to_gcages,
-)
+from gcages.renaming import convert_gcages_variable_to_iamc
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -36,12 +33,12 @@ AR6_HISTORICAL_EMISSIONS_FILE = (
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
-def strip_off_ar6_prefix_and_convert_to_gcages(indf: pd.DataFrame) -> pd.DataFrame:
+def strip_off_ar6_prefix(indf: pd.DataFrame) -> pd.DataFrame:
     indf = update_index_levels_func(
         indf,
         {
-            "variable": lambda x: convert_iamc_variable_to_gcages(
-                x.replace("AR6 climate diagnostics|", "").replace("|Unharmonized", "")
+            "variable": lambda x: x.replace("AR6 climate diagnostics|", "").replace(
+                "|Unharmonized", ""
             )
         },
         copy=False,
@@ -76,7 +73,7 @@ def test_individual_scenario(model, scenario):
         msg = f"No test data for {model=} {scenario=}?"
         raise AssertionError(msg)
 
-    raw = strip_off_ar6_prefix_and_convert_to_gcages(raw)
+    raw = strip_off_ar6_prefix(raw)
 
     pre_processor = AR6PreProcessor.from_ar6_config(
         n_processes=None,  # not parallel
@@ -129,7 +126,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
             .loc[~pix.ismatch(variable=["**Kyoto**", "**F-Gases", "**HFC", "**PFC"])]
         )
 
-    raw = strip_off_ar6_prefix_and_convert_to_gcages(pd.concat(raw_l))
+    raw = strip_off_ar6_prefix(pd.concat(raw_l))
     exp = pd.concat(exp_l)
 
     pre_processor = AR6PreProcessor.from_ar6_config(
