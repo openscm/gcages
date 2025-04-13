@@ -99,7 +99,7 @@ def test_convert_variable_name_unknown_error(from_nc):
             pytest.param(
                 from_nc,
                 to_nc,
-                id=f"{from_nc.name}-{to_nc.name}",
+                id=f"{from_nc.value}-{to_nc.value}",
             )
             for from_nc, to_nc in itertools.combinations(
                 [v for v in SupportedNamingConventions], 2

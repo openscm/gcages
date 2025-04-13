@@ -1,5 +1,5 @@
 """
-Tests of gcages.renaming for OpenSCM-Runner variables
+Tests of gcages.renaming for the AR6 CFC infilling database variables
 """
 
 from __future__ import annotations
@@ -11,43 +11,43 @@ from gcages.renaming import (
     convert_variable_name,
 )
 
-cases_to_check_openscm_runner = pytest.mark.parametrize(
-    "openscm_runner_variable, gcages_variable",
+cases_to_check_ar6_cfc_infilling_db = pytest.mark.parametrize(
+    "ar6_cfc_infilling_db_variable, gcages_variable",
     tuple(
         pytest.param(
-            openscm_runner_variable,
+            ar6_cfc_infilling_db_variable,
             gcages_variable,
             id=gcages_variable,
         )
-        for openscm_runner_variable, gcages_variable in (
+        for ar6_cfc_infilling_db_variable, gcages_variable in (
             ("Emissions|BC", "Emissions|BC"),
-            ("Emissions|C2F6", "Emissions|C2F6"),
-            ("Emissions|C3F8", "Emissions|C3F8"),
-            ("Emissions|C4F10", "Emissions|C4F10"),
-            ("Emissions|C5F12", "Emissions|C5F12"),
-            ("Emissions|C6F14", "Emissions|C6F14"),
-            ("Emissions|C7F16", "Emissions|C7F16"),
-            ("Emissions|C8F18", "Emissions|C8F18"),
-            ("Emissions|CF4", "Emissions|CF4"),
+            ("Emissions|PFC|C2F6", "Emissions|C2F6"),
+            ("Emissions|PFC|C3F8", "Emissions|C3F8"),
+            ("Emissions|PFC|C4F10", "Emissions|C4F10"),
+            ("Emissions|PFC|C5F12", "Emissions|C5F12"),
+            ("Emissions|PFC|C6F14", "Emissions|C6F14"),
+            ("Emissions|PFC|C7F16", "Emissions|C7F16"),
+            ("Emissions|PFC|C8F18", "Emissions|C8F18"),
+            ("Emissions|PFC|CF4", "Emissions|CF4"),
             ("Emissions|CH4", "Emissions|CH4"),
             ("Emissions|CO", "Emissions|CO"),
             ("Emissions|CO2", "Emissions|CO2"),
-            ("Emissions|CO2|MAGICC AFOLU", "Emissions|CO2|Biosphere"),
+            ("Emissions|CO2|AFOLU", "Emissions|CO2|Biosphere"),
             (
-                "Emissions|CO2|MAGICC Fossil and Industrial",
+                "Emissions|CO2|Energy and Industrial Processes",
                 "Emissions|CO2|Fossil",
             ),
-            ("Emissions|HFC125", "Emissions|HFC125"),
-            ("Emissions|HFC134a", "Emissions|HFC134a"),
-            ("Emissions|HFC143a", "Emissions|HFC143a"),
-            ("Emissions|HFC152a", "Emissions|HFC152a"),
-            ("Emissions|HFC227ea", "Emissions|HFC227ea"),
-            ("Emissions|HFC23", "Emissions|HFC23"),
-            ("Emissions|HFC236fa", "Emissions|HFC236fa"),
-            ("Emissions|HFC245fa", "Emissions|HFC245fa"),
-            ("Emissions|HFC32", "Emissions|HFC32"),
-            ("Emissions|HFC365mfc", "Emissions|HFC365mfc"),
-            ("Emissions|HFC4310mee", "Emissions|HFC4310mee"),
+            ("Emissions|HFC|HFC125", "Emissions|HFC125"),
+            ("Emissions|HFC|HFC134a", "Emissions|HFC134a"),
+            ("Emissions|HFC|HFC143a", "Emissions|HFC143a"),
+            ("Emissions|HFC|HFC152a", "Emissions|HFC152a"),
+            ("Emissions|HFC|HFC227ea", "Emissions|HFC227ea"),
+            ("Emissions|HFC|HFC23", "Emissions|HFC23"),
+            ("Emissions|HFC|HFC236fa", "Emissions|HFC236fa"),
+            ("Emissions|HFC|HFC245fa", "Emissions|HFC245fa"),
+            ("Emissions|HFC|HFC32", "Emissions|HFC32"),
+            ("Emissions|HFC|HFC365mfc", "Emissions|HFC365mfc"),
+            ("Emissions|HFC|HFC43-10", "Emissions|HFC4310mee"),
             ("Emissions|CCl4", "Emissions|CCl4"),
             ("Emissions|CFC11", "Emissions|CFC11"),
             ("Emissions|CFC113", "Emissions|CFC113"),
@@ -75,35 +75,35 @@ cases_to_check_openscm_runner = pytest.mark.parametrize(
             ("Emissions|SO2F2", "Emissions|SO2F2"),
             ("Emissions|Sulfur", "Emissions|SOx"),
             ("Emissions|VOC", "Emissions|NMVOC"),
-            ("Emissions|cC4F8", "Emissions|cC4F8"),
+            ("Emissions|PFC|cC4F8", "Emissions|cC4F8"),
         )
     ),
 )
 
 
-@cases_to_check_openscm_runner
-def test_convert_openscm_runner_variable_to_gcages(
-    openscm_runner_variable, gcages_variable
+@cases_to_check_ar6_cfc_infilling_db
+def test_convert_ar6_cfc_infilling_db_variable_to_gcages(
+    ar6_cfc_infilling_db_variable, gcages_variable
 ):
     assert (
         convert_variable_name(
-            openscm_runner_variable,
-            from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+            ar6_cfc_infilling_db_variable,
+            from_convention=SupportedNamingConventions.AR6_CFC_INFILLING_DB,
             to_convention=SupportedNamingConventions.GCAGES,
         )
         == gcages_variable
     )
 
 
-@cases_to_check_openscm_runner
-def test_convert_openscm_runner_variable_to_openscm_runner(
-    openscm_runner_variable, gcages_variable
+@cases_to_check_ar6_cfc_infilling_db
+def test_convert_ar6_cfc_infilling_db_variable_to_ar6_cfc_infilling_db(
+    ar6_cfc_infilling_db_variable, gcages_variable
 ):
     assert (
         convert_variable_name(
             gcages_variable,
             from_convention=SupportedNamingConventions.GCAGES,
-            to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+            to_convention=SupportedNamingConventions.AR6_CFC_INFILLING_DB,
         )
-        == openscm_runner_variable
+        == ar6_cfc_infilling_db_variable
     )
