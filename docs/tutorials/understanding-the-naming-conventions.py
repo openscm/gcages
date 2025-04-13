@@ -36,6 +36,7 @@ import traceback
 
 import numpy as np
 import pandas as pd
+import pandas_indexing  # noqa: F401
 import pandas_openscm
 
 import gcages.exceptions

@@ -53,10 +53,16 @@ pint.set_application_registry(openscm_units.unit_registry)
 # i.e. a pandas `DataFrame` with a `MultiIndex` with levels:
 # `["model", "scenario", "region", "variable", "unit"]`
 # and years as the columns.
+
+# %% [markdown]
+# ### Naming conventions
 #
-# We will come to the emissions variables that are supported in the next part.
-# For now, we are going to create a basic scenario
-# with CO2 fossil and CH4 emissions.
+# A complete discussion on naming conventions is provided in
+# [or our docs on naming conventions](../../tutorials/understanding-the-naming-conventions).
+# In short, we use the `gcages` naming conventions throughout.
+# However, AR6 used the IAMC naming convention as its starting point.
+# Hence, we start from the IAMC naming convention here.
+# However, the pre-processing step alters the naming convention to gcages names.
 
 # %%
 # All the code to generate these demo timeseries
@@ -102,10 +108,15 @@ start = pd.DataFrame(
             co2_flatline,
             co2_decline,
             ch4_decline,
+            co2_decline * 0.85,
+            co2_decline * 0.13
+            + np.arange(co2_decline.size) * 10.0
+            + 500.0 * np.ones_like(co2_decline),
         ]
     ),
     columns=time,
     index=pd.MultiIndex.from_tuples(
+        # Note the use of IAMC names here
         [
             (
                 "demo",
@@ -130,6 +141,20 @@ start = pd.DataFrame(
                 "Mt CO2/yr",
             ),
             ("demo", "decline", "World", "Emissions|CH4", "Mt CH4/yr"),
+            (
+                "demo",
+                "decline_co2_fossil_split",
+                "World",
+                "Emissions|CO2|Energy",
+                "Mt CO2/yr",
+            ),
+            (
+                "demo",
+                "decline_co2_fossil_split",
+                "World",
+                "Emissions|CO2|Industrial Processes",
+                "Mt CO2/yr",
+            ),
         ],
         names=["model", "scenario", "region", "variable", "unit"],
     ),
@@ -138,22 +163,20 @@ start = start.T.interpolate("index").T
 start
 
 # %%
-assert False, "Cross-ref the naming conventions notebook and create a version that doesn't need pre-processing"
-
-# %%
 relplot_in_emms = partial(
     sns.relplot,
     kind="line",
     linewidth=2.0,
+    alpha=0.7,
     facet_kws=dict(sharey=False),
     x="year",
     y="value",
     col="variable",
-    style="scenario",
     col_wrap=2,
 )
 fg = relplot_in_emms(
     data=start.melt(ignore_index=False, var_name="year").reset_index(),
+    hue="scenario",
 )
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
@@ -162,10 +185,12 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # %% [markdown]
 # ## Pre-process
 #
-# The first step is pre-processing the emissions scenario(s).
-# This does some variable processing steps that were need in AR6,
-# but shouldn't be needed if you are more careful with your data.
-# It also extracts only those variables that are understood by the workflow.
+# If you want to run in exactly the same way as AR6,
+# the first step is pre-processing the emissions scenario(s)
+# (if you just want the same logic as AR6 for other steps,
+# it is possible to skip this step and just go straight to harmonisation).
+# This step does some variable aggregation that was needed in AR6
+# and extracts only those variables that are understood by the workflow.
 
 # %%
 pre_processor = AR6PreProcessor.from_ar6_config(
@@ -173,16 +198,30 @@ pre_processor = AR6PreProcessor.from_ar6_config(
 )
 
 # %%
-# These are the variables understood by the workflow as was used in AR6
+# These are the variables (using the IAMC naming convention)
+# understood by the workflow as was used in AR6.
 pre_processor.emissions_out
 
 # %% [markdown]
 # Here we run the pre-processing and get the pre-processed data.
-# In our case, this is effectively a no-op as our data is already in the right format.
+# Note a few things which were done:
+#
+# 1. renaming of variables
+# 2. aggregation of the scenario which provided energy
+#    and industrial emissions separately
 
 # %%
 pre_processed = pre_processor(start)
 pre_processed
+
+# %%
+fg = relplot_in_emms(
+    data=pre_processed.melt(ignore_index=False, var_name="year").reset_index(),
+    hue="scenario",
+)
+
+fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
+fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %% [markdown]
 # ## Harmonisation
@@ -193,7 +232,7 @@ pre_processed
 # In AR6, a specific set of historical emissions was used.
 # There is no official home for this, but a copy is stored in the path below
 # (and, as above, if you want something that pre-packages everything,
-# see [climate-assessment](https://github.com/iiasa/climate-assessment) package).
+# see the [climate-assessment](https://github.com/iiasa/climate-assessment) package).
 #
 # Under the hood, the AR6 harmonisation uses the
 # [aneris](https://github.com/iiasa/aneris) package.
@@ -251,7 +290,13 @@ pdf["variable"] = pdf["variable"].str.replace("AR6 climate diagnostics|Harmonize
 
 fg = relplot_in_emms(
     data=pdf,
-    hue="stage",
+    hue="scenario",
+    style="stage",
+    dashes={
+        "history": (1, 1),
+        "pre_processed": (3, 3),
+        "harmonised": "",
+    },
 )
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")

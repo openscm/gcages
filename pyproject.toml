@@ -337,6 +337,7 @@ ignore = [
     "S101",
 ]
 "docs/how-to-guides/how-to-run-the-ar6-workflow.py" = [
+    "E501",
     "PLR2004",
 ]
 "scripts/*" = [
