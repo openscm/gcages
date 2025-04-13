@@ -138,6 +138,9 @@ start = start.T.interpolate("index").T
 start
 
 # %%
+assert False, "Cross-ref the naming conventions notebook and create a version that doesn't need pre-processing"
+
+# %%
 relplot_in_emms = partial(
     sns.relplot,
     kind="line",
