@@ -97,10 +97,12 @@ def test_convert_iamc_variable_to_gcages_unknown_error():
     with pytest.raises(
         UnrecognisedValueError,
         match=re.escape(
-            "'junk' is not a recognised value for iamc_variable. Known values are:"
+            "'Emissions|junk' is not a recognised value for iamc_variable. "
+            "Did you mean 'Emissions|OC' or 'Emissions|CO' or 'Emissions|BC'? "
+            "The full list of known values is:"
         ),
     ):
-        convert_iamc_variable_to_gcages("junk")
+        convert_iamc_variable_to_gcages("Emissions|junk")
 
 
 @cases_to_check_iamc

@@ -63,7 +63,7 @@ def lookup_mapping(
         raise UnrecognisedValueError(
             unrecognised_value=from_value,
             name=variable_used_for_lookup,
-            known_values=list(database[from_key].tolist()),
+            known_values=sorted(list(database[from_key].tolist())),
         )
 
     if len(res_l) > 1:  # pragma: no cover

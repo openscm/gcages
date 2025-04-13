@@ -4,6 +4,7 @@ Exceptions that are used throughout
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Collection
 from typing import Any
 
@@ -62,8 +63,14 @@ class UnrecognisedValueError(ValueError):
         known_values
             The known values for `metadata_key`
         """
-        error_msg = (
-            f"{unrecognised_value!r} is not a recognised value for {name}. "
-            f"Known values are: {known_values}"
+        error_msg_l = [f"{unrecognised_value!r} is not a recognised value for {name}."]
+        close = difflib.get_close_matches(
+            unrecognised_value, known_values, n=3, cutoff=0.6
         )
-        super().__init__(error_msg)
+        if close:
+            close_with_quotes = [f"{v!r}" for v in close]
+            error_msg_l.append(f"Did you mean {' or '.join(close_with_quotes)}?")
+
+        error_msg_l.append(f"The full list of known values is: {known_values}")
+
+        super().__init__(" ".join(error_msg_l))

@@ -32,15 +32,108 @@
 # ## Imports
 
 # %%
+import traceback
+
+import numpy as np
+import pandas as pd
+import pandas_openscm
+
+import gcages.exceptions
 from gcages.databases import EMISSIONS_VARIABLES
+from gcages.renaming import (
+    convert_gcages_variable_to_iamc,
+    convert_gcages_variable_to_openscm_runner,
+    convert_iamc_variable_to_gcages,
+    convert_iamc_variable_to_openscm_runner,
+    convert_openscm_runner_variable_to_gcages,
+    convert_openscm_runner_variable_to_iamc,
+)
+
+# %%
+# Register the openscm accessor
+# (pix does this on import (a side-effect pattern pandas-openscm tries to avoid),
+# so there is no equivalent line)
+pandas_openscm.register_pandas_accessor("openscm")
 
 # %% [markdown]
 # ## Converting between naming conventions
+#
+# The renaming functions make it trivial to move between naming conventions.
+# Their API is very simple.
 
 # %%
-assert (
-    False
-), "demo conversions and error you get if you ask for something which doesn't exist"
+convert_gcages_variable_to_iamc("Emissions|CO2|Fossil")
+
+# %%
+convert_gcages_variable_to_openscm_runner("Emissions|CO2|Fossil")
+
+# %%
+convert_iamc_variable_to_gcages("Emissions|CO2|Energy and Industrial Processes")
+
+# %%
+convert_iamc_variable_to_openscm_runner("Emissions|CO2|Energy and Industrial Processes")
+
+# %%
+convert_openscm_runner_variable_to_gcages("Emissions|CO2|MAGICC AFOLU")
+
+# %%
+convert_openscm_runner_variable_to_iamc("Emissions|CO2|MAGICC AFOLU")
+
+# %% [markdown]
+# ### Errors
+#
+# If you try and convert a name that is not recognised,
+# you will receive an `gcages.exceptions.UnrecognisedValueError`,
+# which also shows close values
+# and the full list of known values.
+
+# %%
+try:
+    convert_openscm_runner_variable_to_gcages("Emissions|NMVOC")
+except gcages.exceptions.UnrecognisedValueError:
+    traceback.print_exc(limit=0)
+
+# %%
+try:
+    convert_openscm_runner_variable_to_gcages("Emissions|junk")
+except gcages.exceptions.UnrecognisedValueError:
+    traceback.print_exc(limit=0)
+
+# %% [markdown]
+# ### Applying to pandas
+#
+# You can obviously apply these functions to pandas DataFrame's.
+# When combined with other packages like
+# [pandas-indexing](https://pandas-indexing.readthedocs.io/en/latest/)
+# or [pandas-openscm](https://pandas-openscm.readthedocs.io/en/latest/),
+# this can make data manipulation and conversion very straightforward.
+
+# %%
+start = pd.DataFrame(
+    np.arange(12).reshape((4, 3)),
+    columns=[2010, 2020, 2030],
+    index=pd.MultiIndex.from_tuples(
+        [
+            ("sa", "Emissions|CO2|Fossil", "Mt CO2/yr"),
+            ("sa", "Emissions|CO2|Biosphere", "Mt CO2/yr"),
+            ("sa", "Emissions|SOx", "Mt S/yr"),
+            ("sa", "Emissions|NMVOC", "Mt VOC/yr"),
+        ],
+        names=["scenario", "variable", "unit"],
+    ),
+)
+start
+
+# %%
+start.openscm.update_index_levels(
+    {"variable": convert_gcages_variable_to_iamc, "scenario": {"sa": "scenario a"}}
+)
+
+# %%
+start.pix.assign(
+    variable=start.index.pix.project("variable").map(convert_gcages_variable_to_iamc),
+    scenario="scenario a",
+)
 
 # %% [markdown]
 # ## The 'database'
