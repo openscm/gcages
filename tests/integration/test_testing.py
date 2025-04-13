@@ -17,6 +17,7 @@ from gcages.exceptions import MissingOptionalDependencyError
 from gcages.testing import (
     assert_frame_equal,
     get_ar6_harmonised_emissions,
+    get_ar6_infilled_emissions,
     get_ar6_raw_emissions,
     get_key_testing_model_scenario_parameters,
 )
@@ -43,6 +44,13 @@ from gcages.testing import (
             get_ar6_harmonised_emissions,
             ["a", "b", "c"],
             "get_ar6_harmonised_emissions",
+            "pandas_indexing.selectors",
+            "pandas_indexing",
+        ),
+        (
+            get_ar6_infilled_emissions,
+            ["a", "b", "c"],
+            "get_ar6_infilled_emissions",
             "pandas_indexing.selectors",
             "pandas_indexing",
         ),

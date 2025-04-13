@@ -16,7 +16,10 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.ar6 import AR6Infiller
-from gcages.renaming import convert_gcages_variable_to_iamc
+from gcages.renaming import (
+    convert_gcages_variable_to_iamc,
+    convert_iamc_variable_to_gcages,
+)
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -38,10 +41,16 @@ AR6_INFILLING_DB_CFCS_FILE = (
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
-def strip_off_ar6_harmonised_prefix(indf: pd.DataFrame) -> pd.DataFrame:
+def strip_off_ar6_harmonised_prefix_and_convert_to_gcages(
+    indf: pd.DataFrame,
+) -> pd.DataFrame:
     indf = update_index_levels_func(
         indf,
-        {"variable": lambda x: x.replace("AR6 climate diagnostics|Harmonized", "")},
+        {
+            "variable": lambda x: convert_iamc_variable_to_gcages(
+                x.replace("AR6 climate diagnostics|Harmonized|", "")
+            )
+        },
         copy=False,
     )
 
@@ -55,7 +64,10 @@ def add_ar6_infilled_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFr
             "variable": lambda x: (
                 "AR6 climate diagnostics|Infilled|"
                 f"{convert_gcages_variable_to_iamc(x)}"
-            )
+            ),
+            "unit": lambda x: x.replace("HFC245fa", "HFC245ca").replace(
+                "HFC4310", "HFC43-10"
+            ),
         },
         copy=False,
     )
@@ -80,8 +92,7 @@ def test_individual_scenario(model, scenario):
         msg = f"No harmonised data for {model=} {scenario=}?"
         raise AssertionError(msg)
 
-    # breakpoint()
-    harmonised = strip_off_ar6_harmonised_prefix(harmonised)
+    harmonised = strip_off_ar6_harmonised_prefix_and_convert_to_gcages(harmonised)
 
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
@@ -138,7 +149,9 @@ def test_key_testing_scenarios_all_at_once_parallel():
             ]
         )
 
-    harmonised = strip_off_ar6_harmonised_prefix(pd.concat(harmonised_l))
+    harmonised = strip_off_ar6_harmonised_prefix_and_convert_to_gcages(
+        pd.concat(harmonised_l)
+    )
     exp = pd.concat(exp_l)
 
     infiller = AR6Infiller.from_ar6_config(
