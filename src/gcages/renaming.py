@@ -50,7 +50,7 @@ def lookup_mapping(
     Returns
     -------
     :
-       Mapped value i.e. the equivalent value to `from_value` in `to_key`
+        Mapped value i.e. the equivalent value to `from_value` in `to_key`
 
     Raises
     ------
