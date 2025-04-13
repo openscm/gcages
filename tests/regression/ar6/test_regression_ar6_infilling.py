@@ -9,11 +9,13 @@ that cover the key paths from AR6.
 
 from __future__ import annotations
 
+import functools
 from pathlib import Path
 
 import pandas as pd
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.io import load_timeseries_csv
 
 from gcages.ar6 import AR6Infiller
 from gcages.renaming import (
@@ -32,6 +34,9 @@ pix = pytest.importorskip("pandas_indexing")
 # Only works if silicone installed
 pytest.importorskip("silicone")
 
+AR6_HISTORICAL_EMISSIONS_FILE = (
+    Path(__file__).parents[0] / "ar6-workflow-inputs" / "history_ar6.csv"
+)
 AR6_INFILLING_DB_FILE = (
     Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6.csv"
 )
@@ -86,6 +91,33 @@ def add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
     return res
 
 
+@functools.cache
+def get_ar6_full_historical_emissions() -> pd.DataFrame:
+    # TODO: move this into gcages.ar6 as it will be needed by climate-assessment
+    raw = load_timeseries_csv(
+        AR6_INFILLING_DB_CFCS_FILE,
+        lower_column_names=True,
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_column_type=int,
+    )
+    history = raw.loc[
+        pix.isin(scenario="ssp245") & ~pix.ismatch(variable="**CO2")
+    ].reset_index(["model", "scenario"], drop=True)
+    history = history.pix.assign(
+        variable=history.index.pix.project("variable").map(
+            # I don't know what this naming convention is,
+            # hence no specific function
+            lambda x: x.replace("|HFC|", "|")
+            .replace("|PFC|", "|")
+            .replace("Energy and Industrial Processes", "Fossil")
+        )
+    )
+    # Somehow this happened, not sure how
+    history.loc[pix.ismatch(variable="**HFC245fa"), :] *= 0.0
+
+    return history
+
+
 @get_key_testing_model_scenario_parameters()
 @pytest.mark.slow
 def test_individual_scenario(model, scenario):
@@ -108,10 +140,10 @@ def test_individual_scenario(model, scenario):
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
-        # TODO: delete
-        run_checks=False,
         n_processes=None,  # not parallel
         progress=False,
+        historical_emissions=get_ar6_full_historical_emissions(),
+        harmonisation_year=2015,
     )
 
     res = infiller(harmonised)
@@ -171,10 +203,12 @@ def test_key_testing_scenarios_all_at_once_parallel():
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
-        # TODO: delete
-        run_checks=False,
-        # n_processes=None,  # not parallel
+        # run in parallel is the default
+        # n_processes=None,
+        # run with progress bars is the default
         # progress=False,
+        historical_emissions=get_ar6_full_historical_emissions(),
+        harmonisation_year=2015,
     )
 
     res = infiller(harmonised)

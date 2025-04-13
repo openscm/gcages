@@ -16,9 +16,16 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
-from gcages.assertions import assert_only_working_on_variable_unit_variations
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+    assert_only_working_on_variable_unit_variations,
+)
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
+from gcages.infilling import assert_infilled
 from gcages.renaming import (
     convert_iamc_variable_to_gcages,
 )
@@ -373,6 +380,22 @@ class AR6Infiller:
     are confident about what you're doing).
     """
 
+    historical_emissions: pd.DataFrame | None = None
+    """
+    Historical emissions used for harmonisation
+
+    Only required if `run_checks` is `True` to check
+    that the infilled data is also harmonised.
+    """
+
+    harmonisation_year: int | None = None
+    """
+    Year in which the data was harmonised
+
+    Only required if `run_checks` is `True` to check
+    that the infilled data is also harmonised.
+    """
+
     progress: bool = True
     """
     Should progress bars be shown for each operation?
@@ -439,8 +462,22 @@ class AR6Infiller:
 
         if self.run_checks:
             pd.testing.assert_index_equal(infilled.columns, in_emissions.columns)
-            assert_all_groups_have_same_metadata(
-                infilled, groups=["model", "scenario"], metadata=["variable"]
+
+            if self.historical_emissions is None:
+                msg = "`self.historical_emissions` must be set to check the infilling"
+                raise AssertionError(msg)
+
+            if self.harmonisation_year is None:
+                msg = "`self.harmonisation_year` must be set to check the infilling"
+                raise AssertionError(msg)
+
+            assert_harmonised(
+                infilled,
+                history=self.historical_emissions,
+                harmonisation_time=self.harmonisation_year,
+            )
+            assert_infilled(
+                infilled, full_emissions_index=self.historical_emissions.index
             )
 
         return infilled
@@ -452,6 +489,8 @@ class AR6Infiller:
         ar6_infilling_db_cfcs_file: Path,
         variables_to_infill: Iterable[str] | None = None,
         run_checks: bool = True,
+        historical_emissions: pd.DataFrame | None = None,
+        harmonisation_year: int | None = None,
         progress: bool = True,
         n_processes: int | None = None,  # better off in serial with silicone
     ) -> AR6Infiller:
@@ -478,6 +517,18 @@ class AR6Infiller:
 
             If this is turned off, things are faster,
             but error messages are much less clear if things go wrong.
+
+        historical_emissions
+            Historical emissions used for harmonisation
+
+            Only required if `run_checks` is `True` to check
+            that the infilled data is also harmonised.
+
+        harmonisation_year
+            Year in which the data was harmonised
+
+            Only required if `run_checks` is `True` to check
+            that the infilled data is also harmonised.
 
         progress
             Should a progress bar be shown for each operation?
@@ -758,5 +809,7 @@ class AR6Infiller:
         return cls(
             infillers=infillers,
             run_checks=run_checks,
+            historical_emissions=historical_emissions,
+            harmonisation_year=harmonisation_year,
             n_processes=n_processes,
         )
