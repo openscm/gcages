@@ -298,6 +298,7 @@ class AR6Harmoniser:
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
+            # Needed for parallelisation
             assert_has_index_levels(
                 in_emissions, ["variable", "unit", "model", "scenario"]
             )

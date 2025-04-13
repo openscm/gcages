@@ -57,9 +57,21 @@ def strip_off_ar6_harmonised_prefix_and_convert_to_gcages(
     return indf
 
 
-def add_ar6_infilled_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
-    indf = update_index_levels_func(
-        indf,
+def add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
+    indf: pd.DataFrame,
+    harmonised: pd.DataFrame,
+) -> pd.DataFrame:
+    res = update_index_levels_func(
+        # AR6 put harmonised in the infilled group too for some reason,
+        # except CO2
+        pd.concat(
+            [
+                indf,
+                harmonised.loc[
+                    ~harmonised.index.get_level_values("variable").str.endswith("CO2")
+                ],
+            ]
+        ),
         {
             "variable": lambda x: (
                 "AR6 climate diagnostics|Infilled|"
@@ -69,10 +81,9 @@ def add_ar6_infilled_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFr
                 "HFC4310", "HFC43-10"
             ),
         },
-        copy=False,
     )
 
-    return indf
+    return res
 
 
 @get_key_testing_model_scenario_parameters()
@@ -97,6 +108,7 @@ def test_individual_scenario(model, scenario):
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
+        # TODO: delete
         run_checks=False,
         n_processes=None,  # not parallel
         progress=False,
@@ -116,7 +128,9 @@ def test_individual_scenario(model, scenario):
         ]
     )
 
-    res_comparable = add_ar6_infilled_prefix_and_convert_to_iamc(res)
+    res_comparable = add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
+        res, harmonised=harmonised
+    )
     assert_frame_equal(res_comparable, exp)
 
 
@@ -157,6 +171,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
+        # TODO: delete
         run_checks=False,
         # n_processes=None,  # not parallel
         # progress=False,
@@ -164,5 +179,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
 
     res = infiller(harmonised)
 
-    res_comparable = add_ar6_infilled_prefix_and_convert_to_iamc(res)
+    res_comparable = add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
+        res, harmonised=harmonised
+    )
     assert_frame_equal(res_comparable, exp)

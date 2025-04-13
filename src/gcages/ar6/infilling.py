@@ -400,11 +400,12 @@ class AR6Infiller:
             Infilled emissions
         """
         if self.run_checks:
-            # TODO:
-            # - think if it is possible to do checks of required lead variables
-            # - same checks as harmonisation
-            # breakpoint()
-            pass
+            assert_index_is_multiindex(in_emissions)
+            assert_data_is_all_numeric(in_emissions)
+            # Needed for parallelisation
+            assert_has_index_levels(
+                in_emissions, ["variable", "unit", "model", "scenario"]
+            )
 
         # Strip off any prefixes that might be there
         to_infill = in_emissions.pix.assign(
@@ -418,7 +419,7 @@ class AR6Infiller:
         # then have an `infill_variable` function,
         # but this would require a bit more thinking
         # to actually achieve.
-        infilled_df = pd.concat(
+        infilled = pd.concat(
             [
                 v.reorder_levels(to_infill.index.names)
                 for v in apply_op_parallel_progress(
@@ -436,22 +437,13 @@ class AR6Infiller:
             ]
         )
 
-        # Join input and output emissions (AR6 quirk, would not recommend repeating)
-        out: pd.DataFrame = pd.concat(
-            [to_infill, infilled_df], axis="index"
-        ).sort_index(axis="columns")
-
-        # Filter out CO2 total if there as it is not actually part of the infilled set
-        out = out.loc[~out.index.get_level_values("variable").str.endswith("CO2")]
-
         if self.run_checks:
-            # TODO:
-            # - check that all scenarios have same variables
-            # - check that the result is harmonised
-            # - output columns same as input columns
-            pass
+            pd.testing.assert_index_equal(infilled.columns, in_emissions.columns)
+            assert_all_groups_have_same_metadata(
+                infilled, groups=["model", "scenario"], metadata=["variable"]
+            )
 
-        return out
+        return infilled
 
     @classmethod
     def from_ar6_config(  # noqa: PLR0913
