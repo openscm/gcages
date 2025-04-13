@@ -26,9 +26,7 @@ from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.infilling import assert_infilled
-from gcages.renaming import (
-    convert_iamc_variable_to_gcages,
-)
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
     import pyam
@@ -112,10 +110,84 @@ def load_massaged_ar6_infilling_db(filepath: Path, cfcs: bool) -> pd.DataFrame:
         ]
         res = update_index_levels_func(
             res,
-            {"variable": convert_iamc_variable_to_gcages},
+            {
+                "variable": partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.IAMC,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            },
         )
 
     return res
+
+
+@functools.cache
+def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
+    """
+    Get the full AR6 historical emissions
+
+    Parameters
+    ----------
+    filepath
+        Filepath from which to load the emissions
+
+    Returns
+    -------
+    :
+        Historical emissions as used in AR6
+
+    Raises
+    ------
+    AssertionError
+        `filepath` points to a file that does not have the expected hash
+    """
+    try:
+        from pandas_indexing.selectors import isin, ismatch
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_ar6_full_historical_emissions", requirement="pandas_indexing"
+        ) from exc
+
+    fp_hash = get_file_hash(filepath, algorithm="sha256")
+    fp_hash_exp = "9ad0550c671701622ec2b2e7ba2b6c38d58f83507938ab0f5aa8b1a35d26c015"
+
+    if fp_hash != fp_hash_exp:
+        msg = (
+            f"The sha256 hash of {filepath} is {fp_hash}. "
+            f"This does not match what we expect ({fp_hash_exp=})."
+        )
+        raise AssertionError(msg)
+
+    raw = load_timeseries_csv(
+        filepath,
+        lower_column_names=True,
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_column_type=int,
+    )
+
+    history = raw.loc[
+        isin(scenario="ssp245") & ~ismatch(variable="**CO2"), :2015
+    ].reset_index(["model", "scenario"], drop=True)
+
+    history = history.pix.assign(
+        variable=history.index.pix.project("variable").map(
+            lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.AR6_CFC_INFILLING_DB,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        ),
+        # Not strictly necessary, but makes life easier
+        unit=history.index.pix.project("unit").map(
+            lambda x: x.replace("HFC4310mee/yr", "HFC4310/yr").replace(
+                "NO2 / yr", "NO2/yr"
+            )
+        ),
+    )
+    history.loc[ismatch(variable="**HFC245fa"), :] *= 0.0
+
+    return history
 
 
 def infill_scenario(
@@ -475,6 +547,7 @@ class AR6Infiller:
                 infilled,
                 history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
+                rounding=5,  # level of data storage in historical data often
             )
             assert_infilled(
                 infilled, full_emissions_index=self.historical_emissions.index

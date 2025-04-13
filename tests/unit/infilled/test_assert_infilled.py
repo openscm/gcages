@@ -9,11 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.harmonisation import (
-    NotHarmonisedError,
-    align_history_to_data_at_time,
-    assert_harmonised,
-)
+from gcages.infilling import NotInfilledError, assert_infilled
 
 
 def get_df(index):
@@ -58,7 +54,7 @@ def get_df(index):
             ),
             2015,
             does_not_raise(),
-            id="harmonised",
+            id="infilled",
         ),
         pytest.param(
             pd.DataFrame(
@@ -95,7 +91,7 @@ def get_df(index):
             ),
             2015,
             does_not_raise(),
-            id="harmonised-multiple-scenarios",
+            id="infilled-multiple-scenarios",
         ),
         pytest.param(
             pd.DataFrame(
@@ -130,7 +126,7 @@ def get_df(index):
             ),
             2015,
             does_not_raise(),
-            id="harmonised-multiple-scenarios-different-variables",
+            id="infilled-multiple-scenarios-different-variables",
         ),
         pytest.param(
             pd.DataFrame(
@@ -165,7 +161,7 @@ def get_df(index):
             ),
             2015,
             does_not_raise(),
-            id="harmonised-extra-history-timeseries",
+            id="infilled-extra-history-timeseries",
         ),
         pytest.param(
             pd.DataFrame(
@@ -204,7 +200,7 @@ def get_df(index):
             ),
             2015,
             does_not_raise(),
-            id="harmonised-model-scenario-extra-history-timeseries",
+            id="infilled-model-scenario-extra-history-timeseries",
         ),
         pytest.param(
             pd.DataFrame(
@@ -237,10 +233,10 @@ def get_df(index):
             ),
             2015,
             pytest.raises(
-                NotHarmonisedError,
-                match=re.escape("The DataFrame is not harmonised in 2015. comparison="),
+                NotInfilledError,
+                match=re.escape("The DataFrame is not infilled in 2015. comparison="),
             ),
-            id="unharmonised-single",
+            id="uninfilled-single",
         ),
         pytest.param(
             pd.DataFrame(
@@ -277,10 +273,10 @@ def get_df(index):
             ),
             2015,
             pytest.raises(
-                NotHarmonisedError,
-                match=re.escape("The DataFrame is not harmonised in 2015. comparison="),
+                NotInfilledError,
+                match=re.escape("The DataFrame is not infilled in 2015. comparison="),
             ),
-            id="unharmonised-single-scenario-multiple-variables",
+            id="uninfilled-single-scenario-multiple-variables",
         ),
         pytest.param(
             pd.DataFrame(
@@ -317,10 +313,10 @@ def get_df(index):
             ),
             2015,
             pytest.raises(
-                NotHarmonisedError,
-                match=re.escape("The DataFrame is not harmonised in 2015. comparison="),
+                NotInfilledError,
+                match=re.escape("The DataFrame is not infilled in 2015. comparison="),
             ),
-            id="unharmonised-multiple-scenarios",
+            id="uninfilled-multiple-scenarios",
         ),
         pytest.param(
             pd.DataFrame(
@@ -359,13 +355,13 @@ def get_df(index):
             ),
             2015.0,
             does_not_raise(),
-            id="harmonised-model-scenario-extra-history-timeseries-float-times",
+            id="infilled-model-scenario-extra-history-timeseries-float-times",
         ),
     ),
 )
-def test_assert_harmonised(df, history, harmonisation_time, exp):
+def test_assert_infilled(df, history, harmonisation_time, exp):
     with exp:
-        assert_harmonised(df, history=history, harmonisation_time=harmonisation_time)
+        assert_infilled(df, history=history, harmonisation_time=harmonisation_time)
 
 
 def test_align_history_to_data_in_year_same_index_error():

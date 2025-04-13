@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import importlib
 import multiprocessing
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,7 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
 from gcages.hashing import get_file_hash
-from gcages.renaming import convert_iamc_variable_to_gcages
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -464,7 +465,13 @@ class AR6Harmoniser:
         # Update variable names
         historical_emissions = update_index_levels_func(
             historical_emissions,
-            {"variable": convert_iamc_variable_to_gcages},
+            {
+                "variable": partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.IAMC,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            },
             copy=False,
         )
 
@@ -593,7 +600,11 @@ class AR6Harmoniser:
             ]
         )
         aneris_overrides_ar6["variable"] = aneris_overrides_ar6["variable"].map(
-            convert_iamc_variable_to_gcages
+            partial(
+                convert_variable_name,
+                from_convention=SupportedNamingConventions.IAMC,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
         )
 
         return cls(

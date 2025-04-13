@@ -16,7 +16,7 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
-from gcages.renaming import convert_gcages_variable_to_iamc
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -53,7 +53,11 @@ def add_ar6_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
         {
             "variable": lambda x: (
                 "AR6 climate diagnostics|Harmonized|"
-                f"{convert_gcages_variable_to_iamc(x)}"
+                + convert_variable_name(
+                    x,
+                    from_convention=SupportedNamingConventions.GCAGES,
+                    to_convention=SupportedNamingConventions.IAMC,
+                )
             )
         },
         copy=False,

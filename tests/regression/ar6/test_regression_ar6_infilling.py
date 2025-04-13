@@ -9,19 +9,15 @@ that cover the key paths from AR6.
 
 from __future__ import annotations
 
-import functools
 from pathlib import Path
 
 import pandas as pd
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
-from pandas_openscm.io import load_timeseries_csv
 
 from gcages.ar6 import AR6Infiller
-from gcages.renaming import (
-    convert_gcages_variable_to_iamc,
-    convert_iamc_variable_to_gcages,
-)
+from gcages.ar6.infilling import get_ar6_full_historical_emissions
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -52,8 +48,10 @@ def strip_off_ar6_harmonised_prefix_and_convert_to_gcages(
     indf = update_index_levels_func(
         indf,
         {
-            "variable": lambda x: convert_iamc_variable_to_gcages(
-                x.replace("AR6 climate diagnostics|Harmonized|", "")
+            "variable": lambda x: convert_variable_name(
+                x.replace("AR6 climate diagnostics|Harmonized|", ""),
+                from_convention=SupportedNamingConventions.IAMC,
+                to_convention=SupportedNamingConventions.GCAGES,
             )
         },
         copy=False,
@@ -80,7 +78,11 @@ def add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
         {
             "variable": lambda x: (
                 "AR6 climate diagnostics|Infilled|"
-                f"{convert_gcages_variable_to_iamc(x)}"
+                + convert_variable_name(
+                    x,
+                    from_convention=SupportedNamingConventions.GCAGES,
+                    to_convention=SupportedNamingConventions.IAMC,
+                )
             ),
             "unit": lambda x: x.replace("HFC245fa", "HFC245ca").replace(
                 "HFC4310", "HFC43-10"
@@ -89,33 +91,6 @@ def add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
     )
 
     return res
-
-
-@functools.cache
-def get_ar6_full_historical_emissions() -> pd.DataFrame:
-    # TODO: move this into gcages.ar6 as it will be needed by climate-assessment
-    raw = load_timeseries_csv(
-        AR6_INFILLING_DB_CFCS_FILE,
-        lower_column_names=True,
-        index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
-    )
-    history = raw.loc[
-        pix.isin(scenario="ssp245") & ~pix.ismatch(variable="**CO2")
-    ].reset_index(["model", "scenario"], drop=True)
-    history = history.pix.assign(
-        variable=history.index.pix.project("variable").map(
-            # I don't know what this naming convention is,
-            # hence no specific function
-            lambda x: x.replace("|HFC|", "|")
-            .replace("|PFC|", "|")
-            .replace("Energy and Industrial Processes", "Fossil")
-        )
-    )
-    # Somehow this happened, not sure how
-    history.loc[pix.ismatch(variable="**HFC245fa"), :] *= 0.0
-
-    return history
 
 
 @get_key_testing_model_scenario_parameters()
@@ -142,7 +117,9 @@ def test_individual_scenario(model, scenario):
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
         n_processes=None,  # not parallel
         progress=False,
-        historical_emissions=get_ar6_full_historical_emissions(),
+        historical_emissions=get_ar6_full_historical_emissions(
+            AR6_INFILLING_DB_CFCS_FILE
+        ),
         harmonisation_year=2015,
     )
 
@@ -207,7 +184,9 @@ def test_key_testing_scenarios_all_at_once_parallel():
         # n_processes=None,
         # run with progress bars is the default
         # progress=False,
-        historical_emissions=get_ar6_full_historical_emissions(),
+        historical_emissions=get_ar6_full_historical_emissions(
+            AR6_INFILLING_DB_CFCS_FILE
+        ),
         harmonisation_year=2015,
     )
 
