@@ -77,12 +77,5 @@ EMISSIONS_VARIABLES = pd.DataFrame(
 Database of emissions variables names according to different naming schemes
 
 You will likely not need to access this variable directly,
-and instead will use one of:
-
-- [convert_gcages_variable_to_iamc][gcages.renaming.].
-- [convert_gcages_variable_to_openscm_runner][gcages.renaming.].
-- [convert_iamc_variable_to_gcages][gcages.renaming.].
-- [convert_iamc_variable_to_openscm_runner][gcages.renaming.].
-- [convert_openscm_runner_variable_to_gcages][gcages.renaming.].
-- [convert_openscm_runner_variable_to_iamc][gcages.renaming.].
+and instead will use [convert_variable_name][gcages.renaming.].
 """
