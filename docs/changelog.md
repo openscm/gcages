@@ -21,6 +21,39 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.2.0 (2025-04-14)
+
+### ⚠️ Breaking Changes
+
+- Updated to use `gcages` naming conventions throughout ([#10](https://github.com/openscm/gcages/pull/10))
+- Simplified the renaming API, now all that is needed (and available) is [gcages.ar6.renaming.convert_variable_name] and [gcages.ar6.renaming.SupportedNamingConventions].
+  Replace calls to old functions like `convert_gcages_variable_to_iamc(variable)` with `convert_variable_name(variable, from_convention=SupportedNamingConventions.GCAGES, to_convention=SupportedNamingConventions.IAMC)`. ([#11](https://github.com/openscm/gcages/pull/11))
+
+### 🆕 Features
+
+- Added the AR6 harmonisation module [gcages.ar6.harmonisation][gcagesar6harmonisation] and associated supporting code ([#5](https://github.com/openscm/gcages/pull/5))
+- Added the [gcages.assertions][] module and [gcages.harmonisation.assert_harmonised][]. These additions provide a number of useful assertions for run-time data checks. ([#6](https://github.com/openscm/gcages/pull/6))
+- Added [gcages.databases][] and conversions to OpenSCM-Runner naming conventions in [gcages.renaming][] ([#10](https://github.com/openscm/gcages/pull/10))
+- - Added infilling as it was done in AR6, see [gcages.ar6.AR6Infiller][]
+  - Added [gcages.completeness][] for checking that data is complete (see the module for the exact definition of "complete")
+  - Added support for renaming to RCMIP and the AR6 CFC infilling database naming conventions
+
+  ([#11](https://github.com/openscm/gcages/pull/11))
+
+### 🎉 Improvements
+
+- Added [gcages.typing][] to help clarify the kind of data we expect throughout. ([#6](https://github.com/openscm/gcages/pull/6))
+
+### 📚 Improved Documentation
+
+- Added docs on renaming and added a section on naming to the docs on how to run the AR6 workflow ([#10](https://github.com/openscm/gcages/pull/10))
+- Added a demonstration of infilling to the AR6 workflow docs ([#11](https://github.com/openscm/gcages/pull/11))
+
+### 🔧 Trivial/Internal Changes
+
+- [#3](https://github.com/openscm/gcages/pull/3), [#4](https://github.com/openscm/gcages/pull/4), [#8](https://github.com/openscm/gcages/pull/8)
+
+
 ## gcages v0.1.0 (2025-02-07)
 
 No significant changes.
