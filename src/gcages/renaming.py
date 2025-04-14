@@ -8,13 +8,18 @@ to help clarify this, but have not done so yet.
 
 from __future__ import annotations
 
-from enum import StrEnum
+import sys
 from typing import cast
 
 import pandas as pd
 
 import gcages.databases
 from gcages.exceptions import UnrecognisedValueError
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum
 
 
 class SupportedNamingConventions(StrEnum):
