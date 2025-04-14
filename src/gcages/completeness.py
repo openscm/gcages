@@ -1,25 +1,27 @@
-"""General infilling tools"""
+"""
+General tools for checking completeness
+"""
 
 from __future__ import annotations
 
 import pandas as pd
 
 
-class NotInfilledError(ValueError):
+class NotCompleteError(ValueError):
     """
-    Raised when a [pd.DataFrame][pandas.DataFrame] is not infilled
+    Raised when a [pd.DataFrame][pandas.DataFrame] is not complete
     """
 
     def __init__(
         self,
         missing: pd.DataFrame,
-        full_emissions_index: pd.MultiIndex,
+        complete_index: pd.MultiIndex,
     ) -> None:
         error_msg = (
-            "The DataFrame is not fully infilled. "
+            "The DataFrame is not complete. "
             f"The following expected levels are missing:\n{missing}\n"
-            f"The full index expected for each level is:\n"
-            f"{full_emissions_index.to_frame(index=False)}"
+            f"The complete index expected for each level is:\n"
+            f"{complete_index.to_frame(index=False)}"
         )
         super().__init__(error_msg)
 
@@ -106,11 +108,11 @@ def assert_all_groups_are_complete(
     >>> assert_all_groups_are_complete(to_check, complete_index=checker_b)
     Traceback (most recent call last):
         ...
-    gcages.infilling.NotInfilledError: The DataFrame is not fully infilled. The following expected levels are missing:
+    gcages.completeness.NotCompleteError: The DataFrame is not complete. The following expected levels are missing:
       variable scenario
     0       vc       sa
     0       vc       sb
-    The full index expected for each level is:
+    The complete index expected for each level is:
       variable
     0       va
     1       vb
@@ -138,6 +140,4 @@ def assert_all_groups_are_complete(
             missing_l.append(tmp)
 
     if missing_l:
-        raise NotInfilledError(
-            pd.concat(missing_l), full_emissions_index=complete_index
-        )
+        raise NotCompleteError(pd.concat(missing_l), complete_index=complete_index)

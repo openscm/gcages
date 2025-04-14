@@ -1,5 +1,5 @@
 """
-Tests of `gcages.infilling.assert_infilled`
+Tests of `gcages.infilling.assert_all_groups_are_complete`
 """
 
 import re
@@ -9,15 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.infilling import NotInfilledError, assert_all_groups_are_complete
-
-
-def get_df(index):
-    return pd.DataFrame(
-        np.zeros((index.shape[0], 3)),
-        columns=range(3),
-        index=index,
-    )
+from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 
 
 @pytest.mark.parametrize(
@@ -79,16 +71,16 @@ def get_df(index):
                 names=["variable"],
             ),
             pytest.raises(
-                NotInfilledError,
+                NotCompleteError,
                 match="".join(
                     [
                         re.escape(
-                            "The DataFrame is not fully infilled. "
+                            "The DataFrame is not complete. "
                             "The following expected levels are missing:"
                         ),
                         r"\s*.*variable\s*scenario",
                         r"\s*.*va\s*sb\s*",
-                        re.escape("The full index expected for each level is:"),
+                        re.escape("The complete index expected for each level is:"),
                     ]
                 ),
             ),
@@ -142,17 +134,17 @@ def get_df(index):
                 names=["variable", "region"],
             ),
             pytest.raises(
-                NotInfilledError,
+                NotCompleteError,
                 match="".join(
                     [
                         re.escape(
-                            "The DataFrame is not fully infilled. "
+                            "The DataFrame is not complete. "
                             "The following expected levels are missing:"
                         ),
                         r"\s*.*variable\s*region\s*scenario",
                         r"\s*.*vb\s*r1\s*sa\s*",
                         r"\s*.*va\s*r2\s*sb\s*",
-                        re.escape("The full index expected for each level is:"),
+                        re.escape("The complete index expected for each level is:"),
                     ]
                 ),
             ),
@@ -160,6 +152,6 @@ def get_df(index):
         ),
     ),
 )
-def test_assert_infilled(df, complete_index, exp):
+def test_assert_all_groups_are_complete(df, complete_index, exp):
     with exp:
         assert_all_groups_are_complete(df, complete_index=complete_index)

@@ -22,10 +22,10 @@ from gcages.assertions import (
     assert_index_is_multiindex,
     assert_only_working_on_variable_unit_variations,
 )
+from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
-from gcages.infilling import assert_all_groups_are_complete
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
