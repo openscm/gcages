@@ -140,7 +140,9 @@ def assert_all_groups_are_complete(
                 [idx_to_check.values], names=[idx_to_check.name]
             )
 
-        missing_levels = complete_index.difference(idx_to_check)
+        missing_levels = complete_index.difference(
+            idx_to_check.reorder_levels(complete_index.names)
+        )
         if not missing_levels.empty:
             tmp = missing_levels.to_frame(index=False)
             # Could probably do this better too if we need speed

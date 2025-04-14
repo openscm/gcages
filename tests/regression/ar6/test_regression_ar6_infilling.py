@@ -30,9 +30,6 @@ pix = pytest.importorskip("pandas_indexing")
 # Only works if silicone installed
 pytest.importorskip("silicone")
 
-AR6_HISTORICAL_EMISSIONS_FILE = (
-    Path(__file__).parents[0] / "ar6-workflow-inputs" / "history_ar6.csv"
-)
 AR6_INFILLING_DB_FILE = (
     Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6.csv"
 )

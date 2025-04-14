@@ -113,6 +113,31 @@ from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
         ),
         pytest.param(
             pd.DataFrame(
+                np.arange(16).reshape((8, 2)),
+                columns=[2015, 2100],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "r1", "W"),
+                        ("sa", "vb", "r1", "W"),
+                        ("sb", "va", "r1", "W"),
+                        ("sb", "vb", "r1", "W"),
+                        ("sa", "va", "r2", "W"),
+                        ("sa", "vb", "r2", "W"),
+                        ("sb", "va", "r2", "W"),
+                        ("sb", "vb", "r2", "W"),
+                    ],
+                    names=["scenario", "variable", "region", "unit"],
+                ),
+            ),
+            pd.MultiIndex.from_product(
+                [["r1", "r2"], ["va", "vb"]],
+                names=["region", "variable"],
+            ),
+            does_not_raise(),
+            id="infilled-regional-differing-order",
+        ),
+        pytest.param(
+            pd.DataFrame(
                 np.arange(12).reshape((6, 2)),
                 columns=[2015, 2100],
                 index=pd.MultiIndex.from_tuples(

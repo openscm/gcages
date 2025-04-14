@@ -54,7 +54,11 @@ class SupportedNamingConventions(StrEnum):
     """
     Reduced Complexity Model Intercomparison Project (RCMIP) naming convention
 
-    See rcmip.org
+    See rcmip.org and e.g.
+
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-emissions-annual-means-v5-1-0.csv
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-concentrations-annual-means-v5-1-0.csv
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-radiative-forcing-annual-means-v5-1-0.csv
     """
 
 

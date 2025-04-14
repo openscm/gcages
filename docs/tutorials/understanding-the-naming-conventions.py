@@ -33,6 +33,7 @@
 
 # %%
 import traceback
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -41,14 +42,7 @@ import pandas_openscm
 
 import gcages.exceptions
 from gcages.databases import EMISSIONS_VARIABLES
-from gcages.renaming import (
-    convert_gcages_variable_to_iamc,
-    convert_gcages_variable_to_openscm_runner,
-    convert_iamc_variable_to_gcages,
-    convert_iamc_variable_to_openscm_runner,
-    convert_openscm_runner_variable_to_gcages,
-    convert_openscm_runner_variable_to_iamc,
-)
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 # %%
 # Register the openscm accessor
@@ -59,26 +53,82 @@ pandas_openscm.register_pandas_accessor("openscm")
 # %% [markdown]
 # ## Converting between naming conventions
 #
-# The renaming functions make it trivial to move between naming conventions.
-# Their API is very simple.
+# The `convert_variable_name` function
+# makes it trivial to move between naming conventions.
+# The API is very simple.
 
 # %%
-convert_gcages_variable_to_iamc("Emissions|CO2|Fossil")
+convert_variable_name(
+    "Emissions|CO2|Fossil",
+    from_convention=SupportedNamingConventions.GCAGES,
+    to_convention=SupportedNamingConventions.IAMC,
+)
+
+# %% [markdown]
+# The supported naming conventions are shown below.
+# At present, we have the naming conventions used in:
+#
+# - `gcages`
+# - [OpenSCM-Runner](https://github.com/openscm/openscm-runner)
+# - the IAMC community, e.g. the [IPCC AR6 database](https://data.ene.iiasa.ac.at/ar6)
+# - RCMIP (rcmip.org), as used in e.g. https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-emissions-annual-means-v5-1-0.csv
+# - the infilling database used in AR6 for CFCs
+#   (which is somehow different from all the rest)
 
 # %%
-convert_gcages_variable_to_openscm_runner("Emissions|CO2|Fossil")
+[v.name for v in SupportedNamingConventions]
+
+# %% [markdown]
+# Conversions between any of these naming conventions is possible
 
 # %%
-convert_iamc_variable_to_gcages("Emissions|CO2|Energy and Industrial Processes")
+convert_variable_name(
+    "Emissions|CO2|Energy and Industrial Processes",
+    from_convention=SupportedNamingConventions.IAMC,
+    to_convention=SupportedNamingConventions.GCAGES,
+)
 
 # %%
-convert_iamc_variable_to_openscm_runner("Emissions|CO2|Energy and Industrial Processes")
+convert_variable_name(
+    "Emissions|CO2|Energy and Industrial Processes",
+    from_convention=SupportedNamingConventions.IAMC,
+    to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+)
 
 # %%
-convert_openscm_runner_variable_to_gcages("Emissions|CO2|MAGICC AFOLU")
+convert_variable_name(
+    "Emissions|CO2|Energy and Industrial Processes",
+    from_convention=SupportedNamingConventions.IAMC,
+    to_convention=SupportedNamingConventions.RCMIP,
+)
 
 # %%
-convert_openscm_runner_variable_to_iamc("Emissions|CO2|MAGICC AFOLU")
+convert_variable_name(
+    "Emissions|CO2|Energy and Industrial Processes",
+    from_convention=SupportedNamingConventions.IAMC,
+    to_convention=SupportedNamingConventions.AR6_CFC_INFILLING_DB,
+)
+
+# %%
+convert_variable_name(
+    "Emissions|CO2|Fossil",
+    from_convention=SupportedNamingConventions.GCAGES,
+    to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+)
+
+# %%
+convert_variable_name(
+    "Emissions|CO2|MAGICC AFOLU",
+    from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+    to_convention=SupportedNamingConventions.GCAGES,
+)
+
+# %%
+convert_variable_name(
+    "Emissions|CO2|MAGICC AFOLU",
+    from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+    to_convention=SupportedNamingConventions.IAMC,
+)
 
 # %% [markdown]
 # ### Errors
@@ -90,13 +140,21 @@ convert_openscm_runner_variable_to_iamc("Emissions|CO2|MAGICC AFOLU")
 
 # %%
 try:
-    convert_openscm_runner_variable_to_gcages("Emissions|NMVOC")
+    convert_variable_name(
+        "Emissions|NMVOC",
+        from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+        to_convention=SupportedNamingConventions.GCAGES,
+    )
 except gcages.exceptions.UnrecognisedValueError:
     traceback.print_exc(limit=0)
 
 # %%
 try:
-    convert_openscm_runner_variable_to_gcages("Emissions|junk")
+    convert_variable_name(
+        "Emissions|junk",
+        from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+        to_convention=SupportedNamingConventions.GCAGES,
+    )
 except gcages.exceptions.UnrecognisedValueError:
     traceback.print_exc(limit=0)
 
@@ -126,6 +184,11 @@ start = pd.DataFrame(
 start
 
 # %%
+convert_gcages_variable_to_iamc = partial(
+    convert_variable_name,
+    from_convention=SupportedNamingConventions.GCAGES,
+    to_convention=SupportedNamingConventions.IAMC,
+)
 start.openscm.update_index_levels(
     {"variable": convert_gcages_variable_to_iamc, "scenario": {"sa": "scenario a"}}
 )
@@ -145,11 +208,6 @@ start.pix.assign(
 # although it serves the same purpose and has the same shape/behaviour).
 # This database stores the mapping between the naming conventions
 # used in different communites.
-# At present, we have the naming conventions used in:
-#
-# - `gcages`
-# - [OpenSCM-Runner](https://github.com/openscm/openscm-runner)
-# - the IAMC community, e.g. the [IPCC AR6 database](https://data.ene.iiasa.ac.at/ar6)
 
 # %%
 # The database in full
@@ -209,18 +267,61 @@ disp_same = EMISSIONS_VARIABLES[
 disp_same
 
 # %% [markdown]
-# ### OpenSCM-Runner vs. IAMC
+# ### gcages vs. RCMIP
 #
-# The differences here are basically the same as gcages compared to IAMC.
-# As above, the IAMC convention is to include groupings within the variable name,
-# which leads to differences.
-# There is, as above, a difference in the naming of CO<sub>2</sub> sub-sectors,
-# although there is no difference in naming
-# for emissions of sulfates or non-methane volatile organic compounds
-# between these two naming conventions.
+# The differences here affect almost every variable.
+# The RCMIP convention is to include groupings within the variable name.
+# This is not used by `gcages` because they generally get in the way
+# and there are multiple groupings of interest, so we don't pick one in particular.
+# The RCMIP convention uses highly specified groupings like:
+#
+# - PFCs
+# - HFCs
+# - Montreal Gases
+#
+# There is also a difference in the naming of CO<sub>2</sub> sub-sectors,
+# with the `gcages` convention again used
+# for clarity of the source of the CO<sub>2</sub>,
+# and clearer names for emissions of sulfates (which are not pure sulfur)
+# and non-methane volatile organic compounds
+# (the non-methane part is dropped in the IAMC convention).
 
 # %%
 disp = EMISSIONS_VARIABLES[
-    EMISSIONS_VARIABLES["openscm_runner"] != EMISSIONS_VARIABLES["iamc"]
-][["openscm_runner", "iamc"]]
+    EMISSIONS_VARIABLES["gcages"] != EMISSIONS_VARIABLES["rcmip"]
+][["gcages", "rcmip"]]
 disp
+
+# %%
+disp_same = EMISSIONS_VARIABLES[
+    EMISSIONS_VARIABLES["gcages"] == EMISSIONS_VARIABLES["rcmip"]
+][["gcages", "rcmip"]]
+disp_same
+
+# %% [markdown]
+# ### gcages vs. AR6 CFC infilling database
+#
+# The differences here are for PFCs and HFCs mostly.
+# The AR6 CFC infilling database convention
+# is to include groupings within the variable name.
+# This is not used by `gcages` because they generally get in the way
+# and there are multiple groupings of interest, so we don't pick one in particular.
+#
+# There is also a difference in the naming of CO<sub>2</sub> sub-sectors,
+# with the `gcages` convention again used
+# for clarity of the source of the CO<sub>2</sub>,
+# and clearer names for emissions of sulfates (which are not pure sulfur)
+# and non-methane volatile organic compounds
+# (the non-methane part is dropped in the IAMC convention).
+
+# %%
+disp = EMISSIONS_VARIABLES[
+    EMISSIONS_VARIABLES["gcages"] != EMISSIONS_VARIABLES["ar6_cfc_infilling_db"]
+][["gcages", "ar6_cfc_infilling_db"]]
+disp
+
+# %%
+disp_same = EMISSIONS_VARIABLES[
+    EMISSIONS_VARIABLES["gcages"] == EMISSIONS_VARIABLES["ar6_cfc_infilling_db"]
+][["gcages", "ar6_cfc_infilling_db"]]
+disp_same

@@ -39,7 +39,12 @@ import pandas_indexing as pix
 import pint
 import seaborn as sns
 
-from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
+from gcages.ar6 import (
+    AR6Harmoniser,
+    AR6Infiller,
+    AR6PreProcessor,
+    get_ar6_full_historical_emissions,
+)
 
 # %%
 # Setup pint
@@ -286,7 +291,6 @@ pdf = (
     .melt(ignore_index=False, var_name="year")
     .reset_index()
 )
-pdf["variable"] = pdf["variable"].str.replace("AR6 climate diagnostics|Harmonized|", "")
 
 fg = relplot_in_emms(
     data=pdf,
@@ -305,7 +309,117 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # %% [markdown]
 # ## Infilling
 #
-# TBD
+# The next step is infilling.
+# This is the process of inferring any emissions which are not included in the scenarios,
+# but are needed for running climate models.
+# In our example, this is things like N2O, black carbon, sulfates.
+#
+# In AR6, a specific infilling database was used.
+# There is no official home for all of this, but a copy is stored in the path below
+# (and, as above, if you want something that pre-packages everything,
+# see the [climate-assessment](https://github.com/iiasa/climate-assessment) package).
+#
+# Under the hood, the AR6 infilling uses the
+# [silicone](https://github.com/GranthamImperial/silicone) package.
+
+# %% editable=true slideshow={"slide_type": ""}
+AR6_INFILLING_DB_FILE = Path(
+    "tests/regression/ar6/ar6-workflow-inputs/infilling_db_ar6.csv"
+)
+AR6_INFILLING_DB_CFCS_FILE = Path(
+    "tests/regression/ar6/ar6-workflow-inputs/infilling_db_ar6_cfcs.csv"
+)
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if not AR6_INFILLING_DB_FILE.exists():
+    AR6_INFILLING_DB_FILE = Path("../..") / AR6_INFILLING_DB_FILE
+    if not AR6_INFILLING_DB_FILE.exists():
+        raise AssertionError
+
+if not AR6_INFILLING_DB_CFCS_FILE.exists():
+    AR6_INFILLING_DB_CFCS_FILE = Path("../..") / AR6_INFILLING_DB_CFCS_FILE
+    if not AR6_INFILLING_DB_CFCS_FILE.exists():
+        raise AssertionError
+
+# %% [markdown]
+# With the infilling databases, we can initialise our infiller.
+
+# %%
+infiller = AR6Infiller.from_ar6_config(
+    ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
+    ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
+    n_processes=None,  # run serially for this demo
+    # To make sure that our outputs remain harmonised
+    # (also, turns out that the historical emissions
+    # are the same as the CFCs database)
+    historical_emissions=get_ar6_full_historical_emissions(AR6_INFILLING_DB_CFCS_FILE),
+    harmonisation_year=harmoniser.harmonisation_year,
+)
+
+# %% [markdown]
+# And infill
+
+# %%
+harmonised
+
+# %%
+infilled = infiller(harmonised)
+infilled
+
+# %% [markdown]
+# You can see infilled pathways compared to raw pathways in the below.
+# A few things to notice:
+#
+# - only required variables are infilled
+#   (e.g. CH<sub>4</sub> is only infilled for `flatline-co2-only`, not `flatline`)
+#   and there can be notable differences in the emissions used without infilling
+# - the infilling is largely CO<sub>2</sub> driven,
+#   but it's not as simple as 'higher CO<sub>2</sub>' means higher everything else
+#   (see e.g. the N<sub>2</sub>O plot where `flatline` has lower N<sub>2</sub>O
+#   than `decline` in 2060)
+#
+# This is not a deep analysis.
+# If you want to see the full details of how the infilling worked in AR6,
+# see [Lamboll et al., 2020](https://doi.org/10.5194/gmd-13-5259-2020).
+
+# %%
+pdf = (
+    pix.concat(
+        [
+            pre_processed.pix.assign(stage="pre_processed"),
+            harmonised.pix.assign(stage="harmonised"),
+            infilled.pix.assign(stage="infilled"),
+        ]
+    )
+    .loc[pix.ismatch(variable=["**CO2|Fossil", "**CH4", "**N2O", "**SOx"])]
+    .melt(ignore_index=False, var_name="year")
+    .reset_index()
+)
+
+fg = relplot_in_emms(
+    data=pdf,
+    hue="scenario",
+    style="stage",
+    dashes={
+        "pre_processed": (3, 3),
+        "harmonised": "",
+        "infilled": (1, 1),
+    },
+)
+
+fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
+fg.axes.flatten()[1].set_ylim(ymin=0.0)
+
+# %% [markdown]
+# The returned data is just the infilled timeseries.
+# We can combine these with the harmonised data to create complete scenarios,
+# ready for running our simple climate models.
+
+# %%
+complete_scenarios = pd.concat([harmonised, infilled])
+complete_scenarios
 
 # %% [markdown]
 # ## SCM Running
