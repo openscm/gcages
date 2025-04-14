@@ -119,12 +119,21 @@ def assert_all_groups_are_complete(
     2       vc
     """  # noqa: E501
     # Probably a smarter way to do this rather than looping, I can't see it now
+    if unit_col not in to_check.index.names:
+        msg = f"{unit_col=} is not in {to_check.index.names=}"
+        raise KeyError(msg)
+
     if group_keys is None:
         group_keys = to_check.index.names.difference([*complete_index.names, unit_col])
 
     missing_l = []
+    # Check against the levels that are in `complete_index`
+    # (also ignoring units if they are there)
+    idx_to_check_drop_levels = list(
+        {*to_check.index.names.difference(complete_index.names), unit_col}
+    )
     for group_values, gdf in to_check.groupby(group_keys):
-        idx_to_check = gdf.index.droplevel([*group_keys, unit_col])
+        idx_to_check = gdf.index.droplevel(idx_to_check_drop_levels)
 
         if not isinstance(idx_to_check, pd.MultiIndex):
             idx_to_check = pd.MultiIndex.from_arrays(
@@ -134,6 +143,7 @@ def assert_all_groups_are_complete(
         missing_levels = complete_index.difference(idx_to_check)
         if not missing_levels.empty:
             tmp = missing_levels.to_frame(index=False)
+            # Could probably do this better too if we need speed
             for key, value in zip(group_keys, group_values):
                 tmp[key] = value
 

@@ -155,3 +155,79 @@ from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 def test_assert_all_groups_are_complete(df, complete_index, exp):
     with exp:
         assert_all_groups_are_complete(df, complete_index=complete_index)
+
+
+def test_assert_all_groups_are_complete_user_unit_col():
+    start = pd.DataFrame(
+        [
+            [1.0, 2.0],
+            [3.0, 2.0],
+            [1.0, 2.0],
+            [3.0, 2.0],
+        ],
+        columns=[2015, 2100],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("sa", "va", "W"),
+                ("sa", "vb", "W"),
+                ("sb", "va", "W"),
+                ("sb", "vb", "W"),
+            ],
+            names=["scenario", "variable", "units"],
+        ),
+    )
+    complete_index = pd.MultiIndex.from_tuples(
+        [
+            ("va",),
+            ("vb",),
+        ],
+        names=["variable"],
+    )
+
+    # If you forget the unit col, you get an error
+    with pytest.raises(
+        KeyError,
+        match=re.escape(
+            "unit_col='unit' is not in "
+            "to_check.index.names=FrozenList(['scenario', 'variable', 'units'])"
+        ),
+    ):
+        assert_all_groups_are_complete(start, complete_index)
+
+    # If you specify the units, all is happy
+    assert_all_groups_are_complete(start, complete_index, unit_col="units")
+
+
+def test_assert_all_groups_are_complete_user_group_keys():
+    start = pd.DataFrame(
+        [
+            [1.0, 2.0],
+            [3.0, 2.0],
+            [1.0, 2.0],
+            [3.0, 2.0],
+        ],
+        columns=[2015, 2100],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("sa", "va", "W", "g1"),
+                ("sa", "vb", "W", "g2"),
+                ("sb", "va", "W", "g1"),
+                ("sb", "vb", "W", "g2"),
+            ],
+            names=["scenario", "variable", "unit", "unhelpful_grouper"],
+        ),
+    )
+    complete_index = pd.MultiIndex.from_tuples(
+        [
+            ("va",),
+            ("vb",),
+        ],
+        names=["variable"],
+    )
+
+    # If you forget the unit col, you get unhelpful groupings hence an error
+    with pytest.raises(NotCompleteError):
+        assert_all_groups_are_complete(start, complete_index)
+
+    # If you specify the groups, all is happy
+    assert_all_groups_are_complete(start, complete_index, group_keys=["scenario"])

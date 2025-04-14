@@ -551,12 +551,11 @@ class AR6Infiller:
                 rounding=5,  # level of data storage in historical data often
             )
             assert_all_groups_are_complete(
-                # The combo of the input
-                # and infilled should be complete i.e. fully infilled.
+                # The combo of the input and infilled should be complete
                 pd.concat(
                     [in_emissions, infilled.reorder_levels(in_emissions.index.names)]
                 ),
-                full_emissions_index=self.historical_emissions.index.droplevel("unit"),
+                complete_index=self.historical_emissions.index.droplevel("unit"),
             )
 
         return infilled
