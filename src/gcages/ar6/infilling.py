@@ -29,7 +29,6 @@ from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
-    import pyam  # type: ignore
     import silicone  # type: ignore
 
 
@@ -366,13 +365,13 @@ def get_ar6_infiller(  # type: ignore # silicone has no type hints
 
 
 def do_ar6_like_infilling(  # type: ignore # noqa: PLR0913 # silicone has no type hints
-    indf: pyam.IamDataFrame,
+    indf: pd.DataFrame,
     follower: str,
     lead_options: tuple[tuple[str, ...], ...],
     db_file: Path,
     cruncher: silicone.base._DatabaseCruncher,
     cfcs: bool,
-) -> pyam.IamDataFrame:
+) -> pd.DataFrame:
     """
     Do infilling like it was done in AR6
 
@@ -401,10 +400,10 @@ def do_ar6_like_infilling(  # type: ignore # noqa: PLR0913 # silicone has no typ
     :
         Infilled timeseries
     """
-    indf_variables = indf.variable
+    indf_variables = indf.index.get_level_values("variable")
     for leads in lead_options:
         if all(v in indf_variables for v in leads):
-            # Split out to allow for caching
+            # This function is split out to allow for caching
             infiller = get_ar6_infiller(
                 follower=follower,
                 lead=leads,
