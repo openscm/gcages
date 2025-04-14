@@ -124,13 +124,13 @@ def assert_all_groups_are_complete(
         raise KeyError(msg)
 
     if group_keys is None:
-        group_keys = to_check.index.names.difference([*complete_index.names, unit_col])
+        group_keys = to_check.index.names.difference([*complete_index.names, unit_col])  # type: ignore # pandas-stubs confused
 
     missing_l = []
     # Check against the levels that are in `complete_index`
     # (also ignoring units if they are there)
     idx_to_check_drop_levels = list(
-        {*to_check.index.names.difference(complete_index.names), unit_col}
+        {*to_check.index.names.difference(complete_index.names), unit_col}  # type: ignore # pandas-stubs confused
     )
     for group_values, gdf in to_check.groupby(group_keys):
         idx_to_check = gdf.index.droplevel(idx_to_check_drop_levels)
@@ -140,7 +140,7 @@ def assert_all_groups_are_complete(
                 [idx_to_check.values], names=[idx_to_check.name]
             )
 
-        missing_levels = complete_index.difference(
+        missing_levels = complete_index.difference(  # type: ignore # pandas-stubs out of date
             idx_to_check.reorder_levels(complete_index.names)
         )
         if not missing_levels.empty:

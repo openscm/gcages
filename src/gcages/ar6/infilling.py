@@ -8,7 +8,7 @@ import functools
 from collections.abc import Iterable, Mapping
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, cast
 
 import pandas as pd
 from attrs import define
@@ -29,8 +29,8 @@ from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
-    import pyam
-    import silicone
+    import pyam  # type: ignore
+    import silicone  # type: ignore
 
 
 @functools.cache
@@ -143,6 +143,7 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
         `filepath` points to a file that does not have the expected hash
     """
     try:
+        from pandas_indexing.core import assignlevel, projectlevel
         from pandas_indexing.selectors import isin, ismatch
     except ImportError as exc:
         raise MissingOptionalDependencyError(
@@ -170,8 +171,9 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
         isin(scenario="ssp245") & ~ismatch(variable="**CO2"), :2015
     ].reset_index(["model", "scenario"], drop=True)
 
-    history = history.pix.assign(
-        variable=history.index.pix.project("variable").map(
+    history = assignlevel(
+        history,
+        variable=projectlevel(history.index, "variable").map(
             lambda x: convert_variable_name(
                 x,
                 from_convention=SupportedNamingConventions.AR6_CFC_INFILLING_DB,
@@ -179,14 +181,14 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
             )
         ),
         # Not strictly necessary, but makes life easier
-        unit=history.index.pix.project("unit").map(
+        unit=projectlevel(history.index, "unit").map(
             lambda x: x.replace("HFC4310mee/yr", "HFC4310/yr").replace(
                 "NO2 / yr", "NO2/yr"
             )
         ),
     )
     # Not sure why this happened, but here we are
-    history.loc[ismatch(variable="**HFC245fa"), :] *= 0.0
+    history.loc[ismatch(variable="**HFC245fa"), :] *= 0.0  # type: ignore # pix typing not playing nice with pandas-stubs
 
     return history
 
@@ -217,23 +219,16 @@ def infill_scenario(
         Infilled scenario
     """
     try:
-        from pandas_indexing.core import concat
+        from pandas_indexing.core import concat, uniquelevel
         from pandas_indexing.selectors import isin
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "infill_scenario", requirement="pandas_indexing"
         ) from exc
 
-    try:
-        import pyam
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "infill_scenario", requirement="pyam"
-        ) from exc
-
     assert_only_working_on_variable_unit_variations(indf)
 
-    indf_variables = indf.pix.unique("variable")
+    indf_variables = uniquelevel(indf, "variable")
 
     inferred_l = []
     # Don't repeat this logic again, it is super confusing
@@ -253,7 +248,7 @@ def infill_scenario(
                         indf.loc[isin(variable=[component_other])].reset_index(
                             "variable", drop=True
                         ),
-                        axis="rows",
+                        axis="rows",  # type: ignore # pandas-stubs confused
                     )
                     .pix.assign(variable=component_missing)
                 )
@@ -273,9 +268,9 @@ def infill_scenario(
     infilled_silicone_l = []
     for v_to_infill in to_infill_silicone:
         infiller = infillers[v_to_infill]
-        tmp = infiller(pyam.IamDataFrame(indf)).timeseries()
+        tmp = infiller(indf)
         # The fact that this is needed suggests there's a bug in silicone
-        tmp = tmp.loc[:, indf.columns]
+        tmp = tmp.loc[:, indf.columns]  # type: ignore # pandas-stubs being stupid
         infilled_silicone_l.append(tmp)
 
     # Also add zeros for HFC245fa.
@@ -285,7 +280,7 @@ def infill_scenario(
     infilled_silicone_l.append(tmp)
 
     infilled_silicone = concat(infilled_silicone_l).sort_index(axis="columns")
-    infilled_silicone_vars = infilled_silicone.pix.unique("variable")
+    infilled_silicone_vars = uniquelevel(infilled_silicone, "variable")
 
     # If we started with total CO2 then infilled fossil CO2,
     # we preserve harmonisation and the total by overwriting AFOLU CO2.
@@ -302,7 +297,7 @@ def infill_scenario(
                         infilled_silicone.loc[
                             isin(variable=["Emissions|CO2|Fossil"])
                         ].reset_index("variable", drop=True),
-                        axis="rows",
+                        axis="rows",  # type: ignore # pandas-stubs confused
                     )
                     .pix.assign(variable="Emissions|CO2|Biosphere")
                 ),
@@ -310,7 +305,7 @@ def infill_scenario(
         )
 
     if inferred is not None:
-        infilled = concat([inferred, infilled_silicone])
+        infilled: pd.DataFrame = concat([inferred, infilled_silicone])
     else:
         infilled = infilled_silicone
 
@@ -318,7 +313,7 @@ def infill_scenario(
 
 
 @functools.cache
-def get_ar6_infiller(
+def get_ar6_infiller(  # type: ignore # silicone has no type hints
     follower: str,
     lead: tuple[str, ...],
     db_file: Path,
@@ -364,10 +359,13 @@ def get_ar6_infiller(
         variable_leaders=list(lead),
     )
 
-    return infiller
+    def res_func(inp: pd.DataFrame) -> pd.DataFrame:
+        return cast(pd.DataFrame, infiller(pyam.IamDataFrame(inp)).timeseries())
+
+    return res_func
 
 
-def do_ar6_like_infilling(  # noqa: PLR0913
+def do_ar6_like_infilling(  # type: ignore # noqa: PLR0913 # silicone has no type hints
     indf: pyam.IamDataFrame,
     follower: str,
     lead_options: tuple[tuple[str, ...], ...],
@@ -622,7 +620,7 @@ class AR6Infiller:
             Initialised harmoniser
         """
         try:
-            import silicone.database_crunchers
+            import silicone.database_crunchers  # type: ignore # silicone has no type hints
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "get_ar6_infiller", requirement="silicone"
