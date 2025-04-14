@@ -25,7 +25,7 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
-from gcages.infilling import assert_infilled
+from gcages.infilling import assert_all_groups_are_complete
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
@@ -185,6 +185,7 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
             )
         ),
     )
+    # Not sure why this happened, but here we are
     history.loc[ismatch(variable="**HFC245fa"), :] *= 0.0
 
     return history
@@ -549,8 +550,13 @@ class AR6Infiller:
                 harmonisation_time=self.harmonisation_year,
                 rounding=5,  # level of data storage in historical data often
             )
-            assert_infilled(
-                infilled, full_emissions_index=self.historical_emissions.index
+            assert_all_groups_are_complete(
+                # The combo of the input
+                # and infilled should be complete i.e. fully infilled.
+                pd.concat(
+                    [in_emissions, infilled.reorder_levels(in_emissions.index.names)]
+                ),
+                full_emissions_index=self.historical_emissions.index.droplevel("unit"),
             )
 
         return infilled

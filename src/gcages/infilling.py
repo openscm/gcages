@@ -24,22 +24,112 @@ class NotInfilledError(ValueError):
         super().__init__(error_msg)
 
 
-def assert_infilled(
-    to_check: pd.DataFrame, full_emissions_index: pd.MultiIndex, unit_col: str = "unit"
+def assert_all_groups_are_complete(
+    to_check: pd.DataFrame,
+    complete_index: pd.MultiIndex,
+    group_keys: list[str] | None = None,
+    unit_col: str = "unit",
 ) -> None:
-    # Probably a smarter way to do this, I can't see it now
-    group_keys = to_check.index.names.difference(
-        [*full_emissions_index.names, unit_col]
-    )
+    """
+    Assert all groups have 'complete' data
+
+    Here, complete is defined by `complete_index`,
+    which specifies the metadata that should be included for each group.
+
+    Parameters
+    ----------
+    to_check
+        Data to check
+
+    complete_index
+        Index which defines the meaning of 'complete'
+
+    group_keys
+        Keys to use to group `to_check` into groups when checking for completeness.
+
+        If not supplied, we use all the index levels in `to_check`
+        except those that appear in `complete_index` and the `unit_col`,
+        specifically
+        `to_check.index.names.difference([*complete_index.names, unit_col])`.
+
+    unit_col
+        Unit column (differences here do not indicate incompleteness)
+
+    Examples
+    --------
+    >>> to_check = pd.DataFrame(
+    ...     [
+    ...         [1.0, 2.0],
+    ...         [3.0, 2.0],
+    ...         [1.0, 2.0],
+    ...         [3.0, 2.0],
+    ...     ],
+    ...     columns=[2015, 2100],
+    ...     index=pd.MultiIndex.from_tuples(
+    ...         [
+    ...             ("sa", "va", "W"),
+    ...             ("sa", "vb", "W"),
+    ...             ("sb", "va", "W"),
+    ...             ("sb", "vb", "W"),
+    ...         ],
+    ...         names=["scenario", "variable", "unit"],
+    ...     ),
+    ... )
+    >>> to_check  # doctest: +NORMALIZE_WHITESPACE
+                            2015  2100
+    scenario variable unit
+    sa       va       W      1.0   2.0
+             vb       W      3.0   2.0
+    sb       va       W      1.0   2.0
+             vb       W      3.0   2.0
+
+    >>> # A checker, by which `to_check` is complete
+    >>> checker_a = pd.MultiIndex.from_tuples(
+    ...     [
+    ...         ("va",),
+    ...         ("vb",),
+    ...     ],
+    ...     names=["variable"],
+    ... )
+    >>> assert_all_groups_are_complete(to_check, complete_index=checker_a)
+    >>> # No error raised, all happy
+    >>>
+    >>> # A checker which includes variables that aren't present in `to_check`
+    >>> checker_b = pd.MultiIndex.from_tuples(
+    ...     [
+    ...         ("va",),
+    ...         ("vb",),
+    ...         ("vc",),
+    ...     ],
+    ...     names=["variable"],
+    ... )
+    >>> assert_all_groups_are_complete(to_check, complete_index=checker_b)
+    Traceback (most recent call last):
+        ...
+    gcages.infilling.NotInfilledError: The DataFrame is not fully infilled. The following expected levels are missing:
+      variable scenario
+    0       vc       sa
+    0       vc       sb
+    The full index expected for each level is:
+      variable
+    0       va
+    1       vb
+    2       vc
+    """  # noqa: E501
+    # Probably a smarter way to do this rather than looping, I can't see it now
+    if group_keys is None:
+        group_keys = to_check.index.names.difference([*complete_index.names, unit_col])
+
     missing_l = []
     for group_values, gdf in to_check.groupby(group_keys):
         idx_to_check = gdf.index.droplevel([*group_keys, unit_col])
-        if isinstance(idx_to_check, pd.Index):
+
+        if not isinstance(idx_to_check, pd.MultiIndex):
             idx_to_check = pd.MultiIndex.from_arrays(
                 [idx_to_check.values], names=[idx_to_check.name]
             )
 
-        missing_levels = full_emissions_index.difference(idx_to_check)
+        missing_levels = complete_index.difference(idx_to_check)
         if not missing_levels.empty:
             tmp = missing_levels.to_frame(index=False)
             for key, value in zip(group_keys, group_values):
@@ -49,5 +139,5 @@ def assert_infilled(
 
     if missing_l:
         raise NotInfilledError(
-            pd.concat(missing_l), full_emissions_index=full_emissions_index
+            pd.concat(missing_l), full_emissions_index=complete_index
         )

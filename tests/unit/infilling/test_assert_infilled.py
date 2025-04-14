@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.infilling import NotInfilledError, assert_infilled
+from gcages.infilling import NotInfilledError, assert_all_groups_are_complete
 
 
 def get_df(index):
@@ -21,7 +21,7 @@ def get_df(index):
 
 
 @pytest.mark.parametrize(
-    "df, full_emissions_index,  exp",
+    "df, complete_index,  exp",
     (
         pytest.param(
             pd.DataFrame(
@@ -78,13 +78,88 @@ def get_df(index):
                 ],
                 names=["variable"],
             ),
-            pytest.raises(NotInfilledError, match=re.escape("junk")),
+            pytest.raises(
+                NotInfilledError,
+                match="".join(
+                    [
+                        re.escape(
+                            "The DataFrame is not fully infilled. "
+                            "The following expected levels are missing:"
+                        ),
+                        r"\s*.*variable\s*scenario",
+                        r"\s*.*va\s*sb\s*",
+                        re.escape("The full index expected for each level is:"),
+                    ]
+                ),
+            ),
             id="missing-timeseries",
         ),
-        # TODO: infilled-regional
+        pytest.param(
+            pd.DataFrame(
+                np.arange(16).reshape((8, 2)),
+                columns=[2015, 2100],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "r1", "W"),
+                        ("sa", "vb", "r1", "W"),
+                        ("sb", "va", "r1", "W"),
+                        ("sb", "vb", "r1", "W"),
+                        ("sa", "va", "r2", "W"),
+                        ("sa", "vb", "r2", "W"),
+                        ("sb", "va", "r2", "W"),
+                        ("sb", "vb", "r2", "W"),
+                    ],
+                    names=["scenario", "variable", "region", "unit"],
+                ),
+            ),
+            pd.MultiIndex.from_product(
+                [["va", "vb"], ["r1", "r2"]],
+                names=["variable", "region"],
+            ),
+            does_not_raise(),
+            id="infilled-regional",
+        ),
+        pytest.param(
+            pd.DataFrame(
+                np.arange(12).reshape((6, 2)),
+                columns=[2015, 2100],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "r1", "W"),
+                        # ("sa", "vb", "r1", "W"),
+                        ("sb", "va", "r1", "W"),
+                        ("sb", "vb", "r1", "W"),
+                        ("sa", "va", "r2", "W"),
+                        ("sa", "vb", "r2", "W"),
+                        # ("sb", "va", "r2", "W"),
+                        ("sb", "vb", "r2", "W"),
+                    ],
+                    names=["scenario", "variable", "region", "unit"],
+                ),
+            ),
+            pd.MultiIndex.from_product(
+                [["va", "vb"], ["r1", "r2"]],
+                names=["variable", "region"],
+            ),
+            pytest.raises(
+                NotInfilledError,
+                match="".join(
+                    [
+                        re.escape(
+                            "The DataFrame is not fully infilled. "
+                            "The following expected levels are missing:"
+                        ),
+                        r"\s*.*variable\s*region\s*scenario",
+                        r"\s*.*vb\s*r1\s*sa\s*",
+                        r"\s*.*va\s*r2\s*sb\s*",
+                        re.escape("The full index expected for each level is:"),
+                    ]
+                ),
+            ),
+            id="missing-regional",
+        ),
     ),
 )
-def test_assert_infilled(df, full_emissions_index, exp):
-    assert_infilled(df, full_emissions_index=full_emissions_index)
+def test_assert_infilled(df, complete_index, exp):
     with exp:
-        assert_infilled(df, full_emissions_index=full_emissions_index)
+        assert_all_groups_are_complete(df, complete_index=complete_index)
