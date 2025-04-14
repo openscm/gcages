@@ -144,7 +144,7 @@ def test_individual_scenario(model, scenario):
 @pytest.mark.slow
 def test_key_testing_scenarios_all_at_once_parallel():
     # Required for progress bars
-    pytest.importorskip("tqdm")
+    pytest.importorskip("tqdm.auto")
 
     harmonised_l = []
     exp_l = []
