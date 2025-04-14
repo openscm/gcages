@@ -112,13 +112,14 @@ def test_individual_scenario(model, scenario):
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
         ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
-        n_processes=None,  # not parallel
-        progress=False,
         historical_emissions=get_ar6_full_historical_emissions(
             AR6_INFILLING_DB_CFCS_FILE
         ),
         harmonisation_year=2015,
+        progress=False,
+        n_processes=None,  # not parallel
     )
+    assert not infiller.progress
 
     res = infiller(harmonised)
 
@@ -142,6 +143,9 @@ def test_individual_scenario(model, scenario):
 
 @pytest.mark.slow
 def test_key_testing_scenarios_all_at_once_parallel():
+    # Required for progress bars
+    pytest.importorskip("tqdm")
+
     harmonised_l = []
     exp_l = []
     for model, scenario in KEY_TESTING_MODEL_SCENARIOS:

@@ -886,5 +886,6 @@ class AR6Infiller:
             run_checks=run_checks,
             historical_emissions=historical_emissions,
             harmonisation_year=harmonisation_year,
+            progress=progress,
             n_processes=n_processes,
         )
