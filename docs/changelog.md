@@ -21,6 +21,13 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.2.1 (2025-04-14)
+
+### 📚 Improved Documentation
+
+- Added missing tutorial to the navigation bar in the docs ([#12](https://github.com/openscm/gcages/pull/12))
+
+
 ## gcages v0.2.0 (2025-04-14)
 
 ### ⚠️ Breaking Changes
