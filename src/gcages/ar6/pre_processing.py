@@ -22,7 +22,7 @@ from gcages.assertions import (
     assert_only_working_on_variable_unit_variations,
 )
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.renaming import convert_iamc_variable_to_gcages
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 if TYPE_CHECKING:
@@ -556,7 +556,14 @@ class AR6PreProcessor:
 
         # Convert to gcages naming conventions
         res = update_index_levels_func(
-            res, {"variable": convert_iamc_variable_to_gcages}
+            res,
+            {
+                "variable": partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.IAMC,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            },
         )
 
         if self.run_checks:

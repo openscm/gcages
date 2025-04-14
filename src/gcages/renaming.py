@@ -8,61 +8,107 @@ to help clarify this, but have not done so yet.
 
 from __future__ import annotations
 
+import sys
 from typing import cast
 
 import pandas as pd
 
+import gcages.databases
 from gcages.exceptions import UnrecognisedValueError
 
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum
 
-def lookup_mapping(
-    from_key: str,
-    from_value: str,
-    to_key: str,
-    database: pd.DataFrame,
-    variable_used_for_lookup: str,
+
+class SupportedNamingConventions(StrEnum):
+    """Supported naming conventions"""
+
+    GCAGES = "gcages"
+    """This package's naming convention"""
+
+    AR6_CFC_INFILLING_DB = "ar6_cfc_infilling_db"
+    """
+    The naming convention used in AR6's CFC infilling database
+
+    Somehow this ended up being different to all the other conventions.
+    """
+
+    IAMC = "iamc"
+    """
+    Integrated Assessment Modelling Consortium (IAMC) naming convention
+
+    Not a perfect definition so the implementation here is a bit of a guess
+    based on experience.
+    https://github.com/IAMconsortium/common-definitions
+    is a better source of truth, but it also moves more quickly,
+    is not used universally and covers many more variables
+    than we care about within the gcages context.
+    """
+
+    OPENSCM_RUNNER = "openscm_runner"
+    """
+    OpenSCM-Runner naminv convention
+
+    Used by the package which actually runs simple climate models (SCMs),
+    see https://github.com/openscm/openscm-runner
+    """
+
+    RCMIP = "rcmip"
+    """
+    Reduced Complexity Model Intercomparison Project (RCMIP) naming convention
+
+    See rcmip.org and e.g.
+
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-emissions-annual-means-v5-1-0.csv
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-concentrations-annual-means-v5-1-0.csv
+    - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-radiative-forcing-annual-means-v5-1-0.csv
+    """
+
+
+def convert_variable_name(
+    variable_in: str,
+    from_convention: SupportedNamingConventions,
+    to_convention: SupportedNamingConventions,
+    database: pd.DataFrame = gcages.databases.EMISSIONS_VARIABLES,
 ) -> str:
     """
-    Lookup a mapping
+    Convert a variable name to another naming convention
 
     Parameters
     ----------
-    from_key
-        Key/column to map from
+    variable_in
+        Variable name to convert
 
-    from_value
-        Value to map from (i.e. what to look up in the `from_key` column)
+    from_convention
+        Convention to convert from
 
-    to_key
-        Key/column to map to
+    to_convention
+        Convention to convert to
 
     database
-        Database in which to look up the mapping
-
-        (Not a real database, just a [pd.DataFrame][pandas.DataFrame],
-        but it performs the same function.)
-
-    variable_used_for_lookup
-        The name of the variable being used for mapping
-
-        This is only used to provide a helpful error message.
+        Database to use for the conversions
 
     Returns
     -------
     :
-        Mapped value i.e. the equivalent value to `from_value` in `to_key`
+        Converted variable name
 
     Raises
     ------
     UnrecognisedValueError
-        `from_value` is not a recognised value in `from_key` for the given `database`
+        `variable_in` is not a recognised value in `from_convention`
     """
-    res_l = database.loc[database[from_key] == from_value, to_key].tolist()
+    from_key = str(from_convention)
+    to_key = str(to_convention)
+
+    res_l = database.loc[database[from_key] == variable_in, to_key].tolist()
 
     if len(res_l) < 1:
         raise UnrecognisedValueError(
-            unrecognised_value=from_value,
-            name=variable_used_for_lookup,
+            unrecognised_value=variable_in,
+            name=f"the {from_convention} naming convention",
             known_values=sorted(list(database[from_key].tolist())),
         )
 
@@ -70,168 +116,3 @@ def lookup_mapping(
         raise AssertionError(res_l)
 
     return cast(str, res_l[0])
-
-
-def convert_gcages_variable_to_iamc(gcages_variable: str) -> str:
-    """
-    Convert a gcages variable name to an IAMC variable name
-
-    Parameters
-    ----------
-    gcages_variable
-        gcages variable to convert
-
-    Returns
-    -------
-    :
-        IAMC equivalent of `gcages_variable`
-
-    Raises
-    ------
-    UnrecognisedValueError
-        We do not know how to map `gcages_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="gcages",
-        from_value=gcages_variable,
-        variable_used_for_lookup="gcages_variable",
-        to_key="iamc",
-        database=EMISSIONS_VARIABLES,
-    )
-
-
-def convert_gcages_variable_to_openscm_runner(gcages_variable: str) -> str:
-    """
-    Convert a gcages variable name to an OpenSCM-Runner variable name
-
-    Parameters
-    ----------
-    gcages_variable
-        gcages variable to convert
-
-    Returns
-    -------
-    :
-        OpenSCM-Runner equivalent of `gcages_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="gcages",
-        from_value=gcages_variable,
-        variable_used_for_lookup="gcages_variable",
-        to_key="openscm_runner",
-        database=EMISSIONS_VARIABLES,
-    )
-
-
-def convert_iamc_variable_to_gcages(iamc_variable: str) -> str:
-    """
-    Convert an IAMC variable name to a gcages variable name
-
-    Parameters
-    ----------
-    iamc_variable
-        IAMC variable to convert
-
-    Returns
-    -------
-    :
-        gcages equivalent of `iamc_variable`
-
-    Raises
-    ------
-    UnrecognisedValueError
-        We do not know how to map `iamc_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="iamc",
-        from_value=iamc_variable,
-        variable_used_for_lookup="iamc_variable",
-        to_key="gcages",
-        database=EMISSIONS_VARIABLES,
-    )
-
-
-def convert_iamc_variable_to_openscm_runner(iamc_variable: str) -> str:
-    """
-    Convert an IAMC variable name to an OpenSCM-Runner variable name
-
-    Parameters
-    ----------
-    iamc_variable
-        IAMC variable to convert
-
-    Returns
-    -------
-    :
-        OpenSCM-Runner equivalent of `iamc_variable`
-
-    Raises
-    ------
-    UnrecognisedValueError
-        We do not know how to map `iamc_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="iamc",
-        from_value=iamc_variable,
-        variable_used_for_lookup="iamc_variable",
-        to_key="openscm_runner",
-        database=EMISSIONS_VARIABLES,
-    )
-
-
-def convert_openscm_runner_variable_to_gcages(openscm_runner_variable: str) -> str:
-    """
-    Convert an OpenSCM-Runner variable name to a gcages variable name
-
-    Parameters
-    ----------
-    openscm_runner_variable
-        OpenSCM-Runner variable to convert
-
-    Returns
-    -------
-    :
-        gcages equivalent of `openscm_runner_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="openscm_runner",
-        from_value=openscm_runner_variable,
-        variable_used_for_lookup="openscm_runner_variable",
-        to_key="gcages",
-        database=EMISSIONS_VARIABLES,
-    )
-
-
-def convert_openscm_runner_variable_to_iamc(openscm_runner_variable: str) -> str:
-    """
-    Convert an OpenSCM-Runner variable name to an IAMC variable name
-
-    Parameters
-    ----------
-    openscm_runner_variable
-        OpenSCM-Runner variable to convert
-
-    Returns
-    -------
-    :
-        IAMC equivalent of `openscm_runner_variable`
-    """
-    from gcages.databases import EMISSIONS_VARIABLES
-
-    return lookup_mapping(
-        from_key="openscm_runner",
-        from_value=openscm_runner_variable,
-        variable_used_for_lookup="openscm_runner_variable",
-        to_key="iamc",
-        database=EMISSIONS_VARIABLES,
-    )
