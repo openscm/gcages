@@ -345,7 +345,7 @@ def get_ar6_infiller(  # type: ignore # silicone has no type hints
         Infilled timeseries
     """
     try:
-        import pyam
+        import pyam  # type: ignore # pyam not typed
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_infiller", requirement="pyam"
