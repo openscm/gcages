@@ -179,6 +179,7 @@ def test_individual_scenario(model, scenario):
             AR6_INFILLING_DB_CFCS_FILE
         ),
         harmonisation_year=2015,
+        output_variables=("Surface Air Temperature Change",),
     )
     post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
 
@@ -300,6 +301,7 @@ def test_parallel(tmp_path):
             AR6_INFILLING_DB_CFCS_FILE
         ),
         harmonisation_year=2015,
+        output_variables=("Surface Air Temperature Change",),
     )
     post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
 

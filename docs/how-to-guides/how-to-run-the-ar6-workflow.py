@@ -29,6 +29,9 @@
 # ## Imports
 
 # %%
+import multiprocessing
+import os
+import platform
 from functools import partial
 from pathlib import Path
 
@@ -36,19 +39,25 @@ import numpy as np
 import openscm_units
 import pandas as pd
 import pandas_indexing as pix
+import pandas_openscm
 import pint
 import seaborn as sns
 
 from gcages.ar6 import (
     AR6Harmoniser,
     AR6Infiller,
+    AR6PostProcessor,
     AR6PreProcessor,
+    AR6SCMRunner,
     get_ar6_full_historical_emissions,
 )
 
 # %%
 # Setup pint
 pint.set_application_registry(openscm_units.unit_registry)
+
+# %%
+pandas_openscm.register_pandas_accessor()
 
 # %% [markdown]
 # ## Starting point
@@ -424,9 +433,127 @@ complete_scenarios
 # %% [markdown]
 # ## SCM Running
 #
-# TBD
+# The next step is running a simple climate model (SCM).
+# This provides information about the climate implications of the scenario(s).
+#
+# In AR6, MAGICCv7.5.3 was used for categorisation,
+# but other climate models were also available.
+# MAGICCv7.5.3 can be downloaded from magicc.org,
+# but a copy is also stored in the path below
+# so we can run these docs.
+# Please go and download from magicc.org
+# to help the MAGICC developers see the usage of their model.
+#
+# Under the hood, the AR6 SCM running uses the
+# [OpenSCM-Runner](https://github.com/openscm/openscm-runner) package.
+
+# %%
+MAGICC_EXE_PATH = Path("tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin")
+MAGICC_AR6_PROBABILISTIC_CONFIG_FILE = Path(
+    "tests/regression/ar6/ar6-workflow-inputs/magicc-ar6-0fd0f62-f023edb-drawnset/0fd0f62-derived-metrics-id-f023edb-drawnset.json"
+)
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if not MAGICC_EXE_PATH.exists():
+    MAGICC_EXE_PATH = Path("../..") / MAGICC_EXE_PATH
+    if not MAGICC_EXE_PATH.exists():
+        raise AssertionError
+
+if not MAGICC_AR6_PROBABILISTIC_CONFIG_FILE.exists():
+    MAGICC_AR6_PROBABILISTIC_CONFIG_FILE = (
+        Path("../..") / MAGICC_AR6_PROBABILISTIC_CONFIG_FILE
+    )
+    if not MAGICC_AR6_PROBABILISTIC_CONFIG_FILE.exists():
+        raise AssertionError
+
+# %%
+if platform.system() == "Darwin":
+    if platform.processor() == "arm":
+        MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
+        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
+
+elif platform.system() == "Linux":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
+
+elif platform.system() == "Windows":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc.exe"
+
+# %% [markdown]
+# With the MAGICC executable and config file, we can initialise our SCM runner.
+
+# %%
+scm_runner = AR6SCMRunner.from_ar6_config(
+    # Generally, you want to run SCMs in parallel
+    n_processes=multiprocessing.cpu_count(),
+    magicc_exe_path=MAGICC_EXE,
+    magicc_prob_distribution_path=MAGICC_AR6_PROBABILISTIC_CONFIG_FILE,
+    historical_emissions=get_ar6_full_historical_emissions(AR6_INFILLING_DB_CFCS_FILE),
+    harmonisation_year=2015,
+    output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
+)
+
+# %% [markdown]
+# And then run
+
+# %%
+scm_results = scm_runner(complete_scenarios)
+scm_results
+
+# %% [markdown]
+# With these outputs, we can look at raw (i.e. before pre-processing) variables.
+
+# %%
+scm_results.loc[
+    pix.isin(variable=["Effective Radiative Forcing"])
+].openscm.plot_plume_after_calculating_quantiles(
+    style_var="variable",
+    quantile_over="run_id",
+    quantiles_plumes=(
+        (0.5, 0.8),
+        ((0.05, 0.95), 0.3),
+    ),
+)
 
 # %% [markdown]
 # ## Post-processing
 #
-# TBD
+# The last step is post-processing.
+# This handles calculation of key pieces of metadata.
+
+# %%
+post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
+post_processed_results = post_processor(scm_results)
+
+# %% [markdown]
+# For example, the scenario category.
+
+# %%
+post_processed_results.metadata_categories.unstack("metric")
+
+# %% [markdown]
+# Exceedance thresholds.
+
+# %%
+post_processed_results.metadata_exceedance_probabilities.unstack("threshold")
+
+# %% [markdown]
+# Key warming metrics.
+
+# %%
+post_processed_results.metadata_quantile.loc[
+    pix.isin(quantile=[0.05, 0.5, 0.95])
+].unstack(["quantile", "metric"]).round(2).sort_index(axis="columns")
+
+# %% [markdown]
+# Assessed surface temperatures.
+
+# %%
+post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
+    style_var="variable",
+    quantiles_plumes=(
+        (0.5, 0.8),
+        ((0.05, 0.95), 0.3),
+    ),
+)
