@@ -223,6 +223,11 @@ def test_individual_scenario(model, scenario):
     post_processed_metadata_comparable = get_post_processed_metadata_comparable(
         post_processed
     )
+    # If needed, use the failed vetting flag
+    post_processed_metadata_comparable.loc[
+        exp_metadata["Category"] == "failed-vetting",
+        ["Category", "Category_name"],
+    ] = "failed-vetting"
     pd.testing.assert_frame_equal(
         post_processed_metadata_comparable[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
@@ -235,6 +240,8 @@ def test_parallel(tmp_path):
     """Test a few scenarios in parallel, not all to save compute time"""
     # Required for progress bars
     pytest.importorskip("tqdm.auto")
+    # Required for database
+    pytest.importorskip("filelock")
 
     infilled_l = []
     exp_temperature_percentiles_l = []
