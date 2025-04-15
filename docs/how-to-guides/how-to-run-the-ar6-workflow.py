@@ -495,6 +495,17 @@ scm_runner = AR6SCMRunner.from_ar6_config(
 )
 
 # %% [markdown]
+# If you're reading this on RtD,
+# note that we run a greatly reduced number of ensemble members.
+# You will likely want to skip this step if running yourself.
+
+# %%
+if os.environ.get("READTHEDOCS", False):
+    scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
+        "MAGICC7"
+    ][:10]
+
+# %% [markdown]
 # And then run
 
 # %%
