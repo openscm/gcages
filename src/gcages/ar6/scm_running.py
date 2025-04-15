@@ -89,8 +89,8 @@ def check_ar6_magicc7_version() -> None:
             "check_ar6_magicc7_version", requirement="openscm_runner"
         ) from exc
 
-    if openscm_runner.adapters.MAGICC7.get_version() != "v7.5.3":
-        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())
+    if openscm_runner.adapters.MAGICC7.get_version() != "v7.5.3":  # type: ignore
+        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())  # type: ignore
 
 
 def load_ar6_magicc_probabilistic_config(filepath: Path) -> list[dict[str, Any]]:
@@ -317,7 +317,7 @@ class AR6SCMRunner:
             climate_models_cfgs=self.climate_models_cfgs,
             output_variables=self.output_variables,
             scenario_group_levels=["model", "scenario"],
-            n_processes=self.n_processes,
+            n_processes=self.n_processes if self.n_processes is not None else 1,
             db=self.db,
             verbose=self.verbose,
             batch_size_scenarios=self.batch_size_scenarios,
@@ -327,21 +327,28 @@ class AR6SCMRunner:
         if self.db is not None:
             # Results aren't kept in memory during running, so have to load them now.
             # User can use `run_scms` directly if they want to process differently.
-            out = self.db.load()
+            out_maybe = self.db.load()
+            if out_maybe is None:
+                raise TypeError(out_maybe)
+
+            out: pd.DataFrame = out_maybe
 
         else:
+            if scm_results_maybe is None:
+                raise TypeError(scm_results_maybe)
+
             out = scm_results_maybe
 
         out.columns = out.columns.astype(self.res_column_type)
 
         if self.run_checks:
             # All scenarios have output
-            pd.testing.assert_index_equal(
+            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
                 out.index.droplevel(
-                    out.index.names.difference(["model", "scenario"])
+                    out.index.names.difference(["model", "scenario"])  # type: ignore # pandas-stubs out of date
                 ).drop_duplicates(),
                 in_emissions.index.droplevel(
-                    in_emissions.index.names.difference(["model", "scenario"])
+                    in_emissions.index.names.difference(["model", "scenario"])  # type: ignore # pandas-stubs out of date
                 ).drop_duplicates(),
                 check_order=False,
             )

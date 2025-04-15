@@ -5,7 +5,7 @@ Post-processing part of the AR6 workflow
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any
+from typing import Any, TypeVar, overload
 
 import numpy as np
 import pandas as pd
@@ -23,6 +23,8 @@ from gcages.assertions import (
     assert_index_is_multiindex,
 )
 from gcages.post_processing import PostProcessingResult
+
+T = TypeVar("T")
 
 
 def get_temperatures_in_line_with_assessment(
@@ -62,7 +64,7 @@ def get_temperatures_in_line_with_assessment(
     pre_industrial_mean = raw_temperatures.loc[
         :, list(assessment_pre_industrial_period)
     ].mean(axis="columns")
-    rel_pi_temperatures = raw_temperatures.subtract(pre_industrial_mean, axis="rows")
+    rel_pi_temperatures = raw_temperatures.subtract(pre_industrial_mean, axis="rows")  # type: ignore # pandas-stubs confused
 
     assessment_period_median = (
         rel_pi_temperatures.loc[:, list(assessment_time_period)]
@@ -71,7 +73,7 @@ def get_temperatures_in_line_with_assessment(
         .median()
     )
     res = (
-        rel_pi_temperatures.subtract(assessment_period_median, axis="rows")
+        rel_pi_temperatures.subtract(assessment_period_median, axis="rows")  # type: ignore # pandas-stubs confused
         + assessment_median
     )
     # Checker:
@@ -80,17 +82,36 @@ def get_temperatures_in_line_with_assessment(
     return res
 
 
-def set_new_single_value_levels(  # noqa: D103
-    pandas_obj: pd.DataFrame | pd.Series,
+@overload
+def set_new_single_value_levels(
+    pandas_obj: pd.DataFrame,
     levels_to_set: dict[str, Any],  # indicate not a collection somehow
     copy: bool = True,
-) -> pd.DataFrame | pd.Series:
+) -> pd.DataFrame: ...
+
+
+@overload
+def set_new_single_value_levels(
+    pandas_obj: pd.Series[Any],
+    levels_to_set: dict[str, Any],  # indicate not a collection somehow
+    copy: bool = True,
+) -> pd.Series[Any]: ...
+
+
+def set_new_single_value_levels(  # noqa: D103
+    pandas_obj: pd.DataFrame | pd.Series[Any],
+    levels_to_set: dict[str, Any],  # indicate not a collection somehow
+    copy: bool = True,
+) -> pd.DataFrame | pd.Series[Any]:
     # TODO: move to pandas-openscm
     if copy:
         pandas_obj = pandas_obj.copy()
 
     new_names = levels_to_set.keys()
     new_values = levels_to_set.values()
+
+    if not isinstance(pandas_obj.index, pd.MultiIndex):
+        raise TypeError(pandas_obj.index)
 
     pandas_obj.index = pd.MultiIndex(
         codes=[
@@ -151,11 +172,11 @@ def get_exceedance_probabilities(  # noqa: D103
     group_cols: list[str],
     unit_col: str,
     groupby_except_levels: list[str] | str,
-) -> pd.DataFrame:
+) -> pd.Series[float]:
     # TODO: Move to pandas-openscm
     # Have to do it this way because we don't want the columns
     n_runs_per_group = temperatures.index.droplevel(
-        temperatures.index.names.difference(group_cols)
+        temperatures.index.names.difference(group_cols)  # type: ignore # pandas-stubs confused
     ).value_counts()
 
     # TODO: add get_index_value to pandas-openscm with keyword `expect_singular`
@@ -169,7 +190,7 @@ def get_exceedance_probabilities(  # noqa: D103
     exceedance_probs_l = []
     for thresh in exceedance_thresholds_of_interest:
         exceedance_prob = update_index_levels_func(
-            groupby_except(peak_warming > thresh, groupby_except_levels)
+            groupby_except(peak_warming > thresh, groupby_except_levels)  # type: ignore # error in pandas-openscm
             .sum()
             .divide(n_runs_per_group)
             * 100,
@@ -186,7 +207,7 @@ def get_exceedance_probabilities(  # noqa: D103
 
         exceedance_probs_l.append(exceedance_prob)
 
-    exceedance_probs = pd.concat(exceedance_probs_l)
+    exceedance_probs: pd.Series[float] = pd.concat(exceedance_probs_l)  # type: ignore # pandas-stubs out of date
 
     return exceedance_probs
 
@@ -226,15 +247,15 @@ def categorise_scenarios(
         Scenario categorisation
     """
     index = peak_warming_quantiles.index.droplevel(
-        peak_warming_quantiles.index.names.difference(group_levels)
+        peak_warming_quantiles.index.names.difference(group_levels)  # type: ignore # pandas-stubs confused
     ).unique()
 
     peak_warming_quantiles_use = peak_warming_quantiles.reset_index(
-        peak_warming_quantiles.index.names.difference([*group_levels, quantile_level]),
+        peak_warming_quantiles.index.names.difference([*group_levels, quantile_level]),  # type: ignore # pandas-stubs confused
         drop=True,
     ).unstack(quantile_level)
     eoc_warming_quantiles_use = eoc_warming_quantiles.reset_index(
-        eoc_warming_quantiles.index.names.difference([*group_levels, quantile_level]),
+        eoc_warming_quantiles.index.names.difference([*group_levels, quantile_level]),  # type: ignore # pandas-stubs confused
         drop=True,
     ).unstack(quantile_level)
 
@@ -270,7 +291,7 @@ def categorise_scenarios(
         category_names.apply(lambda x: x.split(":")[0]),
         {"metric": lambda x: "category"},
     )
-    out = pd.concat([category_names, categories])
+    out: pd.Series[str] = pd.concat([category_names, categories])  # type: ignore # pandas-stubs out of date
 
     return out
 
@@ -397,7 +418,7 @@ class AR6PostProcessor:
                 groupby_except(
                     temperatures_in_line_with_assessment,
                     "run_id",
-                ).quantile(self.quantiles_of_interest),
+                ).quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
                 new_name="quantile",
             )
         )
@@ -414,7 +435,7 @@ class AR6PostProcessor:
             temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
         peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming, "run_id").quantile(self.quantiles_of_interest),
+            groupby_except(peak_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
             new_name="quantile",
         )
 
@@ -422,19 +443,19 @@ class AR6PostProcessor:
             temperatures_in_line_with_assessment[2100], {"metric": 2100}
         )
         eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(eoc_warming, "run_id").quantile(self.quantiles_of_interest),
+            groupby_except(eoc_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
             new_name="quantile",
         )
         peak_warming_year = set_new_single_value_levels(
             update_index_levels_func(
-                temperatures_in_line_with_assessment.idxmax(axis="columns"),
+                temperatures_in_line_with_assessment.idxmax(axis="columns"),  # type: ignore # error in pandas-openscm
                 {"unit": lambda x: "yr"},
             ),
             {"metric": "max_year"},
         )
         peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
             groupby_except(peak_warming_year, "run_id").quantile(
-                self.quantiles_of_interest
+                self.quantiles_of_interest  # type: ignore # pandas-stubs out of date
             ),
             new_name="quantile",
         )
@@ -462,8 +483,10 @@ class AR6PostProcessor:
             [exceedance_probabilities_over_time]
         )
 
-        metadata_run_id = pd.concat([peak_warming, eoc_warming, peak_warming_year])
-        metadata_quantile = pd.concat(
+        metadata_run_id: pd.Series[float] = pd.concat(  # type: ignore # pandas-stubs out of date
+            [peak_warming, eoc_warming, peak_warming_year]
+        )
+        metadata_quantile: pd.Series[float] = pd.concat(  # type: ignore # pandas-stubs out of date
             [
                 peak_warming_quantiles,
                 eoc_warming_quantiles,
@@ -494,7 +517,7 @@ class AR6PostProcessor:
                 "metadata_exceedance_probabilities",
                 "metadata_categories",
             ]:
-                pd.testing.assert_index_equal(
+                pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
                     getattr(res, attr)
                     .index.droplevel(
                         getattr(res, attr).index.names.difference(comparison_levels)
@@ -502,7 +525,7 @@ class AR6PostProcessor:
                     .drop_duplicates()
                     .reorder_levels(comparison_levels),
                     in_df.index.droplevel(
-                        in_df.index.names.difference(comparison_levels)
+                        in_df.index.names.difference(comparison_levels)  # type: ignore # pandas-stubs out of date
                     )
                     .drop_duplicates()
                     .reorder_levels(comparison_levels),

@@ -277,7 +277,7 @@ def get_ar6_metadata_outputs(
     model: str,
     scenario: str,
     ar6_output_data_dir: Path,
-    filename="AR6_Scenarios_Database_metadata_indicators_v1.1_meta.csv",
+    filename: str = "AR6_Scenarios_Database_metadata_indicators_v1.1_meta.csv",
 ) -> pd.DataFrame:
     """
     Get metadata from AR6 for a given model-scenario

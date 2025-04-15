@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Optional, cast
 
 import pandas as pd
 from pandas_openscm.db import EmptyDBError, OpenSCMDB
@@ -35,7 +35,7 @@ def convert_openscm_runner_output_names_to_magicc_output_names(
     # TODO: move this to OpenSCM-Runner or fix up pymagicc
     # (not doing now because of the headache of upgrading those packages)
     try:
-        import pymagicc.definitions
+        import pymagicc.definitions  # type: ignore
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "convert_openscm_runner_output_names_to_magicc_output_names",
@@ -127,13 +127,13 @@ def run_batch(
             "run_batch", requirement="scmdata"
         ) from exc
 
-    batch_res = openscm_runner.run.run(
+    batch_res = openscm_runner.run.run(  # type: ignore
         scenarios=scmdata.ScmRun(batch, copy_data=True),
         climate_models_cfgs=climate_models_cfgs,
         output_variables=output_variables,
     ).timeseries(time_axis="year")
 
-    return batch_res
+    return cast(pd.DataFrame, batch_res)
 
 
 def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
@@ -190,12 +190,15 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
 
     check_levels = [*scenario_group_levels, climate_model_level]
     db_already_run = existing_metadata.droplevel(
-        existing_metadata.names.difference(check_levels)
+        existing_metadata.names.difference(check_levels)  # type: ignore # pandas-stubs out of date
     ).unique()
 
     # TODO: set_new_single_value_levels into pandas-openscm's index_manipulation
     new_values = [climate_model]
     new_names = [climate_model_level]
+    if not isinstance(scenarios.index, pd.MultiIndex):
+        raise TypeError(scenarios.index)
+
     batch_output_exp_index = pd.MultiIndex(
         codes=[
             *scenarios.index.codes,
@@ -209,7 +212,7 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
     batch_to_run = scenarios.loc[~already_run_idx, :]
     already_run = scenarios.loc[already_run_idx, :]
     already_run_disp = already_run.index.droplevel(
-        already_run.index.names.difference(check_levels)
+        already_run.index.names.difference(check_levels)  # type: ignore # pandas-stubs out of date
     ).unique()
     if not already_run_disp.empty and verbose:
         # There are nicer ways to do this than verbose,
@@ -312,7 +315,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
         ) from exc
 
     scens_to_run = scenarios.index.droplevel(
-        scenarios.index.names.difference(scenario_group_levels)
+        scenarios.index.names.difference(scenario_group_levels)  # type: ignore # pandas-stubs out of date
     ).unique()
     climate_models_cfgs_iter = climate_models_cfgs.items()
     if progress:
@@ -321,20 +324,20 @@ def run_scms(  # noqa: PLR0912, PLR0913
             progress_results_kwargs=dict(desc="Climate models"),
             max_workers=None,  # This loop always goes in serial
         )
-        climate_models_cfgs_iter = pconfig.progress_results(
+        climate_models_cfgs_iter = pconfig.progress_results(  # type: ignore # something weird happening here
             climate_models_cfgs_iter, desc="Climate models"
         )
 
     for climate_model, cfg in climate_models_cfgs_iter:
         cfg_use = cfg
         if force_rerun or db is None:
-            scenarios_use = scenarios
+            scenarios_use: Optional[pd.DataFrame] = scenarios
 
         else:
             if climate_model == "MAGICC7":
                 # Urgh
                 climate_model_check = (
-                    f"MAGICC{openscm_runner.adapters.MAGICC7.get_version()}"
+                    f"MAGICC{openscm_runner.adapters.MAGICC7.get_version()}"  # type: ignore
                 )
             else:
                 climate_model_check = climate_model
@@ -360,6 +363,8 @@ def run_scms(  # noqa: PLR0912, PLR0913
             ]
             os.environ["MAGICC_WORKER_NUMBER"] = str(n_processes)
 
+            if scenarios_use is None:
+                raise TypeError(scenarios_use)
             scenarios_use = scenarios_use.copy()
             last_year = scenarios_use.columns.max()
             scenarios_use[last_year + magicc_extra_years] = scenarios_use[last_year]
@@ -367,6 +372,8 @@ def run_scms(  # noqa: PLR0912, PLR0913
                 scenarios_use.sort_index(axis="columns").T.interpolate("index").T
             )
 
+        if scenarios_use is None:
+            raise TypeError(scenarios_use)
         scenario_batches = batch_df(
             scenarios_use,
             batch_index=scens_to_run,
@@ -379,7 +386,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
                 progress_results_kwargs=dict(desc="Scenario batches"),
                 max_workers=None,
             )
-            scenario_batches = pconfig.progress_results(
+            scenario_batches = pconfig.progress_results(  # type: ignore # not sure what is happening here
                 scenario_batches, desc="Scenario batch"
             )
 
