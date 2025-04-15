@@ -149,7 +149,7 @@ jobs:
           uv pip install --requirements requirements-tmp.txt .
       - name: Run tests
         run: |
-          uv run --no-sync pytest tests -r a -v
+          MAGICC_EXECUTABLE_7="tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc" uv run --no-sync pytest tests -r a -v
 
   tests-without-extras:
     # Run the tests without installing extras.
