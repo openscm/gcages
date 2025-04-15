@@ -21,6 +21,17 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.3.0 (2025-04-15)
+
+### 🆕 Features
+
+- Added simple climate model running and post-processing as it was done in AR6, see [gcages.ar6.AR6SCMRunner][] and [gcages.ar6.AR6PostProcessor][] ([#13](https://github.com/openscm/gcages/pull/13))
+
+### 📚 Improved Documentation
+
+- Added a demonstration of simple climate model running and post-processing to the AR6 workflow docs ([#13](https://github.com/openscm/gcages/pull/13))
+
+
 ## gcages v0.2.1 (2025-04-14)
 
 ### 📚 Improved Documentation
