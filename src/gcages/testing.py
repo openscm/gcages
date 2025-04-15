@@ -331,12 +331,24 @@ def guess_magicc_exe_path() -> Path:
         return Path(env_var)
 
     guess = None
+    guess_path = (
+        Path(__file__).parents[2]
+        / "tests"
+        / "regression"
+        / "ar6"
+        / "ar6-workflow-inputs"
+        / "magicc-v7.5.3"
+        / "bin"
+    )
     if platform.system() == "Darwin":
         if platform.processor() == "arm":
-            guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc-darwin-arm64"
+            guess = guess_path / "magicc-darwin-arm64"
+
+    elif platform.system() == "Linux":
+        guess = guess_path / "magicc"
 
     elif platform.system() == "Windows":
-        guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc.exe"
+        guess = guess_path / "magicc.exe"
 
     if guess is not None:
         if guess.exists():
