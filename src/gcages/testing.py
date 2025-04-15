@@ -10,6 +10,8 @@ when you turn your tests into a package using `__init__.py` files
 from __future__ import annotations
 
 import functools
+import os
+import platform
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -227,6 +229,126 @@ def get_ar6_infilled_emissions(
     return res
 
 
+@functools.cache
+def get_ar6_temperature_outputs(
+    model: str, scenario: str, processed_ar6_output_data_dir: Path, dropna: bool = True
+) -> pd.DataFrame:
+    """
+    Get temperature outputs we've downloaded from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    processed_ar6_output_data_dir
+        Directory in which the AR6 output was processed into model-scenario files
+
+        (In the repo, see `tests/regression/ar6/convert_ar6_res_to_checking_csvs.py`.)
+
+    dropna
+        Drop time columns that only contain NaN
+
+    Returns
+    -------
+    :
+        All temperature outputs we've downloaded from AR6 for `model`-`scenario`
+    """
+    filename_temperatures = f"ar6_scenarios__{model}__{scenario}__temperatures.csv"
+    filename_temperatures = filename_temperatures.replace("/", "_").replace(" ", "_")
+    temperatures_file = processed_ar6_output_data_dir / filename_temperatures
+
+    res = load_timeseries_csv(
+        temperatures_file,
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_column_type=int,
+    )
+    if dropna:
+        res = res.dropna(axis="columns", how="all")
+
+    return res
+
+
+@functools.cache
+def get_ar6_metadata_outputs(
+    model: str,
+    scenario: str,
+    ar6_output_data_dir: Path,
+    filename="AR6_Scenarios_Database_metadata_indicators_v1.1_meta.csv",
+) -> pd.DataFrame:
+    """
+    Get metadata from AR6 for a given model-scenario
+
+    Parameters
+    ----------
+    model
+        Model
+
+    scenario
+        Scenario
+
+    ar6_output_data_dir
+        Directory in which the AR6 output was saved
+
+    Returns
+    -------
+    :
+        Metadata from AR6 for `model`-`scenario`
+    """
+    res = load_timeseries_csv(
+        ar6_output_data_dir / filename,
+        lower_column_names=False,
+        index_columns=["Model", "Scenario"],
+    ).loc[[(model, scenario)]]
+
+    res.index = res.index.rename({"Model": "model", "Scenario": "scenario"})
+
+    return res
+
+
+def guess_magicc_exe_path() -> Path:
+    """
+    Guess the path to the MAGICC executable
+
+    Uses the `MAGICC_EXECUTABLE_7` environment variable.
+    If that isn't set, it guesses.
+
+    Returns
+    -------
+    :
+        Path to the MAGICC executable
+
+    Raises
+    ------
+    FileNotFoundError
+        The guessed path to the MAGICC executable does not exist
+    """
+    env_var = os.environ.get("MAGICC_EXECUTABLE_7", None)
+    if env_var is not None:
+        return Path(env_var)
+
+    guess = None
+    if platform.system() == "Darwin":
+        if platform.processor() == "arm":
+            guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc-darwin-arm64"
+
+    elif platform.system() == "Windows":
+        guess = Path(__file__).parents[2] / "magicc-v7.5.3/bin/magicc.exe"
+
+    if guess is not None:
+        if guess.exists():
+            return guess
+
+        msg = f"Guessed that the MAGICC executable was in: {guess}"
+        raise FileNotFoundError(msg)
+
+    msg = "No guess about where the MAGICC executable is for your system"
+    raise FileNotFoundError(msg)
+
+
 def assert_frame_equal(
     res: pd.DataFrame, exp: pd.DataFrame, rtol: float = 1e-8, **kwargs: Any
 ) -> None:
@@ -266,5 +388,10 @@ def assert_frame_equal(
             raise AssertionError(msg)
 
     pd.testing.assert_frame_equal(
-        res.T, exp.T, check_like=True, check_exact=False, rtol=rtol, **kwargs
+        res.reorder_levels(exp.index.names).T,
+        exp.T,
+        check_like=True,
+        check_exact=False,
+        rtol=rtol,
+        **kwargs,
     )

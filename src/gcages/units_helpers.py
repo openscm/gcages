@@ -4,7 +4,44 @@ Helpers for unit handling
 
 from __future__ import annotations
 
+from collections.abc import Collection
+
 import pandas as pd
+
+
+def assert_has_no_pint_incompatible_characters(
+    units: Collection[str], pint_incompatible_characters: Collection[str] = {"-"}
+) -> None:
+    """
+    Assert that a collection does not contain pint-incompatible characters
+
+    Parameters
+    ----------
+    units
+        Collection to check
+
+        This is named `units` because we are normally checking collections of units
+
+    pint_incompatible_characters
+        Characters which are incompatible with pint
+
+        You should not need to change this, but it is made an argument just in case
+
+    Raises
+    ------
+    AssertionError
+        `units` has elements that contain pint-incompatible characters
+    """
+    unit_contains_pint_incompatible = [
+        u for u in units if any(pi in u for pi in pint_incompatible_characters)
+    ]
+    if unit_contains_pint_incompatible:
+        msg = (
+            "The following units contain pint incompatible characters: "
+            f"{unit_contains_pint_incompatible=}. "
+            f"{pint_incompatible_characters=}"
+        )
+        raise AssertionError(msg)
 
 
 def strip_pint_incompatible_characters_from_unit_string(unit_str: str) -> str:

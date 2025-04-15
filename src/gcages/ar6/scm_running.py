@@ -7,26 +7,34 @@ from __future__ import annotations
 import json
 import multiprocessing
 import os
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from attrs import define, field
-from pandas_openscm.db import EmptyDBError, OpenSCMDB
+from pandas_openscm.db import OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
-from pandas_openscm.indexing import multi_index_lookup
-from pandas_openscm.parallelisation import ParallelOpConfig
 
-from gcages.convention_mapping import (
-    convert_openscm_runner_output_names_to_magicc_output_names,
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_data_for_times,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
 )
+from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.scm_running import (
+    convert_openscm_runner_output_names_to_magicc_output_names,
+    run_scms,
+)
+from gcages.units_helpers import assert_has_no_pint_incompatible_characters
 
 DEFAULT_OUTPUT_VARIABLES: tuple[str, ...] = (
-    # Raw GSAT
-    "Raw Surface Air Temperature Change",
     # GSAT
     "Surface Air Temperature Change",
     # GMST
@@ -68,167 +76,6 @@ Note that it can be a bit of work
 to get these variables to actually appear in the output,
 depending on which simple climate model you're using.
 """
-
-
-def run_scm(  # noqa: PLR0913
-    scenarios: pd.DataFrame,
-    climate_models_cfgs: dict[str, list[dict[str, Any]]],
-    output_variables: tuple[str, ...],
-    n_processes: int,
-    db: OpenSCMDB | None = None,
-    verbose: bool = True,
-    progress: bool = True,
-    batch_size_scenarios: int | None = None,
-    force_interpolate_to_yearly: bool = True,
-    force_rerun: bool = False,
-) -> pd.DataFrame:
-    try:
-        import openscm_runner.run
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "run_scm", requirement="openscm_runner"
-        ) from exc
-
-    try:
-        import scmdata
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "run_scm", requirement="openscm_runner"
-        ) from exc
-
-    if force_interpolate_to_yearly:
-        # Interpolate to ensure no nans.
-        for y in range(scenarios.columns.min(), scenarios.columns.max() + 1):
-            if y not in scenarios:
-                scenarios[y] = np.nan
-
-        scenarios = scenarios.sort_index(axis="columns").T.interpolate("index").T
-
-    mod_scens_to_run = scenarios.pix.unique(["model", "scenario"])
-    climate_models_cfgs_iter = climate_models_cfgs.items()
-    if progress:
-        pconfig = ParallelOpConfig.from_user_facing(
-            progress=progress,
-            progress_results_kwargs=dict(desc="Climate models"),
-            max_workers=None,
-        )
-        climate_models_cfgs_iter = pconfig.progress_results(
-            climate_models_cfgs_iter, desc="Climate models"
-        )
-
-    for climate_model, cfg in climate_models_cfgs_iter:
-        if climate_model == "MAGICC7":
-            # Avoid MAGICC's last year jump
-            magicc_extra_years = 3
-            cfg_use = [
-                {**c, "endyear": scenarios.columns.max() + magicc_extra_years}
-                for c in cfg
-            ]
-            os.environ["MAGICC_WORKER_NUMBER"] = str(n_processes)
-
-        else:
-            cfg_use = cfg
-
-        if batch_size_scenarios is None:
-            scenario_batches = [scenarios]
-        else:
-            scenario_batches = []
-            for i in range(0, mod_scens_to_run.size, batch_size_scenarios):
-                start = i
-                stop = min(i + batch_size_scenarios, mod_scens_to_run.shape[0])
-
-                scenario_batches.append(
-                    multi_index_lookup(scenarios, mod_scens_to_run[start:stop])
-                )
-
-        if progress:
-            pconfig = ParallelOpConfig.from_user_facing(
-                progress=progress,
-                progress_results_kwargs=dict(desc="Scenario batches"),
-                max_workers=None,
-            )
-            scenario_batches = pconfig.progress_results(
-                scenario_batches, desc="Scenario batch"
-            )
-
-        if db is None:
-            res_l = []
-
-        for scenario_batch in scenario_batches:
-            if force_rerun or db is None:
-                run_all = True
-
-            else:
-                try:
-                    existing_metadata = db.load_metadata()
-                    run_all = False
-
-                except EmptyDBError:
-                    run_all = True
-
-            if run_all:
-                scenario_batch_to_run = scenario_batch
-
-            else:
-                db_mod_scen = existing_metadata.pix.unique(["model", "scenario"])
-
-                already_run = multi_index_lookup(scenario_batch, db_mod_scen)
-                scenario_batch_to_run = scenario_batch.loc[
-                    scenario_batch.index.difference(already_run.index)
-                ]
-
-                already_run_mod_scen = already_run.pix.unique(["model", "scenario"])
-                if not already_run_mod_scen.empty and verbose:
-                    # There are nicer ways to do this than verbose,
-                    # but thinking through logging is a problem for another day
-                    # (making loguru a required dependency might be the answer,
-                    # I don't know if it has any other dependencies).
-                    print(
-                        "Not re-running already run scenarios:\n"
-                        f"{already_run_mod_scen.to_frame(index=False)}"
-                    )
-
-                if scenario_batch_to_run.empty:
-                    continue
-
-            if climate_model == "MAGICC7":
-                # Avoid MAGICC's last year jump
-                scenario_batch_to_run = scenario_batch_to_run.copy()
-                last_year = scenario_batch_to_run.columns.max()
-                scenario_batch_to_run[last_year + magicc_extra_years] = (
-                    scenario_batch_to_run[last_year]
-                )
-                scenario_batch_to_run = (
-                    scenario_batch_to_run.sort_index(axis="columns")
-                    .T.interpolate("index")
-                    .T
-                )
-
-            batch_res = openscm_runner.run.run(
-                scenarios=scmdata.ScmRun(scenario_batch_to_run, copy_data=True),
-                climate_models_cfgs={climate_model: cfg_use},
-                output_variables=output_variables,
-            ).timeseries(time_axis="year")
-
-            if climate_model == "MAGICC7":
-                # Chop off the extra years
-                batch_res = batch_res.iloc[:, :-magicc_extra_years]
-                # Chop out regional results
-                batch_res = batch_res.loc[
-                    batch_res.index.get_level_values("region") == "World"
-                ]
-
-            if db is not None:
-                db.save(batch_res)
-            else:
-                res_l.append(batch_res)
-
-    if db is not None:
-        res = db.load(mod_scens_to_run)
-    else:
-        res = pd.concat(res_l)
-
-    return res
 
 
 def check_ar6_magicc7_version() -> None:
@@ -341,6 +188,29 @@ class AR6SCMRunner:
     Type to cast the result's column type to
     """
 
+    historical_emissions: pd.DataFrame | None = None
+    """
+    Historical emissions used for harmonisation
+
+    Only required if `run_checks` is `True` to check
+    that the data to run is harmonised.
+    """
+
+    harmonisation_year: int | None = None
+    """
+    Year in which the data was harmonised
+
+    Only required if `run_checks` is `True` to check
+    that the data to run is harmonised.
+    """
+
+    verbose: bool = True
+    """
+    Should verbose messages be printed?
+
+    This is a temporary hack while we think about how to handle logging
+    """
+
     run_checks: bool = True
     """
     If `True`, run checks on both input and output data
@@ -383,43 +253,105 @@ class AR6SCMRunner:
             Raw results from the simple climate model
         """
         if self.run_checks:
-            breakpoint()
-            # TODO:
-            #   - enable optional checks for:
-            #       - only known variable names are in in_emissions
-            #       - only data with a useable time axis is in there
-            #       - metadata is appropriate/usable
-            #       - data is harmonised
-            #       - data is complete
-            #       - all units are pint compatible
+            assert_index_is_multiindex(in_emissions)
+            assert_has_index_levels(
+                in_emissions, ["variable", "unit", "model", "scenario"]
+            )
+            assert_has_no_pint_incompatible_characters(
+                in_emissions.index.get_level_values("unit").unique()
+            )
+            assert_data_is_all_numeric(in_emissions)
 
-        scm_results = run_scm(
+            if self.historical_emissions is None:
+                msg = "`self.historical_emissions` must be set to check the infilling"
+                raise AssertionError(msg)
+
+            if self.harmonisation_year is None:
+                msg = "`self.harmonisation_year` must be set to check the infilling"
+                raise AssertionError(msg)
+
+            assert_has_data_for_times(
+                in_emissions, times=[self.harmonisation_year, 2100], allow_nan=False
+            )
+
+            assert_harmonised(
+                in_emissions,
+                history=self.historical_emissions,
+                harmonisation_time=self.harmonisation_year,
+                rounding=5,  # level of data storage in historical data often
+            )
+            assert_all_groups_are_complete(
+                # The combo of the input and infilled should be complete
+                in_emissions,
+                complete_index=self.historical_emissions.index.droplevel("unit"),
+            )
+
+        openscm_runner_emissions = update_index_levels_func(
             in_emissions,
-            climate_models_cfgs=self.climate_models_cfgs,
-            output_variables=self.output_variables,
-            n_processes=self.n_processes,
-            db=self.db,
-            batch_size_scenarios=self.batch_size_scenarios,
-            force_interpolate_to_yearly=self.force_interpolate_to_yearly,
-            force_rerun=force_rerun,
-        )
-
-        out = update_index_levels_func(
-            scm_results,
             {
-                "variable": lambda x: x.replace(
-                    "Surface Air Temperature Change", "Raw Surface Temperature (GSAT)"
+                "variable": partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.GCAGES,
+                    to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
                 )
             },
         )
+        if self.force_interpolate_to_yearly:
+            # TODO: put interpolate to annual steps in pandas-openscm
+            # Interpolate to ensure no nans.
+            for y in range(
+                openscm_runner_emissions.columns.min(),
+                openscm_runner_emissions.columns.max() + 1,
+            ):
+                if y not in openscm_runner_emissions:
+                    openscm_runner_emissions[y] = np.nan
+
+            openscm_runner_emissions = (
+                openscm_runner_emissions.sort_index(axis="columns")
+                .T.interpolate("index")
+                .T
+            )
+
+        scm_results_maybe = run_scms(
+            openscm_runner_emissions,
+            climate_models_cfgs=self.climate_models_cfgs,
+            output_variables=self.output_variables,
+            scenario_group_levels=["model", "scenario"],
+            n_processes=self.n_processes,
+            db=self.db,
+            verbose=self.verbose,
+            batch_size_scenarios=self.batch_size_scenarios,
+            force_rerun=force_rerun,
+        )
+
+        if self.db is not None:
+            # Results aren't kept in memory during running, so have to load them now.
+            # User can use `run_scms` directly if they want to process differently.
+            out = self.db.load()
+
+        else:
+            out = scm_results_maybe
+
         out.columns = out.columns.astype(self.res_column_type)
 
         if self.run_checks:
-            breakpoint()
-            # TODO:
-            #   - enable optional checks for:
-            #       - there is output
-            #       - input and output scenarios are the same
+            # All scenarios have output
+            pd.testing.assert_index_equal(
+                out.index.droplevel(
+                    out.index.names.difference(["model", "scenario"])
+                ).drop_duplicates(),
+                in_emissions.index.droplevel(
+                    in_emissions.index.names.difference(["model", "scenario"])
+                ).drop_duplicates(),
+                check_order=False,
+            )
+            # Expected output is provided
+            assert_all_groups_are_complete(
+                out,
+                complete_index=pd.MultiIndex.from_arrays(
+                    [list(self.output_variables)], names=["variable"]
+                ),
+            )
 
         return out
 
@@ -431,6 +363,9 @@ class AR6SCMRunner:
         output_variables: tuple[str, ...] = DEFAULT_OUTPUT_VARIABLES,
         batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
+        historical_emissions: pd.DataFrame | None = None,
+        harmonisation_year: int | None = None,
+        verbose: bool = True,
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
@@ -460,6 +395,23 @@ class AR6SCMRunner:
             Database to use for storing results.
 
             If not supplied, raw outputs are not stored.
+
+        historical_emissions
+            Historical emissions used for harmonisation
+
+            Only required if `run_checks` is `True` to check
+            that the data is harmonised before running the SCMs.
+
+        harmonisation_year
+            Year in which the data was harmonised
+
+            Only required if `run_checks` is `True` to check
+            that the data is harmonised before running the SCMs.
+
+        verbose
+            Should verbose messages be printed?
+
+            This is a temporary hack while we think about how to handle logging
 
         run_checks
             Should checks of the input and output data be performed?
@@ -507,6 +459,9 @@ class AR6SCMRunner:
             output_variables=output_variables,
             batch_size_scenarios=batch_size_scenarios,
             db=db,
+            historical_emissions=historical_emissions,
+            harmonisation_year=harmonisation_year,
+            verbose=verbose,
             run_checks=run_checks,
             n_processes=n_processes,
             force_interpolate_to_yearly=True,  # MAGICC safer with annual input

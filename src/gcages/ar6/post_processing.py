@@ -5,10 +5,10 @@ Post-processing part of the AR6 workflow
 from __future__ import annotations
 
 import multiprocessing
+from typing import Any
 
 import numpy as np
 import pandas as pd
-import pandas_indexing as pix
 from attrs import define
 from pandas_openscm.grouping import (
     fix_index_name_after_groupby_quantile,
@@ -16,12 +16,21 @@ from pandas_openscm.grouping import (
 )
 from pandas_openscm.index_manipulation import update_index_levels_func
 
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_data_for_times,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+)
+from gcages.post_processing import PostProcessingResult
+
 
 def get_temperatures_in_line_with_assessment(
     raw_temperatures: pd.DataFrame,
     assessment_median: float,
     assessment_time_period: tuple[int, ...],
     assessment_pre_industrial_period: tuple[int, ...],
+    group_cols: list[str],
 ) -> pd.DataFrame:
     """
     Get temperatures in line with the historical assessment
@@ -40,6 +49,8 @@ def get_temperatures_in_line_with_assessment(
     assessment_pre_industrial_period
         Pre-industrial period used for the assessment
 
+    group_cols
+        Columns to use when grouping `raw_temperatures`
 
     Returns
     -------
@@ -47,7 +58,7 @@ def get_temperatures_in_line_with_assessment(
         Temperatures,
         adjusted so their medians are in line with the historical assessment.
     """
-    assert False, "Move to pandas-openscm"
+    # TODO: move to pandas-openscm
     pre_industrial_mean = raw_temperatures.loc[
         :, list(assessment_pre_industrial_period)
     ].mean(axis="columns")
@@ -56,7 +67,7 @@ def get_temperatures_in_line_with_assessment(
     assessment_period_median = (
         rel_pi_temperatures.loc[:, list(assessment_time_period)]
         .mean(axis="columns")
-        .groupby(["climate_model", "model", "scenario"])
+        .groupby(group_cols)
         .median()
     )
     res = (
@@ -69,59 +80,62 @@ def get_temperatures_in_line_with_assessment(
     return res
 
 
-def get_temperatures_in_line_with_assessment_percentiles(
-    temperatures_in_line_with_assessment: pd.DataFrame,
-    percentiles_of_interest: tuple[float, ...],
-) -> pd.DataFrame:
-    quantiles_of_interest = [v / 100.0 for v in percentiles_of_interest]
+def set_new_single_value_levels(  # noqa: D103
+    pandas_obj: pd.DataFrame | pd.Series,
+    levels_to_set: dict[str, Any],  # indicate not a collection somehow
+    copy: bool = True,
+) -> pd.DataFrame | pd.Series:
+    # TODO: move to pandas-openscm
+    if copy:
+        pandas_obj = pandas_obj.copy()
 
-    temperatures_in_line_with_assessment_percentiles = (
-        fix_index_name_after_groupby_quantile(
-            groupby_except(
-                temperatures_in_line_with_assessment,
-                "run_id",
-            ).quantile(quantiles_of_interest),
-            new_name="quantile",
-        )
-    )
-    assert False, "add convert_quantile_to_percentile to pandas-openscm"
-    temperatures_in_line_with_assessment_percentiles = (
-        temperatures_in_line_with_assessment_percentiles.reset_index("quantile")
-    )
-    temperatures_in_line_with_assessment_percentiles["percentile"] = (
-        (100 * temperatures_in_line_with_assessment_percentiles["quantile"])
-        .round(1)
-        .astype(str)
-    )
-    temperatures_in_line_with_assessment_percentiles = (
-        temperatures_in_line_with_assessment_percentiles.drop(
-            "quantile", axis="columns"
-        ).set_index("percentile", append=True)
+    new_names = levels_to_set.keys()
+    new_values = levels_to_set.values()
+
+    pandas_obj.index = pd.MultiIndex(
+        codes=[
+            *pandas_obj.index.codes,
+            *([[0] * pandas_obj.index.shape[0]] * len(new_values)),
+        ],
+        levels=[*pandas_obj.index.levels, *[pd.Index([value]) for value in new_values]],
+        names=[*pandas_obj.index.names, *new_names],
     )
 
-    return temperatures_in_line_with_assessment_percentiles
+    return pandas_obj
 
 
-def get_exceedance_probabilities_over_time(
-    temperatures_in_line_with_assessment: pd.DataFrame,
+def get_exceedance_probabilities_over_time(  # noqa: D103
+    temperatures: pd.DataFrame,
     exceedance_thresholds_of_interest: tuple[float, ...],
+    group_cols: list[str],
+    unit_col: str,
+    groupby_except_levels: list[str] | str,
 ) -> pd.DataFrame:
-    assert False, "Move to pandas-openscm"
-    n_runs_per_scenario = temperatures_in_line_with_assessment.groupby(
-        ["model", "scenario"]
-    ).count()
+    # TODO: Move to pandas-openscm
+    n_runs_per_group = temperatures.groupby(group_cols).count()
+
+    # TODO: add get_index_value to pandas-openscm with keyword `expect_singular`
+    temperature_unit_l = temperatures.index.get_level_values(unit_col).unique().tolist()
+    if len(temperature_unit_l) > 1:
+        raise AssertionError(temperature_unit_l)
+    temperature_unit = temperature_unit_l[0]
 
     exceedance_probs_l = []
     for thresh in exceedance_thresholds_of_interest:
-        exceedance_prob_transient = (
-            groupby_except(temperatures_in_line_with_assessment > thresh, "run_id")
+        exceedance_prob_transient = update_index_levels_func(
+            groupby_except(temperatures > thresh, groupby_except_levels)
             .sum()
-            .divide(n_runs_per_scenario)
-            * 100
-        ).pix.assign(
-            variable="Exceedance probability",
-            threshold=thresh,
-            unit="%",
+            .divide(n_runs_per_group)
+            * 100,
+            dict(
+                variable=lambda x: "Exceedance probability",
+                unit=lambda x: "%",
+            ),
+        )
+        exceedance_prob_transient = set_new_single_value_levels(
+            exceedance_prob_transient,
+            {"threshold": thresh, "threshold_unit": temperature_unit},
+            copy=False,
         )
 
         exceedance_probs_l.append(exceedance_prob_transient)
@@ -131,133 +145,43 @@ def get_exceedance_probabilities_over_time(
     return exceedance_probs
 
 
-def get_peak_warming(
-    temperatures_in_line_with_assessment: pd.DataFrame,
-    quantiles_of_interest: tuple[float, ...],
-) -> pd.DataFrame:
-    """
-    Get peak warming
-
-    Parameters
-    ----------
-    temperatures_in_line_with_assessment
-        Temperatures in line with the historical assessment
-
-    quantiles_of_interest
-        Peak warming quantiles of interest
-
-    Returns
-    -------
-    :
-        Peak warming quantiles for each model-scenario
-    """
-    assert False, "Move to pandas-openscm"
-    if len(temperatures_in_line_with_assessment.pix.unique("climate_model")) > 1:
-        raise NotImplementedError
-
-    peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-        groupby_except(
-            # TODO: make run_id a parameter
-            temperatures_in_line_with_assessment.max(axis="columns"),
-            "run_id",
-        ).quantile(quantiles_of_interest),
-        new_name="quantile",
-    ).pix.format(variable="Peak {variable}")
-
-    return peak_warming_quantiles
-
-
-def get_time_warming(
-    temperatures_in_line_with_assessment: pd.DataFrame,
-    time: float | int,
-    quantiles_of_interest: tuple[float, ...],
-) -> pd.DataFrame:
-    """
-    Get warming at a given time
-
-    Parameters
-    ----------
-    temperatures_in_line_with_assessment
-        Temperatures in line with the historical assessment
-
-    time
-        Time at which to get the warming
-
-    quantiles_of_interest
-        Peak warming quantiles of interest
-
-    Returns
-    -------
-    :
-        Peak warming quantiles for each model-scenario
-    """
-    assert False, "Move to pandas-openscm"
-    if len(temperatures_in_line_with_assessment.pix.unique("climate_model")) > 1:
-        raise NotImplementedError
-
-    time_warming_quantiles = (
-        fix_index_name_after_groupby_quantile(
-            groupby_except(
-                # TODO: make run_id a parameter
-                temperatures_in_line_with_assessment[time],
-                "run_id",
-            ).quantile(quantiles_of_interest),
-            new_name="quantile",
-        )
-        .pix.assign(time=time)
-        .pix.format(variable="{time} {variable}", drop=True)
-    )
-
-    return time_warming_quantiles
-
-
-def get_exceedance_probabilities(
-    temperatures_in_line_with_assessment: pd.DataFrame,
+def get_exceedance_probabilities(  # noqa: D103
+    temperatures: pd.DataFrame,
     exceedance_thresholds_of_interest: tuple[float, ...],
+    group_cols: list[str],
+    unit_col: str,
+    groupby_except_levels: list[str] | str,
 ) -> pd.DataFrame:
-    """
-    Get exceedance probabilities
-
-    Parameters
-    ----------
-    temperatures_in_line_with_assessment
-        Temperatures in line with the historical assessment
-
-    time
-        Time at which to get the warming
-
-    quantiles_of_interest
-        Peak warming quantiles of interest
-
-    Returns
-    -------
-    :
-        Peak warming quantiles for each model-scenario
-    """
-    assert False, "Move to pandas-openscm"
-    if len(temperatures_in_line_with_assessment.pix.unique("climate_model")) > 1:
-        raise NotImplementedError
-
-    peak_warming = temperatures_in_line_with_assessment.max(axis="columns")
-    # This is the better way to do this
-    n_runs_per_scenario = temperatures_in_line_with_assessment.index.droplevel(
-        temperatures_in_line_with_assessment.index.names.difference(
-            ["model", "scenario"]
-        )
+    # TODO: Move to pandas-openscm
+    # Have to do it this way because we don't want the columns
+    n_runs_per_group = temperatures.index.droplevel(
+        temperatures.index.names.difference(group_cols)
     ).value_counts()
+
+    # TODO: add get_index_value to pandas-openscm with keyword `expect_singular`
+    temperature_unit_l = temperatures.index.get_level_values(unit_col).unique().tolist()
+    if len(temperature_unit_l) > 1:
+        raise AssertionError(temperature_unit_l)
+    temperature_unit = temperature_unit_l[0]
+
+    peak_warming = temperatures.max(axis="columns")
 
     exceedance_probs_l = []
     for thresh in exceedance_thresholds_of_interest:
-        exceedance_prob = (
-            # TODO: make run_id injectable
-            groupby_except(peak_warming > thresh, "run_id")
+        exceedance_prob = update_index_levels_func(
+            groupby_except(peak_warming > thresh, groupby_except_levels)
             .sum()
-            .divide(n_runs_per_scenario)
-            * 100
-        ).pix.assign(
-            variable="Exceedance probability",
-            threshold=thresh,
-            unit="%",
+            .divide(n_runs_per_group)
+            * 100,
+            dict(
+                variable=lambda x: "Exceedance probability",
+                unit=lambda x: "%",
+            ),
+        )
+        exceedance_prob = set_new_single_value_levels(
+            exceedance_prob,
+            {"threshold": thresh, "threshold_unit": temperature_unit},
+            copy=False,
         )
 
         exceedance_probs_l.append(exceedance_prob)
@@ -270,77 +194,85 @@ def get_exceedance_probabilities(
 def categorise_scenarios(
     peak_warming_quantiles: pd.DataFrame,
     eoc_warming_quantiles: pd.DataFrame,
-) -> pd.DataFrame:
+    group_levels: list[str],
+    quantile_level: str,
+) -> pd.Series[str]:
     """
     Categorise scenarios
 
     Parameters
     ----------
-    temperatures_in_line_with_assessment
-        Temperatures in line with the historical assessment
+    peak_warming_quantiles
+        Peak warming quantiles
+
+    eoc_warming_quantiles
+        End of century warming quantiles
+
+    group_levels
+        Levels of the input indexes to group the results by
+
+        In other words, each unique combination of values in `group_levels`
+        will get its own category.
+
+        Typically, this is something like `["model", "scenario", "climate_model"]`
+
+    quantile_level
+        The level in `peak_warming_quantiles` and `eoc_warming_quantiles`
+        that holds information about the quantile of each value.
 
     Returns
     -------
     :
         Scenario categorisation
     """
-    assert False, "Think about the levels more carefully here rather than hard-coding"
     index = peak_warming_quantiles.index.droplevel(
-        peak_warming_quantiles.index.names.difference(["model", "scenario"])
+        peak_warming_quantiles.index.names.difference(group_levels)
     ).unique()
 
     peak_warming_quantiles_use = peak_warming_quantiles.reset_index(
-        peak_warming_quantiles.index.names.difference(
-            ["model", "scenario", "quantile"]
-        ),
+        peak_warming_quantiles.index.names.difference([*group_levels, quantile_level]),
         drop=True,
-    ).unstack("quantile")
+    ).unstack(quantile_level)
     eoc_warming_quantiles_use = eoc_warming_quantiles.reset_index(
-        eoc_warming_quantiles.index.names.difference(["model", "scenario", "quantile"]),
+        eoc_warming_quantiles.index.names.difference([*group_levels, quantile_level]),
         drop=True,
-    ).unstack("quantile")
+    ).unstack(quantile_level)
 
-    categories = pd.Series(
-        "C8: exceed warming of 4°C (>=50%)",
-        index=index,
-        name="category_name",
-    )
-    categories[peak_warming_quantiles_use[0.5] < 4.0] = (  # noqa: PLR2004
+    category_names = pd.Series("C8: exceed warming of 4°C (>=50%)", index=index)
+    category_names[peak_warming_quantiles_use[0.5] < 4.0] = (  # noqa: PLR2004
         "C7: limit warming to 4°C (>50%)"
     )
-    categories[peak_warming_quantiles_use[0.5] < 3.0] = (  # noqa: PLR2004
+    category_names[peak_warming_quantiles_use[0.5] < 3.0] = (  # noqa: PLR2004
         "C6: limit warming to 3°C (>50%)"
     )
-    categories[peak_warming_quantiles_use[0.5] < 2.5] = (  # noqa: PLR2004
+    category_names[peak_warming_quantiles_use[0.5] < 2.5] = (  # noqa: PLR2004
         "C5: limit warming to 2.5°C (>50%)"
     )
-    categories[peak_warming_quantiles_use[0.5] < 2.0] = (  # noqa: PLR2004
+    category_names[peak_warming_quantiles_use[0.5] < 2.0] = (  # noqa: PLR2004
         "C4: limit warming to 2°C (>50%)"
     )
-    categories[peak_warming_quantiles_use[0.67] < 2.0] = (  # noqa: PLR2004
+    category_names[peak_warming_quantiles_use[0.67] < 2.0] = (  # noqa: PLR2004
         "C3: limit warming to 2°C (>67%)"
     )
-    categories[
+    category_names[
         (peak_warming_quantiles_use[0.33] > 1.5)  # noqa: PLR2004
         & (eoc_warming_quantiles_use[0.5] < 1.5)  # noqa: PLR2004
     ] = "C2: return warming to 1.5°C (>50%) after a high overshoot"
-    categories[
+    category_names[
         (peak_warming_quantiles_use[0.33] <= 1.5)  # noqa: PLR2004
         & (eoc_warming_quantiles_use[0.5] < 1.5)  # noqa: PLR2004
     ] = "C1: limit warming to 1.5°C (>50%) with no or limited overshoot"
 
-    out = categories.to_frame()
-    out["category"] = out["category_name"].apply(lambda x: x.split(":")[0])
+    category_names = set_new_single_value_levels(
+        category_names, {"metric": "category_name"}, copy=False
+    )
+    categories = update_index_levels_func(
+        category_names.apply(lambda x: x.split(":")[0]),
+        {"metric": lambda x: "category"},
+    )
+    out = pd.concat([category_names, categories])
 
     return out
-
-
-# TODO: move this to gcages.post_processing
-@define
-class PostProcessingResult:
-    """
-    Results of post-processing
-    """
 
 
 @define
@@ -377,9 +309,9 @@ class AR6PostProcessor:
     Thresholds of interest for calculating exceedance probabilities
     """
 
-    raw_gsat_variable: str
+    raw_gsat_variable_in: str
     """
-    Name of the output variable that contains raw temperature output
+    Name of the variable that contains raw temperature output in the input
 
     The temperature output should be global-mean surface air temperature (GSAT).
     """
@@ -388,7 +320,7 @@ class AR6PostProcessor:
     """
     Name of the output variable that will contain temperature output
 
-    This temperature output is in line with the (AR6) assessment.
+    This temperature output is in line with the (AR6) assessed historical warming.
     """
 
     run_checks: bool = True
@@ -430,73 +362,154 @@ class AR6PostProcessor:
             These are both timeseries as well as scenario-level metadata.
         """
         if self.run_checks:
-            breakpoint()
-            # TODO:
-            #   - enable optional checks for:
-            #       - only known variable names are in the output
-            #       - only data with a useable time axis is in there
-            #       - metadata is appropriate/usable
-            #       - raw variable we expect is in there
+            assert_index_is_multiindex(in_df)
+            assert_has_index_levels(
+                in_df, ["variable", "unit", "model", "scenario", "climate_model"]
+            )
+            assert_data_is_all_numeric(in_df)
+            assert_has_data_for_times(in_df, times=[2100], allow_nan=False)
+
+            if self.raw_gsat_variable_in not in in_df.index.get_level_values(
+                "variable"
+            ):
+                msg = (
+                    f"{self.raw_gsat_variable_in} must be provided. "
+                    f"Received: {in_df.index.get_level_values('variable')=}"
+                )
+                raise AssertionError(msg)
 
         temperatures_in_line_with_assessment = update_index_levels_func(
             get_temperatures_in_line_with_assessment(
-                in_df.loc[pix.isin(variable=[self.raw_gsat_variable])],
+                in_df.loc[
+                    in_df.index.get_level_values("variable").isin(
+                        [self.raw_gsat_variable_in]
+                    )
+                ],
                 assessment_median=self.gsat_assessment_median,
                 assessment_time_period=self.gsat_assessment_time_period,
                 assessment_pre_industrial_period=self.gsat_assessment_pre_industrial_period,
+                group_cols=["climate_model", "model", "scenario"],
             ),
             {"variable": lambda x: self.assessed_gsat_variable},
         )
-        temperatures_in_line_with_assessment_percentiles = (
-            get_temperatures_in_line_with_assessment_percentiles(
-                temperatures_in_line_with_assessment,
-                percentiles_of_interest=tuple(
-                    v * 100 for v in self.quantiles_of_interest
-                ),
+        temperatures_in_line_with_assessment_quantiles = (
+            fix_index_name_after_groupby_quantile(
+                groupby_except(
+                    temperatures_in_line_with_assessment,
+                    "run_id",
+                ).quantile(self.quantiles_of_interest),
+                new_name="quantile",
             )
         )
-
         exceedance_probabilities_over_time = get_exceedance_probabilities_over_time(
             temperatures_in_line_with_assessment,
             exceedance_thresholds_of_interest=self.exceedance_thresholds_of_interest,
+            group_cols=["model", "scenario", "climate_model"],
+            unit_col="unit",
+            groupby_except_levels="run_id",
         )
 
-        timeseries_l = [
-            temperatures_in_line_with_assessment_percentiles,
-            exceedance_probabilities_over_time,
-        ]
-
-        timeseries = pix.concat(timeseries_l)
-        timeseries.columns = timeseries.columns.astype(int)
-
-        peak_warming = get_peak_warming(
-            temperatures_in_line_with_assessment,
-            quantiles_of_interest=self.quantiles_of_interest,
+        # TODO: move pandas-openscm.max to pandas-openscm
+        peak_warming = set_new_single_value_levels(
+            temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
-        eoc_warming = get_time_warming(
-            temperatures_in_line_with_assessment,
-            time=2100,
-            quantiles_of_interest=self.quantiles_of_interest,
+        peak_warming_quantiles = fix_index_name_after_groupby_quantile(
+            groupby_except(peak_warming, "run_id").quantile(self.quantiles_of_interest),
+            new_name="quantile",
         )
+
+        eoc_warming = set_new_single_value_levels(
+            temperatures_in_line_with_assessment[2100], {"metric": 2100}
+        )
+        eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
+            groupby_except(eoc_warming, "run_id").quantile(self.quantiles_of_interest),
+            new_name="quantile",
+        )
+        peak_warming_year = set_new_single_value_levels(
+            update_index_levels_func(
+                temperatures_in_line_with_assessment.idxmax(axis="columns"),
+                {"unit": lambda x: "yr"},
+            ),
+            {"metric": "max_year"},
+        )
+        peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
+            groupby_except(peak_warming_year, "run_id").quantile(
+                self.quantiles_of_interest
+            ),
+            new_name="quantile",
+        )
+
         exceedance_probabilities = get_exceedance_probabilities(
             temperatures_in_line_with_assessment,
             exceedance_thresholds_of_interest=self.exceedance_thresholds_of_interest,
-        )
-        categories = categorise_scenarios(
-            peak_warming_quantiles=peak_warming,
-            eoc_warming_quantiles=eoc_warming,
+            group_cols=["model", "scenario", "climate_model"],
+            unit_col="unit",
+            groupby_except_levels="run_id",
         )
 
-        metadata_l = [peak_warming, eoc_warming, exceedance_probabilities, categories]
-        metadata = pd.concat(metadata_l, axis="columns")
+        categories = categorise_scenarios(
+            peak_warming_quantiles=peak_warming_quantiles,
+            eoc_warming_quantiles=eoc_warming_quantiles,
+            group_levels=["climate_model", "model", "scenario"],
+            quantile_level="quantile",
+        )
+
+        timeseries_run_id = pd.concat([temperatures_in_line_with_assessment])
+        timeseries_quantile = pd.concat(
+            [temperatures_in_line_with_assessment_quantiles]
+        )
+        timeseries_exceedance_probabilities = pd.concat(
+            [exceedance_probabilities_over_time]
+        )
+
+        metadata_run_id = pd.concat([peak_warming, eoc_warming, peak_warming_year])
+        metadata_quantile = pd.concat(
+            [
+                peak_warming_quantiles,
+                eoc_warming_quantiles,
+                peak_warming_year_quantiles,
+            ]
+        )
+        metadata_exceedance_probabilities = exceedance_probabilities
+        metadata_categories = categories
+
+        res = PostProcessingResult(
+            timeseries_run_id=timeseries_run_id,
+            timeseries_quantile=timeseries_quantile,
+            timeseries_exceedance_probabilities=timeseries_exceedance_probabilities,
+            metadata_run_id=metadata_run_id,
+            metadata_quantile=metadata_quantile,
+            metadata_exceedance_probabilities=metadata_exceedance_probabilities,
+            metadata_categories=metadata_categories,
+        )
 
         if self.run_checks:
-            breakpoint()
-            # TODO:
-            #   - enable optional checks for:
-            #       - input and output scenarios are the same
+            comparison_levels = ["model", "scenario", "climate_model"]
+            for attr in [
+                "timeseries_run_id",
+                "timeseries_quantile",
+                "timeseries_exceedance_probabilities",
+                "metadata_run_id",
+                "metadata_quantile",
+                "metadata_exceedance_probabilities",
+                "metadata_categories",
+            ]:
+                pd.testing.assert_index_equal(
+                    getattr(res, attr)
+                    .index.droplevel(
+                        getattr(res, attr).index.names.difference(comparison_levels)
+                    )
+                    .drop_duplicates()
+                    .reorder_levels(comparison_levels),
+                    in_df.index.droplevel(
+                        in_df.index.names.difference(comparison_levels)
+                    )
+                    .drop_duplicates()
+                    .reorder_levels(comparison_levels),
+                    check_order=False,
+                )
 
-        return PostProcessingResult(timeseries=timeseries, metadata=metadata)
+        return res
 
     @classmethod
     def from_ar6_config(  # noqa: PLR0913
@@ -504,23 +517,19 @@ class AR6PostProcessor:
         exceedance_thresholds_of_interest: tuple[float, ...] = tuple(
             np.arange(1.0, 4.01, 0.5)
         ),
-        percentiles_of_interest: tuple[float, ...] = (
-            5.0,
-            10.0,
-            100.0 / 6,
-            33.0,
-            50.0,
-            67.0,
-            100.0 * 5.0 / 6,
-            90.0,
-            95.0,
+        quantiles_of_interest: tuple[float, ...] = (
+            0.05,
+            0.10,
+            1.0 / 6.0,
+            0.33,
+            0.50,
+            0.67,
+            5.0 / 6.0,
+            0.90,
+            0.95,
         ),
-        raw_gsat_variable: str = (
-            "AR6 climate diagnostics|Raw Surface Temperature (GSAT)"
-        ),
-        assessed_gsat_variable: str = (
-            "AR6 climate diagnostics|Surface Temperature (GSAT)"
-        ),
+        raw_gsat_variable_in: str = "Surface Air Temperature Change",
+        assessed_gsat_variable: str = "Surface Temperature (GSAT)",
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
@@ -533,18 +542,19 @@ class AR6PostProcessor:
         exceedance_thresholds_of_interest
             The thresholds for which we are interested in exceedance probabilities
 
-        percentiles_of_interest
-            The quantiles for which we are interested in percentiles
+        quantiles_of_interest
+            The quantiles we want to include in the results
 
-        raw_gsat_variable
-            Name of the output variable that contains raw temperature output
+        raw_gsat_variable_in
+            Name of the variable that contains raw temperature output in the input
 
             The temperature output should be global-mean surface air temperature (GSAT).
 
         assessed_gsat_variable
             Name of the output variable that will contain temperature output
 
-            This temperature output is in line with the (AR6) assessment.
+            This temperature output is in line with the
+            (AR6) assessed historical warming.
 
         run_checks
             Should checks of the input and output data be performed?
@@ -565,21 +575,21 @@ class AR6PostProcessor:
         :
             Initialised post-processor
         """
-        assert False, "Change percentiles_of_interest to quantiles_of_interest"
-        if not all(p in percentiles_of_interest for p in [50.0, 33.0]):
+        if not all(q in quantiles_of_interest for q in [0.50, 0.33]):
             msg = (
-                "percentiles_of_interest must contain 50.0 and 33.0, "
-                f"received {percentiles_of_interest=}"
+                "quantiles_of_interest must contain 0.50 and 0.33 "
+                "for the categorisation to work, "
+                f"received {quantiles_of_interest=}"
             )
             raise AssertionError(msg)
 
         return cls(
-            raw_gsat_variable=raw_gsat_variable,
+            raw_gsat_variable_in=raw_gsat_variable_in,
             assessed_gsat_variable=assessed_gsat_variable,
             gsat_assessment_median=0.85,
             gsat_assessment_time_period=tuple(range(1995, 2014 + 1)),
             gsat_assessment_pre_industrial_period=tuple(range(1850, 1900 + 1)),
-            percentiles_of_interest=percentiles_of_interest,
+            quantiles_of_interest=quantiles_of_interest,
             exceedance_thresholds_of_interest=exceedance_thresholds_of_interest,
             run_checks=run_checks,
             n_processes=n_processes,
