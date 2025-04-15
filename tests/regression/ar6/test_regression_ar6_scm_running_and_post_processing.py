@@ -38,7 +38,7 @@ from gcages.units_helpers import strip_pint_incompatible_characters_from_unit_st
 
 pix = pytest.importorskip("pandas_indexing")
 # Only works if openscm-runner installed
-pytest.importorskip("openscm_runner")
+pytest.importorskip("openscm_runner.adapters")
 
 AR6_INFILLING_DB_CFCS_FILE = (
     Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6_cfcs.csv"
