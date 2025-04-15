@@ -15,8 +15,7 @@ import pandas as pd
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
-from gcages.ar6 import AR6Infiller
-from gcages.ar6.infilling import get_ar6_full_historical_emissions
+from gcages.ar6 import AR6Infiller, get_ar6_full_historical_emissions
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_TESTING_MODEL_SCENARIOS,

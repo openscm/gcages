@@ -43,9 +43,15 @@ Issues = "https://github.com/openscm/gcages/issues"
 [project.optional-dependencies]
 ar6 = [
     "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
+    "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
+    "pymagicc>=2.1.5",
     "scipy>=1.13.0",
+    # Needed because of bad maintenance of scmdata
+    "scmdata>=0.17.0,<0.18",
     "silicone>=1.3.0",
+    # Needed because of bad maintenance of scmdata
+    "xarray<2025",
 ]
 progress = [
     "tqdm>=4.0.0",
@@ -237,6 +243,7 @@ tests-full = [
 tests = [
     {include-group = "tests-min"},
     {include-group = "tests-full"},
+    "pyarrow>=19.0.1",
 ]
 all-dev = [
     {include-group = "dev"},
@@ -297,6 +304,11 @@ addopts = [
     "--import-mode=importlib",
 ]
 markers = [
+    # We skip some tests in CI by default
+    # because they are very slow
+    # and don't provide any true extra tests of robustness.
+    # We have separate CI for these.
+    "skip_ci_default: marks tests as being skipped in CI by default",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
 ]
