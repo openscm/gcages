@@ -97,7 +97,7 @@ jobs:
           uv-dependency-install-flags: "--all-extras --group tests"
       - name: Run tests
         run: |
-          uv run pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml
+          uv run pytest -r a -v src tests --doctest-modules --cov=src --cov-report=term-missing --cov-report=xml -m "not skip_ci_default"
           uv run coverage report
       - name: Upload coverage reports to Codecov with GitHub Action
         uses: codecov/codecov-action@v4.2.0

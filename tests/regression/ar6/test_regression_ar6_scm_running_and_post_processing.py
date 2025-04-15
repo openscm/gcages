@@ -142,6 +142,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
     return out
 
 
+@pytest.mark.skip_ci_default
 @pytest.mark.slow
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):

@@ -1,0 +1,33 @@
+name: CI main only
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ "ubuntu-latest" ]
+        # Just test on a sensible version
+        python-version: [ "3.12" ]
+    runs-on: "${{ matrix.os }}"
+    defaults:
+      run:
+        # This might be needed for Windows
+        # and doesn't seem to affect unix-based systems so we include it.
+        # If you have better proof of whether this is needed or not,
+        # feel free to update.
+        shell: bash
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+        with:
+          python-version: ${{ matrix.python-version }}
+          uv-dependency-install-flags: "--all-extras --group tests"
+      - name: Run tests
+        run: |
+          uv run pytest -r a -v -s tests -m "skip_ci_default"

@@ -304,6 +304,11 @@ addopts = [
     "--import-mode=importlib",
 ]
 markers = [
+    # We skip some tests in CI by default
+    # because they are very slow
+    # and don't provide any true extra tests of robustness.
+    # We have separate CI for these.
+    "skip_ci_default: marks tests as being skipped in CI by default",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
 ]
