@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+from gcages.testing import assert_frame_equal
 
 pix = pytest.importorskip("pandas_indexing")
 
@@ -43,15 +44,25 @@ def aggregate_up_sectors(indf, copy=False):
     return res
 
 
+def split_variable(df):
+    res = df.pix.extract(variable="{table}|{gas}|{sector}")
+
+    return res
+
+
+def combine_to_make_variable(df):
+    res = df.pix.format(variable="{table}|{gas}|{sector}", drop=True)
+
+    return res
+
+
 def add_gas_totals(indf):
     # Should be called after aggregate_up_sectors
 
     top_level = [c for c in indf if "|" not in c]
 
-    sector_stuff = (
-        indf.unstack("year")
-        .stack("sector")
-        .pix.format(variable="{table}|{gas}|{sector}", drop=True)
+    sector_stuff = combine_to_make_variable(
+        indf.unstack("year").stack("sector", future_stack=True)
     )
     gas_totals = (
         indf[top_level]
@@ -165,7 +176,53 @@ def test_transport_shuffling(example_raw_input, processed_output):
     Transportation should have domestic aviation
     subtracted to make |Transportation Sector.
     """
-    assert False, "Implement"
+    # Not interested in global level for this
+    df_to_check = processed_output.region_sector_workflow_emissions
+
+    # The original Transportation should be dropped out
+    assert (
+        not df_to_check.pix.unique("variable")
+        .str.endswith("Energy|Demand|Transportation")
+        .any()
+    ), df_to_check.pix.unique("variable")
+
+    example_raw_input_sectors = split_variable(example_raw_input)
+
+    exp_aircraft = combine_to_make_variable(
+        example_raw_input_sectors.loc[
+            pix.ismatch(
+                sector=[
+                    "Energy|Demand|Transportation|Domestic Aviation",
+                    "Energy|Demand|Bunkers|International Aviation",
+                ]
+            )
+        ]
+        .groupby(example_raw_input_sectors.index.names.difference(["sector"]))
+        .sum()
+        .pix.assign(sector="Aircraft")
+    ).reorder_levels(example_raw_input.index.names)
+
+    restacked = example_raw_input_sectors.unstack("sector").stack(
+        "year", future_stack=True
+    )
+    exp_transportation_sector = combine_to_make_variable(
+        (
+            restacked["Energy|Demand|Transportation"]
+            - restacked["Energy|Demand|Transportation|Domestic Aviation"]
+        )
+        .unstack("year")
+        .pix.assign(sector="Transportation Sector")
+    ).reorder_levels(example_raw_input.index.names)
+
+    assert_frame_equal(
+        df_to_check.loc[pix.ismatch(variable="**Aircraft")],
+        exp_aircraft,
+    )
+
+    assert_frame_equal(
+        df_to_check.loc[pix.ismatch(variable="**Transportation Sector")],
+        exp_transportation_sector,
+    )
 
 
 def test_industrial_sector_aggregation(example_raw_input, processed_output):
@@ -196,6 +253,12 @@ def test_output_sectors(processed_output):
 
 
 def test_output_internal_consistency(processed_output):
+    assert (
+        False
+    ), "check that global workflow output is consistent with region-sector outpu"
+
+
+def test_output_region_sector_internal_consistency(processed_output):
     assert False, "check that sum over sectors makes sense"
     assert False, "check that sum over regions makes sense"
     assert False, "check that sum over sectors and regions makes sense"
