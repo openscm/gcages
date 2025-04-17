@@ -47,6 +47,15 @@ class SupportedNamingConventions(StrEnum):
     than we care about within the gcages context.
     """
 
+    CMIP7_SCENARIOMIP = "cmip7_scenariomip"
+    """
+    The naming convention used during preparation of ScenarioMIP for CMIP7
+
+    TODO: add exact commit/tag from
+    https://github.com/IAMconsortium/common-definitions
+    that was used
+    """
+
     OPENSCM_RUNNER = "openscm_runner"
     """
     OpenSCM-Runner naminv convention

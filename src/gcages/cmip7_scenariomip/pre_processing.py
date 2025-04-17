@@ -5,11 +5,14 @@ Pre-processing part of the workflow
 from __future__ import annotations
 
 import multiprocessing
+import re
 from collections.abc import Mapping
+from functools import partial
 from typing import Callable
 
 import pandas as pd
 from attrs import define
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.assertions import (
     assert_data_is_all_numeric,
@@ -17,6 +20,8 @@ from gcages.assertions import (
     assert_index_is_multiindex,
 )
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
 def split_variable(df: pd.DataFrame) -> pd.DataFrame:
@@ -276,6 +281,159 @@ def rename_and_cut_to_ceds_aligned_sectors(
     return res
 
 
+def create_global_workflow_input_from_region_sector_input(  # noqa: PLR0913
+    region_sector_df: pd.DataFrame,
+    level_separator: str = "|",
+    n_separators_for_single_sector: int = 2,
+    world_region: str = "World",
+    co2_fossil_sectors: tuple[str, ...] = (
+        "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        "Aircraft",
+        "International Shipping",
+    ),
+    co2_fossil_out_name: str = "Emissions|CO2|Energy and Industrial Processes",
+    co2_afolu_out_name: str = "Emissions|CO2|AFOLU",
+) -> pd.DataFrame:
+    """
+    Create input for the global workflow
+
+    Parameters
+    ----------
+    region_sector_df
+        [pd.DataFrame][pandas.DataFrame] with region-sector harmonisation information
+
+    level_separator
+        Separator used between levels in variable strings
+
+    n_separators_for_single_sector
+        Number of separators in a variable name when there is a single sector
+
+    world_region
+        Name of the world/world total region
+
+    co2_fossil_sectors
+        Sectors whose emissions originate from fossil CO2
+
+    co2_fossil_out_name
+        Name of the CO2 fossil-reservoir emissions output variable
+
+    co2_afolu_out_name
+        Name of the CO2 AFOLU-reservoir (i.e. biosphere) emissions output variable
+
+    Returns
+    -------
+    :
+        Output that can be used with the global-based workflow
+    """
+    region_sector_df_variables = region_sector_df.index.get_level_values(
+        "variable"
+    ).unique()
+    not_single_sector = region_sector_df_variables[
+        region_sector_df_variables.str.count(re.escape(level_separator))
+        != n_separators_for_single_sector
+    ]
+    if not not_single_sector.empty:
+        msg = (
+            "The following variables in `region_sector_df` don't have a single sector"
+            f"{not_single_sector}"
+        )
+        raise AssertionError(msg)
+
+    region_sector_df_world = region_sector_df.loc[
+        region_sector_df.index.get_level_values("region") == world_region
+    ]
+
+    def get_sum_over_sectors(idf: pd.DataFrame) -> pd.DataFrame:
+        return (
+            update_index_levels_func(
+                idf.loc[idf.index.get_level_values("region") == world_region],
+                dict(
+                    variable=lambda x: level_separator.join(
+                        x.split(level_separator)[:n_separators_for_single_sector]
+                    )
+                ),
+            )
+            .groupby(idf.index.names)
+            .sum()
+        )
+
+    region_sector_world_totals = get_sum_over_sectors(region_sector_df_world)
+    non_co2 = region_sector_world_totals.loc[
+        region_sector_world_totals.index.get_level_values("variable") != "Emissions|CO2"
+    ]
+
+    region_sector_df_variable_level = region_sector_df.index.get_level_values(
+        "variable"
+    )
+    co2_fossil_components = region_sector_df.loc[
+        region_sector_df_variable_level.str.startswith("Emissions|CO2")
+        & region_sector_df_variable_level.map(
+            lambda x: any(x.endswith(s) for s in co2_fossil_sectors)
+        )
+    ]
+    co2_fossil = update_index_levels_func(
+        get_sum_over_sectors(co2_fossil_components),
+        dict(variable=lambda x: co2_fossil_out_name),
+    )
+
+    # Doing it like this means we get all the burning in here too.
+    # That is probably double counting,
+    # although simple climate models don't have interactive fire emissions
+    # so maybe it is fine.
+    co2_afolu_components = region_sector_df.loc[
+        region_sector_df_variable_level.str.startswith("Emissions|CO2")
+        & ~region_sector_df_variable_level.map(
+            lambda x: any(x.endswith(s) for s in co2_fossil_sectors)
+        )
+    ]
+    co2_afolu = update_index_levels_func(
+        get_sum_over_sectors(co2_afolu_components),
+        dict(variable=lambda x: co2_afolu_out_name),
+    )
+
+    res = pd.concat(
+        [
+            v.reorder_levels(co2_afolu.index.names)
+            for v in [co2_fossil, co2_afolu, non_co2]
+        ]
+    )
+
+    return res
+
+
+def create_global_workflow_input_from_raw_input(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Create global workflow input from raw input
+
+    This should only be passed input that is not created
+    from the region-sector relevant input
+
+    Parameters
+    ----------
+    df
+        Raw input
+
+    Returns
+    -------
+    :
+        Global workflow input derived from `df`
+    """
+    # For now, we can't use these.
+    # If we figure out downscaling, we could
+    # (but likely to be model-dependent hence hard to include here).
+    out = strip_pint_incompatible_characters_from_units(
+        df.loc[~df.index.get_level_values("unit").str.contains("equiv")],
+        units_index_level="unit",
+    )
+
+    return out
+
+
 @define
 class CMIP7ScenarioMIPPreProcessingResult:
     """
@@ -289,6 +447,11 @@ class CMIP7ScenarioMIPPreProcessingResult:
     global_workflow_emissions: pd.DataFrame
     """
     Emissions that can be used with the 'normal' global workflow
+    """
+
+    global_workflow_emissions_gcages: pd.DataFrame
+    """
+    Emissions that can be used with the 'normal' global workflow using gcages naming
     """
 
     region_sector_workflow_emissions: pd.DataFrame
@@ -336,6 +499,25 @@ class CMIP7ScenarioMIPPreProcessor:
     Function to use to convert to CEDS sectors and extract only CEDS sectors
 
     Called after reaggregation has already been done
+    """
+
+    convert_region_sector_to_global_workflow_input: Callable[
+        [pd.DataFrame], pd.DataFrame
+    ] = create_global_workflow_input_from_region_sector_input
+    """
+    Function to use to get the global workflow input that comes from region-sector input
+
+    Called after processing to region-sector input has been done
+    """
+
+    convert_raw_to_global_workflow_input: Callable[[pd.DataFrame], pd.DataFrame] = (
+        create_global_workflow_input_from_raw_input
+    )
+    """
+    Function to use to get the global workflow input that comes from raw input
+
+    This is applied on the input emissions except for the bits
+    which are deemed relevant for region-sector level stuff.
     """
 
     run_checks: bool = True
@@ -386,10 +568,14 @@ class CMIP7ScenarioMIPPreProcessor:
             in_emissions = in_emissions.copy()
             in_emissions.columns.name = "year"
 
+        region_sector_relevant_idx = in_emissions.index.get_level_values(
+            "variable"
+        ).map(self.is_region_sector_relevant_variable)
         in_emissions_region_sector_relevant = in_emissions.loc[
-            in_emissions.index.get_level_values("variable").map(
-                self.is_region_sector_relevant_variable
-            )
+            region_sector_relevant_idx
+        ]
+        in_emissions_not_region_sector_relevant = in_emissions.loc[
+            ~region_sector_relevant_idx
         ]
 
         reaggregated_emissions = self.calculate_industrial_sector(
@@ -399,7 +585,35 @@ class CMIP7ScenarioMIPPreProcessor:
         region_sector_workflow_emissions = self.convert_to_and_extract_ceds_sectors(
             reaggregated_emissions
         )
-        global_workflow_emissions = None
+
+        global_workflow_emissions_from_region_sector = (
+            self.convert_region_sector_to_global_workflow_input(
+                region_sector_df=region_sector_workflow_emissions
+            )
+        )
+        global_workflow_emissions_from_raw = self.convert_raw_to_global_workflow_input(
+            df=in_emissions_not_region_sector_relevant
+        )
+
+        global_workflow_emissions = pd.concat(
+            [
+                global_workflow_emissions_from_region_sector,
+                global_workflow_emissions_from_raw.reorder_levels(
+                    global_workflow_emissions_from_region_sector.index.names
+                ),
+            ]
+        )
+
+        global_workflow_emissions_gcages = update_index_levels_func(
+            global_workflow_emissions,
+            {
+                "variable": partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            },
+        )
 
         # Two returns:
         # - one for normal harmonisation i.e. everything already aggregated
@@ -407,6 +621,7 @@ class CMIP7ScenarioMIPPreProcessor:
         # - one for region-sector harmonisation IAMC names
         return CMIP7ScenarioMIPPreProcessingResult(
             global_workflow_emissions=global_workflow_emissions,
+            global_workflow_emissions_gcages=global_workflow_emissions_gcages,
             region_sector_workflow_emissions=region_sector_workflow_emissions,
             reaggregated_emissions=reaggregated_emissions,
         )

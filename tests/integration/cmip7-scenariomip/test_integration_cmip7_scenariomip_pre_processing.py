@@ -3,13 +3,17 @@ Integration tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
 import itertools
+from functools import partial
 
 import numpy as np
 import pandas as pd
 import pytest
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import assert_frame_equal
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 pix = pytest.importorskip("pandas_indexing")
 
@@ -176,6 +180,11 @@ def example_raw_input():
         ("HFC|HFC134a", "kt HFC134a/yr"),
         ("HFC|HFC43-10", "kt HFC43-10/yr"),
         ("PFC", "kt CF4-equiv/yr"),
+        ("F-Gases", "Mt CO2-equiv/yr"),
+        ("SF6", "kt SF6/yr"),
+        ("CF4", "kt CF4/yr"),
+        ("C2F6", "kt C2F6/yr"),
+        ("C6F14", "kt C6F14/yr"),
     ]:
         global_only_l.append(
             global_only_base.pix.assign(gas=global_only_gas, unit=unit, region="World")
@@ -323,10 +332,122 @@ def test_output_sectors(example_raw_input, processed_output):
     )
 
 
+def test_output_consistency_with_input_for_non_region_sector(
+    example_raw_input, processed_output
+):
+    """
+    Test consistency between
+    `processed_output.global_workflow_emissions`
+    and the input emission
+    """
+    region_sector_split_species = split_variable(
+        processed_output.region_sector_workflow_emissions
+    ).pix.unique("gas")
+
+    not_from_region_sector = [
+        v
+        for v in processed_output.global_workflow_emissions.pix.unique("variable")
+        if not any(species in v for species in region_sector_split_species)
+    ]
+
+    not_from_region_sector_res = processed_output.global_workflow_emissions.loc[
+        pix.isin(variable=not_from_region_sector)
+    ]
+
+    not_from_region_sector_compare = strip_pint_incompatible_characters_from_units(
+        example_raw_input.loc[pix.isin(variable=not_from_region_sector)]
+    )
+
+    assert_frame_equal(not_from_region_sector_res, not_from_region_sector_compare)
+
+
 def test_output_internal_consistency(processed_output):
+    """
+    Test consistency between
+    `processed_output.global_workflow_emissions`
+    and `processed_output.region_sector_workflow_emissions`
+    and `processed_output.reaggregated_emissions`
+    """
+    # Make sure that we can just aggregate semi-blindly
     assert (
-        False
-    ), "check that global workflow output is consistent with region-sector outpu"
+        processed_output.region_sector_workflow_emissions.pix.unique("variable").map(
+            lambda x: x.count("|")
+        )
+        == 2
+    ).all()
+    region_sector_split = split_variable(
+        processed_output.region_sector_workflow_emissions
+    )
+
+    non_sector_group_levels = region_sector_split.index.names.difference(["sector"])
+    region_sector_totals = region_sector_split.groupby(non_sector_group_levels).sum()
+
+    region_sector_compare_non_co2 = region_sector_totals.loc[
+        ~pix.isin(gas="CO2") & pix.isin(region="World")
+    ].pix.format(variable="{table}|{gas}", drop=True)
+
+    fossil_sectors = [
+        "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        "Aircraft",
+        "International Shipping",
+    ]
+    region_sector_compare_co2_fossil = combine_to_make_variable(
+        region_sector_split.loc[
+            pix.isin(gas="CO2", region="World", sector=fossil_sectors)
+        ]
+        .groupby(non_sector_group_levels)
+        .sum()
+        .pix.assign(sector="Energy and Industrial Processes")
+    )
+    region_sector_compare_co2_afolu = combine_to_make_variable(
+        region_sector_split.loc[
+            pix.isin(gas="CO2", region="World") & ~pix.isin(sector=fossil_sectors)
+        ]
+        .groupby(non_sector_group_levels)
+        .sum()
+        .pix.assign(sector="AFOLU")
+    )
+
+    region_sector_compare = pix.concat(
+        [
+            region_sector_compare_co2_fossil,
+            region_sector_compare_co2_afolu,
+            region_sector_compare_non_co2,
+        ]
+    )
+    region_sector_split_species = region_sector_split.pix.unique("gas")
+    from_region_sector = [
+        v
+        for v in processed_output.global_workflow_emissions.pix.unique("variable")
+        if any(species in v for species in region_sector_split_species)
+    ]
+
+    from_region_sector_locator = pix.isin(variable=from_region_sector)
+    assert_frame_equal(
+        processed_output.global_workflow_emissions.loc[from_region_sector_locator],
+        region_sector_compare,
+    )
+
+
+def test_output_internal_consistency_gcages(processed_output):
+    assert_frame_equal(
+        update_index_levels_func(
+            processed_output.global_workflow_emissions,
+            dict(
+                variable=partial(
+                    convert_variable_name,
+                    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            ),
+        ),
+        processed_output.global_workflow_emissions_gcages,
+    )
 
 
 def test_output_region_sector_internal_consistency(processed_output):
