@@ -2,6 +2,8 @@
 Integration tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
+import itertools
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -253,19 +255,40 @@ def test_industrial_sector_aggregation(example_raw_input, processed_output):
     )
 
 
-def test_output_sectors(processed_output):
+def test_output_sectors(example_raw_input, processed_output):
+    example_raw_input_sectors = split_variable(example_raw_input)
+
     exp_output_sectors = [
+        # Fossil
         "Energy Sector",
+        "Industrial Sector",
+        "Residential Commercial Other",
+        "Solvents Production and Application",
+        "Transportation Sector",
+        "Waste",
+        # Bunkers
+        "Aircraft",
         "International Shipping",
-        "Residential Commercial Other"
-        "Solvents Production and Application"
-        "Agriculture"
+        # AFOLU
+        "Agriculture",
         "Agricultural Waste Burning",
         "Forest Burning",
         "Grassland Burning",
         "Peat Burning",
     ]
-    assert False, "Implement"
+
+    exp_output_variables = [
+        f"{table}|{gas}|{sector}"
+        for table, gas, sector in itertools.product(
+            example_raw_input_sectors.pix.unique("table"),
+            example_raw_input_sectors.pix.unique("gas"),
+            exp_output_sectors,
+        )
+    ]
+
+    assert set(exp_output_variables) == set(
+        processed_output.region_sector_workflow_emissions.pix.unique("variable")
+    )
 
 
 def test_output_internal_consistency(processed_output):

@@ -5,6 +5,7 @@ Pre-processing part of the workflow
 from __future__ import annotations
 
 import multiprocessing
+from collections.abc import Mapping
 from typing import Callable
 
 import pandas as pd
@@ -181,6 +182,62 @@ def aggregate_industry_sector(
     return res
 
 
+DEFAULT_CEDS_RENAMINGS = {
+    "Energy|Supply": "Energy Sector",
+    "Industrial Sector": "Industrial Sector",  # assumes pre-processig
+    "Energy|Demand|Residential and Commercial and AFOFI": "Residential Commercial Other",  # noqa: E501
+    "Product Use": "Solvents Production and Application",
+    "Transportation Sector": "Transportation Sector",
+    "Waste": "Waste",
+    "Aircraft": "Aircraft",
+    "Energy|Demand|Bunkers|International Shipping": "International Shipping",
+    "AFOLU|Agriculture": "Agriculture",
+    "AFOLU|Agricultural Waste Burning": "Agricultural Waste Burning",
+    "AFOLU|Land|Fires|Forest Burning": "Forest Burning",
+    "AFOLU|Land|Fires|Grassland Burning": "Grassland Burning",
+    "AFOLU|Land|Fires|Peat Burning": "Peat Burning",
+}
+"""
+Default renamigns used by [rename_and_cut_to_ceds_aligned_sectors][]
+"""
+
+
+def rename_and_cut_to_ceds_aligned_sectors(
+    df: pd.DataFrame,
+    renamings: Mapping[str, str] | None = None,
+) -> pd.DataFrame:
+    """
+    Rename sectors to CEDS sectors and only keep the renamed sectors
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to work on
+
+    renamings
+        Renamings to apply
+
+        If not supplied, we use [DEFAULT_CEDS_RENAMINGS]
+
+    Returns
+    -------
+    :
+        `df` with only renamed sectors
+    """
+    if renamings is None:
+        renamings = DEFAULT_CEDS_RENAMINGS
+
+    df_stacked = split_variable(df).unstack("sector").stack("year", future_stack=True)
+
+    renamed = df_stacked.rename(renamings, axis="columns", errors="raise")
+
+    res = combine_to_make_variable(
+        renamed[renamings.values()].unstack("year").stack("sector", future_stack=True)
+    )
+
+    return res
+
+
 @define
 class CMIP7ScenarioMIPPreProcessingResult:
     """
@@ -199,6 +256,11 @@ class CMIP7ScenarioMIPPreProcessingResult:
     region_sector_workflow_emissions: pd.DataFrame
     """
     Emissions that can be used with the 'normal' global workflow
+    """
+
+    reaggregated_emissions: pd.DataFrame
+    """
+    Emissions that have been reaggregated, but otherwise not altered from the input
     """
 
 
@@ -220,6 +282,15 @@ class CMIP7ScenarioMIPPreProcessor:
     )
     """
     Function to use to calculate the industrial sector
+    """
+
+    convert_to_and_extract_ceds_sectors: Callable[[pd.DataFrame], pd.DataFrame] = (
+        rename_and_cut_to_ceds_aligned_sectors
+    )
+    """
+    Function to use to convert to CEDS sectors and extract only CEDS sectors
+
+    Called after reaggregation has already been done
     """
 
     run_checks: bool = True
@@ -265,11 +336,12 @@ class CMIP7ScenarioMIPPreProcessor:
             assert_data_is_all_numeric(in_emissions)
             assert_has_index_levels(in_emissions, ["variable", "unit"])
 
-        region_sector_workflow_emissions = self.reprocess_transport_variables(
-            in_emissions
+        reaggregated_emissions = self.calculate_industrial_sector(
+            self.reprocess_transport_variables(in_emissions)
         )
-        region_sector_workflow_emissions = self.calculate_industrial_sector(
-            region_sector_workflow_emissions
+
+        region_sector_workflow_emissions = self.convert_to_and_extract_ceds_sectors(
+            reaggregated_emissions
         )
         global_workflow_emissions = None
 
@@ -280,4 +352,5 @@ class CMIP7ScenarioMIPPreProcessor:
         return CMIP7ScenarioMIPPreProcessingResult(
             global_workflow_emissions=global_workflow_emissions,
             region_sector_workflow_emissions=region_sector_workflow_emissions,
+            reaggregated_emissions=reaggregated_emissions,
         )
