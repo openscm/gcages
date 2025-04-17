@@ -615,10 +615,6 @@ class CMIP7ScenarioMIPPreProcessor:
             },
         )
 
-        # Two returns:
-        # - one for normal harmonisation i.e. everything already aggregated
-        # - one for region-sector harmonisation gcages (TODO, requires renaming)
-        # - one for region-sector harmonisation IAMC names
         return CMIP7ScenarioMIPPreProcessingResult(
             global_workflow_emissions=global_workflow_emissions,
             global_workflow_emissions_gcages=global_workflow_emissions_gcages,
