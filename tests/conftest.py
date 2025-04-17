@@ -4,8 +4,15 @@ Re-useable fixtures etc. for tests
 See https://docs.pytest.org/en/7.1.x/reference/fixtures.html#conftest-py-sharing-fixtures-across-multiple-files
 """
 
+from pathlib import Path
+
 import pandas as pd
 import pytest
+
+REPO_ROOT = Path(__file__).parents[1]
+
+git = pytest.importorskip("git")
+nomenclature = pytest.importorskip("nomenclature")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -19,3 +26,26 @@ def pandas_terminal_width():
     # Display as many columns as you want (i.e. let the display width do the
     # truncation)
     pd.set_option("display.max_columns", 1000)
+
+
+@pytest.fixture(scope="session")
+def default_data_structure_definition():
+    exp_path = REPO_ROOT / "common-definitions"
+    if not exp_path.exists():
+        commit_id = "72707a466882b0ded4a582c27cc4d70f213215a7"
+        repo_url = "https://github.com/IAMconsortium/common-definitions"
+        msg = (
+            f"Grabbing common-definitions, cloning to {exp_path} "
+            f"and checking out commit {commit_id}. "
+            "To update, delete the existing folder and re-run."
+        )
+        print(msg)
+        repo = git.Repo.clone_from(repo_url, exp_path)
+        repo.git.checkout(commit_id)
+
+    dsd = nomenclature.definition.DataStructureDefinition(exp_path / "definitions")
+
+    for variable in dsd.variable:
+        dsd.variable[variable].check_aggregate = True
+
+    return dsd

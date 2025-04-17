@@ -17,6 +17,17 @@ class NotCompleteError(ValueError):
         missing: pd.DataFrame,
         complete_index: pd.MultiIndex,
     ) -> None:
+        """
+        Initialise the error
+
+        Parameters
+        ----------
+        missing
+            Index levels that don't have a complete index
+
+        complete_index
+            Definition of a complete index
+        """
         error_msg = (
             "The DataFrame is not complete. "
             f"The following expected levels are missing:\n{missing}\n"

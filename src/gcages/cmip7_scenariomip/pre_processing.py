@@ -8,7 +8,7 @@ import multiprocessing
 import re
 from collections.abc import Mapping
 from functools import partial
-from typing import Callable
+from typing import TYPE_CHECKING, Callable, Protocol
 
 import pandas as pd
 from attrs import define
@@ -22,6 +22,9 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+
+if TYPE_CHECKING:
+    import pyam
 
 
 def split_variable(df: pd.DataFrame) -> pd.DataFrame:
@@ -185,7 +188,6 @@ def aggregate_industry_sector(
     df: pd.DataFrame,
     sector_out: str = "Industrial Sector",
     sectors_to_aggregate: tuple[str, ...] = (
-        "Energy|Supply",
         "Energy|Demand|Industry",
         "Energy|Demand|Other Sector",
         "Industrial Processes",
@@ -194,6 +196,60 @@ def aggregate_industry_sector(
 ) -> pd.DataFrame:
     """
     Aggregate the industry sector from its component sectors
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] in which to aggregate the industry sector
+
+    sector_out
+        Name to use for the output sector
+
+    sectors_to_aggregate
+        Sectors to aggregate to create `sector_out`
+
+
+    Returns
+    -------
+    :
+        `df` with the industrial sector included
+    """
+    df_split = split_variable(df)
+
+    df_stacked = df_split.unstack("sector").stack("year", future_stack=True)
+    df_stacked[sector_out] = df_stacked[list(sectors_to_aggregate)].sum(axis="columns")
+
+    res = combine_to_make_variable(
+        df_stacked.unstack("year").stack("sector", future_stack=True)
+    )
+
+    return res
+
+
+def aggregate_ceds_like_agriculture(
+    df: pd.DataFrame,
+    sector_out: str = "CEDS Agriculture",
+    sectors_to_aggregate: tuple[str, ...] = (
+        "AFOLU|Agriculture",
+        "AFOLU|Land|Land Use and Land-Use Change",
+        "AFOLU|Land|Harvested Wood Products",
+        "AFOLU|Land|Other",
+        "AFOLU|Land|Wetlands",
+    ),
+) -> pd.DataFrame:
+    """
+    Aggregate a CEDS-like agriculture sector from its component sectors
+
+    The default values for `sectors_to_aggregate` are imperfect
+    but the best we have for now.
+    We don't have a better source to harmonise to than CEDS
+    (except for CO2 but ESMs don't use CO2 LULUCF
+    emissions as input anyway, they use land-use change patterns,
+    so this doesn't matter).
+    For SCMs supported by OpenSCM-Runner,
+    this mismatch also doesn't matter as it all gets rolled up to
+    "AFOLU" anyway because SCMs aren't able to handle the difference
+    between e.g. wood harvest and removals due to LULUCF.
 
     Parameters
     ----------
@@ -233,7 +289,7 @@ DEFAULT_CEDS_RENAMINGS = {
     "Waste": "Waste",
     "Aircraft": "Aircraft",
     "Energy|Demand|Bunkers|International Shipping": "International Shipping",
-    "AFOLU|Agriculture": "Agriculture",
+    "CEDS Agriculture": "Agriculture",
     "AFOLU|Agricultural Waste Burning": "Agricultural Waste Burning",
     "AFOLU|Land|Fires|Forest Burning": "Forest Burning",
     "AFOLU|Land|Fires|Grassland Burning": "Grassland Burning",
@@ -271,7 +327,10 @@ def rename_and_cut_to_ceds_aligned_sectors(
 
     df_stacked = split_variable(df).unstack("sector").stack("year", future_stack=True)
 
-    df_stacked["AFOLU|Land|Fires|Peat Burning"] = 0.0
+    # TODO: remove this
+    if "AFOLU|Land|Fires|Peat Burning" not in df_stacked:
+        df_stacked["AFOLU|Land|Fires|Peat Burning"] = 0.0
+
     renamed = df_stacked.rename(renamings, axis="columns", errors="raise")
 
     res = combine_to_make_variable(
@@ -344,25 +403,25 @@ def create_global_workflow_input_from_region_sector_input(  # noqa: PLR0913
         )
         raise AssertionError(msg)
 
-    region_sector_df_world = region_sector_df.loc[
-        region_sector_df.index.get_level_values("region") == world_region
-    ]
+    if "World" in region_sector_df.index.get_level_values("region"):
+        raise AssertionError
 
-    def get_sum_over_sectors(idf: pd.DataFrame) -> pd.DataFrame:
+    def get_sum_over_sectors_and_regions(idf: pd.DataFrame) -> pd.DataFrame:
         return (
             update_index_levels_func(
-                idf.loc[idf.index.get_level_values("region") == world_region],
+                idf,
                 dict(
                     variable=lambda x: level_separator.join(
                         x.split(level_separator)[:n_separators_for_single_sector]
-                    )
+                    ),
+                    region=lambda x: world_region,
                 ),
             )
             .groupby(idf.index.names)
             .sum()
         )
 
-    region_sector_world_totals = get_sum_over_sectors(region_sector_df_world)
+    region_sector_world_totals = get_sum_over_sectors_and_regions(region_sector_df)
     non_co2 = region_sector_world_totals.loc[
         region_sector_world_totals.index.get_level_values("variable") != "Emissions|CO2"
     ]
@@ -370,14 +429,14 @@ def create_global_workflow_input_from_region_sector_input(  # noqa: PLR0913
     region_sector_df_variable_level = region_sector_df.index.get_level_values(
         "variable"
     )
-    co2_fossil_components = region_sector_df.loc[
-        region_sector_df_variable_level.str.startswith("Emissions|CO2")
-        & region_sector_df_variable_level.map(
-            lambda x: any(x.endswith(s) for s in co2_fossil_sectors)
-        )
-    ]
+    co2_idx = region_sector_df_variable_level.str.startswith("Emissions|CO2")
+    fossil_sector_idx = region_sector_df_variable_level.map(
+        lambda x: any(x.endswith(s) for s in co2_fossil_sectors)
+    )
+
+    co2_fossil_components = region_sector_df.loc[co2_idx & fossil_sector_idx]
     co2_fossil = update_index_levels_func(
-        get_sum_over_sectors(co2_fossil_components),
+        get_sum_over_sectors_and_regions(co2_fossil_components),
         dict(variable=lambda x: co2_fossil_out_name),
     )
 
@@ -385,14 +444,9 @@ def create_global_workflow_input_from_region_sector_input(  # noqa: PLR0913
     # That is probably double counting,
     # although simple climate models don't have interactive fire emissions
     # so maybe it is fine.
-    co2_afolu_components = region_sector_df.loc[
-        region_sector_df_variable_level.str.startswith("Emissions|CO2")
-        & ~region_sector_df_variable_level.map(
-            lambda x: any(x.endswith(s) for s in co2_fossil_sectors)
-        )
-    ]
+    co2_afolu_components = region_sector_df.loc[co2_idx & ~fossil_sector_idx]
     co2_afolu = update_index_levels_func(
-        get_sum_over_sectors(co2_afolu_components),
+        get_sum_over_sectors_and_regions(co2_afolu_components),
         dict(variable=lambda x: co2_afolu_out_name),
     )
 
@@ -432,6 +486,80 @@ def create_global_workflow_input_from_raw_input(df: pd.DataFrame) -> pd.DataFram
     )
 
     return out
+
+
+class InternalConsistencyError(ValueError):
+    """
+    Raised when there is an internal consistency issue
+    """
+
+    def __init__(
+        self,
+        indf: pd.DataFrame,
+        reporting_issues: pd.DataFrame,
+        dsd: DataStructureDefinitionLike,
+    ) -> None:
+        # Continue from here:
+        # - create a helpful summary which identifies:
+        #   - failure points (just stack year from reporting_issues)
+        #   - the variables that dsd includes in components
+        #   - the variables that indf actually includes
+        #   - the difference between the two above
+        raise NotImplementedError
+        error_msg = (
+            "The DataFrame is not complete. "
+            f"The following expected levels are missing:\n{missing}\n"
+            f"The complete index expected for each level is:\n"
+            f"{complete_index.to_frame(index=False)}"
+        )
+        super().__init__(error_msg)
+
+
+class DataStructureDefinitionLike(Protocol):
+    """
+    Object that behaves like the nomenclature package's DataStructureDefinition class
+    """
+
+    def check_aggregate(self, df: pyam.IamDataFrame) -> pd.DataFrame | None:
+        """
+        Check aggregate along the variable hierarchy
+
+        Parameters
+        ----------
+        df
+            Data to check
+
+        Returns
+        -------
+        :
+            List of errors if there are any, otherwise `None`
+        """
+
+
+def assert_data_is_internally_consistent(
+    indf: pd.DataFrame,
+    dsd: DataStructureDefinitionLike,
+    rtol: float = 1e-3,
+    atol: float = 1e-8,
+) -> None:
+    try:
+        import pyam
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "assert_data_is_internally_consistent", requirement="pyam"
+        ) from exc
+
+    reporting_issues = dsd.check_aggregate(
+        pyam.IamDataFrame(indf), rtol=rtol, atol=atol
+    )
+    if reporting_issues is None:
+        return
+
+    raise InternalConsistencyError(
+        indf=indf,
+        reporting_issues=reporting_issues,
+        dsd=dsd,
+    )
 
 
 @define
@@ -492,6 +620,13 @@ class CMIP7ScenarioMIPPreProcessor:
     Function to use to calculate the industrial sector
     """
 
+    calculate_ceds_like_agriculture_sector: Callable[[pd.DataFrame], pd.DataFrame] = (
+        aggregate_ceds_like_agriculture
+    )
+    """
+    Function to use to calculate a CEDS-like agriculture sector
+    """
+
     convert_to_and_extract_ceds_sectors: Callable[[pd.DataFrame], pd.DataFrame] = (
         rename_and_cut_to_ceds_aligned_sectors
     )
@@ -518,6 +653,16 @@ class CMIP7ScenarioMIPPreProcessor:
 
     This is applied on the input emissions except for the bits
     which are deemed relevant for region-sector level stuff.
+    """
+
+    world_region: str = "World"
+    """
+    String that identifies the world (i.e. global total) region
+    """
+
+    data_structure_definition: DataStructureDefinitionLike | None = None
+    """
+    Data structure definition
     """
 
     run_checks: bool = True
@@ -563,23 +708,40 @@ class CMIP7ScenarioMIPPreProcessor:
             assert_data_is_all_numeric(in_emissions)
             assert_has_index_levels(in_emissions, ["variable", "unit"])
 
+            if self.data_structure_definition is None:
+                msg = (
+                    "`self.data_structure_definition` must not be None "
+                    "to run the checks"
+                )
+                raise TypeError(msg)
+
+            assert_data_is_internally_consistent(
+                in_emissions, self.data_structure_definition
+            )
+
         if in_emissions.columns.name != "year":
             # Make later processing easier without annoying users
             in_emissions = in_emissions.copy()
             in_emissions.columns.name = "year"
 
-        region_sector_relevant_idx = in_emissions.index.get_level_values(
+        world_data_idx = (
+            in_emissions.index.get_level_values("region") == self.world_region
+        )
+        region_sector_relevant_variable_idx = in_emissions.index.get_level_values(
             "variable"
         ).map(self.is_region_sector_relevant_variable)
+
         in_emissions_region_sector_relevant = in_emissions.loc[
-            region_sector_relevant_idx
+            region_sector_relevant_variable_idx & ~world_data_idx
         ]
         in_emissions_not_region_sector_relevant = in_emissions.loc[
-            ~region_sector_relevant_idx
+            ~region_sector_relevant_variable_idx & world_data_idx
         ]
 
-        reaggregated_emissions = self.calculate_industrial_sector(
-            self.reprocess_transport_variables(in_emissions_region_sector_relevant)
+        reaggregated_emissions = self.calculate_ceds_like_agriculture_sector(
+            self.calculate_industrial_sector(
+                self.reprocess_transport_variables(in_emissions_region_sector_relevant)
+            )
         )
 
         region_sector_workflow_emissions = self.convert_to_and_extract_ceds_sectors(

@@ -53,11 +53,16 @@ ar6 = [
     # Needed because of bad maintenance of scmdata
     "xarray<2025",
 ]
+cmip7_scenariomip = [
+    "nomenclature-iamc>=0.7",
+    "pyam-iamc>=1.6.0",
+]
 progress = [
     "tqdm>=4.0.0",
 ]
 full = [
     "gcages[ar6]",
+    "gcages[cmip7_scenariomip]",
     "gcages[progress]",
 ]
 
@@ -245,6 +250,7 @@ tests = [
     {include-group = "tests-full"},
     "pyarrow>=19.0.1",
     "pytest-regressions>=2.7.0",
+    "gitpython>=3.1.44",
 ]
 all-dev = [
     {include-group = "dev"},
