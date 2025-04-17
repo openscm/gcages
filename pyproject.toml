@@ -244,6 +244,7 @@ tests = [
     {include-group = "tests-min"},
     {include-group = "tests-full"},
     "pyarrow>=19.0.1",
+    "pytest-regressions>=2.7.0",
 ]
 all-dev = [
     {include-group = "dev"},
