@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
+from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+
 HERE = Path(__file__).parents[0]
 
 
@@ -26,9 +28,16 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         out_column_type=int,
     )
 
-    pre_processor = CMIP7ScenarioMIPPreProcessor.from_ar6_config(
+    pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially
     )
     res = pre_processor(input_df)
 
-    dataframe_regression.check(res)
+    for attr in [
+        "global_workflow_emissions",
+        "region_sector_workflow_emissions",
+        "reaggregated_emissions",
+    ]:
+        dataframe_regression.check(
+            getattr(res, attr), basename=f"{input_file.stem}_attr"
+        )

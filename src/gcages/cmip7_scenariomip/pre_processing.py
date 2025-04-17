@@ -77,6 +77,43 @@ def combine_to_make_variable(df: pd.DataFrame) -> pd.DataFrame:
     return res
 
 
+def is_ceds_region_sector_level_relevant_variable(
+    v: str,
+    relevant_species: tuple[str, ...] = (
+        "CO2",
+        "CH4",
+        "N2O",
+        "BC",
+        "CO",
+        "NH3",
+        "OC",
+        "NOx",
+        "Sulfur",
+        "VOC",
+    ),
+) -> bool:
+    """
+    Check if a variable is relevant for CEDS region-sector harmonisation
+
+    Parameters
+    ----------
+    v
+        Variable to check
+
+    relevant_species
+        Relevant species for CEDS region-sector harmonisation
+
+        If any of these appear in `v`, we assume that the variable is relevant
+
+    Returns
+    -------
+    :
+        `True` if the variable is relevant for CEDS region-sector harmonisation,
+        otherwise `False`
+    """
+    return any(v_name in v for v_name in relevant_species)
+
+
 def process_transport_variables(  # noqa: PLR0913
     df: pd.DataFrame,
     aviation_sector_out: str = "Aircraft",
@@ -229,6 +266,7 @@ def rename_and_cut_to_ceds_aligned_sectors(
 
     df_stacked = split_variable(df).unstack("sector").stack("year", future_stack=True)
 
+    df_stacked["AFOLU|Land|Fires|Peat Burning"] = 0.0
     renamed = df_stacked.rename(renamings, axis="columns", errors="raise")
 
     res = combine_to_make_variable(
@@ -270,6 +308,13 @@ class CMIP7ScenarioMIPPreProcessor:
     Pre-processor for CMIP7's ScenarioMIP
     """
 
+    is_region_sector_relevant_variable: Callable[[str], bool] = (
+        is_ceds_region_sector_level_relevant_variable
+    )
+    """
+    Function to use to determine
+    whether a variable is relevant for region-sector harmonisation or not
+    """
     reprocess_transport_variables: Callable[[pd.DataFrame], pd.DataFrame] = (
         process_transport_variables
     )
@@ -336,8 +381,19 @@ class CMIP7ScenarioMIPPreProcessor:
             assert_data_is_all_numeric(in_emissions)
             assert_has_index_levels(in_emissions, ["variable", "unit"])
 
+        if in_emissions.columns.name != "year":
+            # Make later processing easier without annoying users
+            in_emissions = in_emissions.copy()
+            in_emissions.columns.name = "year"
+
+        in_emissions_region_sector_relevant = in_emissions.loc[
+            in_emissions.index.get_level_values("variable").map(
+                self.is_region_sector_relevant_variable
+            )
+        ]
+
         reaggregated_emissions = self.calculate_industrial_sector(
-            self.reprocess_transport_variables(in_emissions)
+            self.reprocess_transport_variables(in_emissions_region_sector_relevant)
         )
 
         region_sector_workflow_emissions = self.convert_to_and_extract_ceds_sectors(

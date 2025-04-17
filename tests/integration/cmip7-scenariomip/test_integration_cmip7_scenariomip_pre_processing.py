@@ -123,20 +123,21 @@ def example_raw_input():
     ]
 
     timesteps = np.arange(2015, 2100 + 1, 5)
+    start_index = pd.MultiIndex.from_product(
+        [
+            ["model_a"],
+            ["scenario_a"],
+            ["Emissions"],
+            ["CO2", "CH4"],
+            ["model_a|China", "model_a|Pacific OECD"],
+            timesteps,
+        ],
+        names=["model", "scenario", "table", "gas", "region", "year"],
+    )
     df = pd.DataFrame(
         RNG.random(timesteps.size * 4),
         columns=pd.Index(["Other"], name="sector"),
-        index=pd.MultiIndex.from_product(
-            [
-                ["model_a"],
-                ["scenario_a"],
-                ["Emissions"],
-                ["CO2", "CH4"],
-                ["model_a|China", "model_a|Pacific OECD"],
-                timesteps,
-            ],
-            names=["model", "scenario", "table", "gas", "region", "year"],
-        ),
+        index=start_index,
     )
 
     for bls in bottom_level_sectors:
@@ -155,6 +156,34 @@ def example_raw_input():
 
     df["unit"] = df.index.get_level_values("variable").map(get_unit)
     df = df.set_index("unit", append=True)
+    df = pix.concat(
+        [
+            df.groupby(df.index.names.difference(["region"]))
+            .sum()
+            .pix.assign(region="World"),
+            df,
+        ]
+    )
+    global_only_base = pd.DataFrame(
+        RNG.random(timesteps.size)[np.newaxis, :],
+        columns=df.columns,
+        index=start_index.droplevel(["region", "year", "gas"]).drop_duplicates(),
+    )
+    global_only_l = []
+    for global_only_gas, unit in [
+        ("HFC|HFC23", "kt HFC23/yr"),
+        ("HFC", "kt HFC134a-equiv/yr"),
+        ("HFC|HFC134a", "kt HFC134a/yr"),
+        ("HFC|HFC43-10", "kt HFC43-10/yr"),
+        ("PFC", "kt CF4-equiv/yr"),
+    ]:
+        global_only_l.append(
+            global_only_base.pix.assign(gas=global_only_gas, unit=unit, region="World")
+            .pix.format(variable="{table}|{gas}", drop=True)
+            .reorder_levels(df.index.names)
+        )
+
+    df = pix.concat([df, *global_only_l])
 
     return df
 
@@ -196,7 +225,8 @@ def test_transport_shuffling(example_raw_input, processed_output):
                 sector=[
                     "Energy|Demand|Transportation|Domestic Aviation",
                     "Energy|Demand|Bunkers|International Aviation",
-                ]
+                ],
+                gas=["CO2", "CH4"],
             )
         ]
         .groupby(example_raw_input_sectors.index.names.difference(["sector"]))
@@ -204,9 +234,11 @@ def test_transport_shuffling(example_raw_input, processed_output):
         .pix.assign(sector="Aircraft")
     ).reorder_levels(example_raw_input.index.names)
 
-    example_raw_input_sectors_stacked = example_raw_input_sectors.unstack(
-        "sector"
-    ).stack("year", future_stack=True)
+    example_raw_input_sectors_stacked = (
+        example_raw_input_sectors.loc[pix.ismatch(gas=["CO2", "CH4"])]
+        .unstack("sector")
+        .stack("year", future_stack=True)
+    )
     exp_transportation_sector = combine_to_make_variable(
         (
             example_raw_input_sectors_stacked["Energy|Demand|Transportation"]
@@ -281,7 +313,7 @@ def test_output_sectors(example_raw_input, processed_output):
         f"{table}|{gas}|{sector}"
         for table, gas, sector in itertools.product(
             example_raw_input_sectors.pix.unique("table"),
-            example_raw_input_sectors.pix.unique("gas"),
+            ["CO2", "CH4"],
             exp_output_sectors,
         )
     ]
@@ -310,6 +342,8 @@ def test_input_not_internally_consistent_error(example_raw_input):
     # (don't bother trying to guess what has gone wrong, too hard basket)
     assert False, "implement"
 
+
+# Tests of missing key things for mapping
 
 # Underlying logic:
 # - we're doing region-sector harmonisation
