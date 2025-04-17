@@ -2,18 +2,153 @@
 Integration tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
+import numpy as np
+import pandas as pd
 import pytest
+
+from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+
+pix = pytest.importorskip("pandas_indexing")
+
+RNG = np.random.default_rng()
+
+
+def aggregate_up_sectors(indf, copy=False):
+    res = indf
+    if copy:
+        res = res.copy()
+
+    aggregations = set(["|".join(c.split("|")[:-1]) for c in res if "|" in c])
+    # Have to aggregate lowest level sectors first
+    aggregations_sorted = sorted(aggregations, key=lambda x: x.count("|"))[::-1]
+    for aggregation in aggregations_sorted:
+        if aggregation in res:
+            msg = f"{aggregation} already in indf?!"
+            raise KeyError(msg)
+
+        contributing = []
+        for c in res:
+            if not c.startswith(f"{aggregation}|"):
+                continue
+
+            split = c.split(f"{aggregation}|")
+            if "|" in split[-1]:
+                # going too many levels deep
+                continue
+
+            contributing.append(c)
+
+        res[aggregation] = res[contributing].sum(axis="columns")
+
+    return res
+
+
+def add_gas_totals(indf):
+    # Should be called after aggregate_up_sectors
+
+    top_level = [c for c in indf if "|" not in c]
+
+    sector_stuff = (
+        indf.unstack("year")
+        .stack("sector")
+        .pix.format(variable="{table}|{gas}|{sector}", drop=True)
+    )
+    gas_totals = (
+        indf[top_level]
+        .sum(axis="columns")
+        .unstack("year")
+        .pix.format(variable="{table}|{gas}", drop=True)
+    )
+
+    res = pix.concat([sector_stuff, gas_totals])
+
+    return res
 
 
 @pytest.fixture(scope="session")
 def example_raw_input():
-    # breakpoint()
-    pass
+    bottom_level_sectors = [
+        # Aviation stuff
+        "Energy|Demand|Transportation|Domestic Aviation",
+        # something so we can get "Energy|Demand|Transportation" as a sum
+        "Energy|Demand|Transportation|Rail",
+        "Energy|Demand|Bunkers|International Aviation",
+        # Industrial sector stuff
+        "Energy|Demand|Industry",
+        "Energy|Demand|Other Sector",
+        "Industrial Processes",
+        "Other",
+        # Energy sector
+        "Energy|Supply",
+        # International shipping
+        "Energy|Demand|Bunkers|International Shipping",
+        # Residential commercial and other
+        "Energy|Demand|Residential and Commercial and AFOFI",
+        # Solvents production and application
+        "Product Use",
+        # Waste
+        "Waste",
+        # Agriculture
+        "AFOLU|Agriculture",
+        # Imperfect but put these in agriculture too for now
+        # (we don't have a better source to harmonise too,
+        # except for CO2 but they don't use CO2 LULUCF
+        # emissions as input anyway, they use land-use change patterns).
+        # (For SCMs, this also doesn't matter as it all gets rolled up to
+        # "AFOLU" anyway because SCMs aren't able to handle the difference,
+        # except maybe OSCAR but that isn't in OpenSCM-Runner
+        # so we can't guess anything to do with OSCAR for now anyway.)
+        "AFOLU|Land|Land Use and Land-Use Change",
+        "AFOLU|Land|Harvested Wood Products",
+        "AFOLU|Land|Other",
+        "AFOLU|Land|Wetlands",
+        # Burning sectors
+        "AFOLU|Agricultural Waste Burning",
+        "AFOLU|Land|Fires|Forest Burning",
+        "AFOLU|Land|Fires|Grassland Burning",
+        "AFOLU|Land|Fires|Peat Burning",
+    ]
+
+    timesteps = np.arange(2015, 2100 + 1, 5)
+    df = pd.DataFrame(
+        RNG.random(timesteps.size * 4),
+        columns=pd.Index(["Other"], name="sector"),
+        index=pd.MultiIndex.from_product(
+            [
+                ["model_a"],
+                ["scenario_a"],
+                ["Emissions"],
+                ["CO2", "CH4"],
+                ["model_a|China", "model_a|Pacific OECD"],
+                timesteps,
+            ],
+            names=["model", "scenario", "table", "gas", "region", "year"],
+        ),
+    )
+
+    for bls in bottom_level_sectors:
+        df[bls] = RNG.random(df.index.shape[0])
+
+    df = aggregate_up_sectors(df)
+    df = add_gas_totals(df)
+
+    def get_unit(v):
+        if "CO2" in v:
+            return "Mt CO2/yr"
+        if "CH4" in v:
+            return "Mt CH4/yr"
+
+        raise NotImplementedError(v)
+
+    df["unit"] = df.index.get_level_values("variable").map(get_unit)
+    df = df.set_index("unit", append=True)
+
+    return df
 
 
 @pytest.fixture(scope="session")
 def processed_output(example_raw_input):
-    pre_processor = CMIP7ScenarioMIPPreProcessor.from_ar6_config(
+    pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially
     )
 
