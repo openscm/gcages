@@ -138,6 +138,49 @@ def process_transport_variables(  # noqa: PLR0913
     return res
 
 
+def aggregate_industry_sector(
+    df: pd.DataFrame,
+    sector_out: str = "Industrial Sector",
+    sectors_to_aggregate: tuple[str, ...] = (
+        "Energy|Supply",
+        "Energy|Demand|Industry",
+        "Energy|Demand|Other Sector",
+        "Industrial Processes",
+        "Other",
+    ),
+) -> pd.DataFrame:
+    """
+    Aggregate the industry sector from its component sectors
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] in which to aggregate the industry sector
+
+    sector_out
+        Name to use for the output sector
+
+    sectors_to_aggregate
+        Sectors to aggregate to create `sector_out`
+
+
+    Returns
+    -------
+    :
+        `df` with the industrial sector included
+    """
+    df_split = split_variable(df)
+
+    df_stacked = df_split.unstack("sector").stack("year", future_stack=True)
+    df_stacked[sector_out] = df_stacked[list(sectors_to_aggregate)].sum(axis="columns")
+
+    res = combine_to_make_variable(
+        df_stacked.unstack("year").stack("sector", future_stack=True)
+    )
+
+    return res
+
+
 @define
 class CMIP7ScenarioMIPPreProcessingResult:
     """
@@ -170,6 +213,13 @@ class CMIP7ScenarioMIPPreProcessor:
     )
     """
     Function to use to re-process the transport variables
+    """
+
+    calculate_industrial_sector: Callable[[pd.DataFrame], pd.DataFrame] = (
+        aggregate_industry_sector
+    )
+    """
+    Function to use to calculate the industrial sector
     """
 
     run_checks: bool = True
@@ -217,6 +267,9 @@ class CMIP7ScenarioMIPPreProcessor:
 
         region_sector_workflow_emissions = self.reprocess_transport_variables(
             in_emissions
+        )
+        region_sector_workflow_emissions = self.calculate_industrial_sector(
+            region_sector_workflow_emissions
         )
         global_workflow_emissions = None
 

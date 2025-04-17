@@ -202,13 +202,15 @@ def test_transport_shuffling(example_raw_input, processed_output):
         .pix.assign(sector="Aircraft")
     ).reorder_levels(example_raw_input.index.names)
 
-    restacked = example_raw_input_sectors.unstack("sector").stack(
-        "year", future_stack=True
-    )
+    example_raw_input_sectors_stacked = example_raw_input_sectors.unstack(
+        "sector"
+    ).stack("year", future_stack=True)
     exp_transportation_sector = combine_to_make_variable(
         (
-            restacked["Energy|Demand|Transportation"]
-            - restacked["Energy|Demand|Transportation|Domestic Aviation"]
+            example_raw_input_sectors_stacked["Energy|Demand|Transportation"]
+            - example_raw_input_sectors_stacked[
+                "Energy|Demand|Transportation|Domestic Aviation"
+            ]
         )
         .unstack("year")
         .pix.assign(sector="Transportation Sector")
@@ -226,6 +228,8 @@ def test_transport_shuffling(example_raw_input, processed_output):
 
 
 def test_industrial_sector_aggregation(example_raw_input, processed_output):
+    df_to_check = processed_output.region_sector_workflow_emissions
+
     exp_sector = "Industrial Sector"
     exp_contributing_sectors = [
         "Energy|Supply",
@@ -234,7 +238,19 @@ def test_industrial_sector_aggregation(example_raw_input, processed_output):
         "Industrial Processes",
         "Other",
     ]
-    assert False, "Implement"
+
+    example_raw_input_sectors = split_variable(example_raw_input)
+    exp_sector_df = combine_to_make_variable(
+        example_raw_input_sectors.loc[pix.ismatch(sector=exp_contributing_sectors)]
+        .groupby(example_raw_input_sectors.index.names.difference(["sector"]))
+        .sum()
+        .pix.assign(sector=exp_sector)
+    ).reorder_levels(example_raw_input.index.names)
+
+    assert_frame_equal(
+        df_to_check.loc[pix.ismatch(variable=f"**{exp_sector}")],
+        exp_sector_df,
+    )
 
 
 def test_output_sectors(processed_output):
