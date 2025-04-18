@@ -11,6 +11,7 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
 from gcages.cmip7_scenariomip.pre_processing import (
+    InternalConsistencyError,
     get_gridded_emissions_sectoral_regional_sum,
 )
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
@@ -355,12 +356,9 @@ def test_output_vs_start_region_sector_consistency(example_raw_input, processed_
 def test_input_not_internally_consistent_error_obvious(example_raw_input):
     inp = example_raw_input.copy()
 
-    # Just delete a high level variable
-    inp = inp.loc[~pix.ismatch(variable="**CO2|Energy")]
+    # Delete a required high level variable
+    inp = inp.loc[~pix.ismatch(variable="**CO2|Energy|Supply")]
 
-    exp_components = sorted(
-        default_data_structure_definition.variable["Emissions|CO2"].components
-    )
     exp_components_included = [
         "Emissions|CO2|AFOLU",
         "Emissions|CO2|Industrial Processes",
@@ -377,7 +375,6 @@ def test_input_not_internally_consistent_error_obvious(example_raw_input):
 The issue occurs for the following variables:
 
 1. Emissions|CO2
-  - these are the expected component variables from the data structure definition: {exp_components}
   - if you have reported data that is not part of the expected component variables, this may be the issue
   - of the given components, these variables:
     - are included in the data: {exp_components_included}
@@ -409,9 +406,7 @@ and the sum of their expected components:"""  # noqa: E501
         ),
     ):
         # Checks on by default
-        CMIP7ScenarioMIPPreProcessor(
-            data_structure_definition=default_data_structure_definition
-        )(inp)
+        CMIP7ScenarioMIPPreProcessor()(inp)
 
 
 def test_input_not_internally_consistent_error_mismatch(
@@ -557,6 +552,10 @@ def test_input_not_internally_consistent_error_regional(example_raw_input):
     # (TODO: this test on actual data).
     assert False, "TODO: ask Jarmo whether this is even possible"
 
+
+# Tests to write:
+# - domestic aviation reported only globally blows up as expected
+# - two scenarios that report on different time grids
 
 # Underlying logic:
 # - we're doing region-sector harmonisation

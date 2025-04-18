@@ -478,6 +478,68 @@ def assert_data_is_compatible_with_pre_processing(
     assert_frame_equal(data_for_gridding_totals, indf_global_totals)
 
 
+class InternalConsistencyError(ValueError):
+    """
+    Raised when there is an internal consistency issue
+    """
+
+    def __init__(
+        self,
+        indf: pd.DataFrame,
+        reporting_issues: pd.DataFrame,
+        level_separator: str,
+    ) -> None:
+        raise NotImplementedError
+        super().__init__(error_msg)
+
+
+def assert_data_has_required_internal_consistency(
+    indf: pd.DataFrame, world_region: str, region_level: str, time_name: str
+) -> None:
+    split_data = split_world_and_regional_data(indf, world_region=world_region)
+
+    # Only check gridding data.
+    # Other data will just be taken from World, so not our problem
+    # if it's inconsistent.
+    gridding_data_world = split_data.world.loc[
+        split_data.world.index.get_level_values("variable").isin(
+            REQUIRED_WORLD_VARIABLES_IAMC
+        )
+    ]
+
+    # Want to sum over everything except domestic aviation
+    # to not double count with transport.
+    regional_variables_to_include_in_sum = [
+        v
+        for v in ALL_RELEVANT_REGIONAL_VARIABLES_IAMC
+        if DOMESTIC_AVIATION_SECTOR_IAMC not in v
+    ]
+    gridding_data_regional = split_data.regional.loc[
+        split_data.regional.index.get_level_values("variable").isin(
+            regional_variables_to_include_in_sum
+        )
+    ]
+
+    gridding_data_world_region_sector_sum = get_region_sector_totals(
+        gridding_data_world, world_region=world_region, region_level=region_level
+    )
+    gridding_data_regional_region_sector_sum = get_region_sector_totals(
+        gridding_data_regional,
+        world_region=world_region,
+        region_level=region_level,
+    )
+
+    gridding_data_region_sector_sum = (
+        gridding_data_world_region_sector_sum + gridding_data_regional_region_sector_sum
+    )
+
+    reported_region_sector_sum = multi_index_lookup(
+        indf, gridding_data_regional_region_sector_sum.index
+    )
+
+    assert_frame_equal(gridding_data_region_sector_sum, reported_region_sector_sum)
+
+
 @define
 class CMIP7ScenarioMIPPreProcessingResult:
     """
@@ -1071,6 +1133,13 @@ class CMIP7ScenarioMIPPreProcessor:
             if in_emissions.columns.name != "year":
                 msg = "The input emissions' column name should be 'year'"
                 raise AssertionError(msg)
+
+            assert_data_has_required_internal_consistency(
+                in_emissions,
+                world_region=self.world_region,
+                region_level="region",
+                time_name="year",
+            )
 
         res_g = apply_op_parallel_progress(
             func_to_call=do_pre_processing,
