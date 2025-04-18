@@ -4,13 +4,16 @@ Pre-processing part of the workflow
 
 from __future__ import annotations
 
+import itertools
 import multiprocessing
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import partial
 
 import numpy as np
 import pandas as pd
 from attrs import define
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
@@ -22,7 +25,9 @@ from gcages.assertions import (
 )
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import assert_frame_equal
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 REQUIRED_GRIDDING_SPECIES_IAMC: tuple[str, ...] = (
     "CO2",
@@ -260,6 +265,78 @@ This variable is provided as a global variable for clarity and consistency.
 If you change it, we do not guarantee the package's performance.
 """
 
+REAGGREGATED_TO_CEDS_MAP: dict[str, str] = {
+    "Energy|Supply": "Energy Sector",
+    INDUSTRIAL_SECTOR_CEDS: INDUSTRIAL_SECTOR_CEDS,
+    "Energy|Demand|Residential and Commercial and AFOFI": "Residential Commercial Other",  # noqa: E501
+    "Product Use": "Solvents Production and Application",
+    TRANSPORTATION_SECTOR_CEDS: TRANSPORTATION_SECTOR_CEDS,
+    "Waste": "Waste",
+    AVIATION_SECTOR_CEDS: AVIATION_SECTOR_CEDS,
+    "Energy|Demand|Bunkers|International Shipping": "International Shipping",
+    AGRICULTURE_SECTOR_CEDS: AGRICULTURE_SECTOR_CEDS,
+    "AFOLU|Agricultural Waste Burning": "Agricultural Waste Burning",
+    "AFOLU|Land|Fires|Forest Burning": "Forest Burning",
+    "AFOLU|Land|Fires|Grassland Burning": "Grassland Burning",
+    "AFOLU|Land|Fires|Peat Burning": "Peat Burning",
+}
+"""
+Map from re-aggreated variables to CEDS sectors
+"""
+
+REQUIRED_WORLD_SECTORS_CEDS: tuple[str, ...] = ("Aircraft", "International Shipping")
+"""
+Sectors that are required at the world level (CEDS naming)
+
+This variable is provided as a global variable for clarity and consistency.
+If you change it, we do not guarantee the package's performance.
+"""
+
+REQUIRED_REGIONAL_SECTORS_CEDS: tuple[str, ...] = (
+    "Energy Sector",
+    INDUSTRIAL_SECTOR_CEDS,
+    "Solvents Production and Application",
+    TRANSPORTATION_SECTOR_CEDS,
+    "Waste",
+    AGRICULTURE_SECTOR_CEDS,
+    "Agricultural Waste Burning",
+    "Forest Burning",
+    "Grassland Burning",
+    "Peat Burning",
+)
+"""
+Sectors that are required at the regional level (CEDS naming)
+
+This variable is provided as a global variable for clarity and consistency.
+If you change it, we do not guarantee the package's performance.
+"""
+
+
+CO2_FOSSIL_SECTORS_CEDS: tuple[str, ...] = (
+    "Energy Sector",
+    INDUSTRIAL_SECTOR_CEDS,
+    "Residential Commercial Other",
+    "Solvents Production and Application",
+    TRANSPORTATION_SECTOR_CEDS,
+    "Waste",
+    AVIATION_SECTOR_CEDS,
+    "International Shipping",
+)
+"""
+Sectors (CEDS naming) whose CO2 emissions originate from fossil reservoirs
+"""
+
+CO2_BIOSPHERE_SECTORS_CEDS: tuple[str, ...] = (
+    AGRICULTURE_SECTOR_CEDS,
+    "Agricultural Waste Burning",
+    "Forest Burning",
+    "Grassland Burning",
+    "Peat Burning",
+)
+"""
+Sectors (CEDS naming) whose CO2 emissions originate from the biosphere (land pool)
+"""
+
 
 @define
 class SplitData:
@@ -431,36 +508,36 @@ class CMIP7ScenarioMIPPreProcessingResult:
     """
 
 
-def stack_sector(indf: pd.DataFrame, time_name: str) -> pd.DataFrame:
+def unstack_sector(indf: pd.DataFrame, time_name: str) -> pd.DataFrame:
     try:
         from pandas_indexing.core import extractlevel
     except ImportError as exc:
         raise MissingOptionalDependencyError(
-            "stack_sector", requirement="pandas_indexing"
+            "unstack_sector", requirement="pandas_indexing"
         ) from exc
 
     res = (
-        extractlevel(indf, variable="{table}|{gas}|{sectors}")
+        extractlevel(indf, variable="{table}|{species}|{sectors}")
         .unstack("sectors")
-        .stack(time_name)
+        .stack(time_name, future_stack=True)
     )
 
     return res
 
 
-def unstack_sector_and_return_to_variable(
+def stack_sector_and_return_to_variable(
     indf: pd.DataFrame, time_name: str, sectors_name: str
 ) -> pd.DataFrame:
     try:
         from pandas_indexing.core import formatlevel
     except ImportError as exc:
         raise MissingOptionalDependencyError(
-            "unstack_sector_and_return_to_variable", requirement="pandas_indexing"
+            "stack_sector_and_return_to_variable", requirement="pandas_indexing"
         ) from exc
 
     res = formatlevel(
-        indf.unstack(time_name).stack(sectors_name),
-        variable="{table}|{gas}|{sectors}",
+        indf.unstack(time_name).stack(sectors_name, future_stack=True),
+        variable="{table}|{species}|{sectors}",
         drop=True,
     )
 
@@ -472,40 +549,40 @@ def reclassify_aviation_emissions(
 ) -> pd.DataFrame:
     split_data = split_world_and_regional_data(indf, world_region=world_region)
 
-    regional_sector_stack = stack_sector(split_data.regional, time_name=time_name)
-    world_sector_stack = stack_sector(split_data.world, time_name=time_name)
+    regional_sector_cols = unstack_sector(split_data.regional, time_name=time_name)
+    world_sector_cols = unstack_sector(split_data.world, time_name=time_name)
 
     domestic_aviation_sum = (
-        regional_sector_stack[DOMESTIC_AVIATION_SECTOR_IAMC]
-        .groupby(regional_sector_stack.index.names.difference([region_level]))
+        regional_sector_cols[DOMESTIC_AVIATION_SECTOR_IAMC]
+        .groupby(regional_sector_cols.index.names.difference([region_level]))
         .sum()
     )
-    world_sector_stack[AVIATION_SECTOR_CEDS] = (
-        world_sector_stack[INTERNATIONAL_AVIATION_SECTOR_IAMC] + domestic_aviation_sum
+    world_sector_cols[AVIATION_SECTOR_CEDS] = (
+        world_sector_cols[INTERNATIONAL_AVIATION_SECTOR_IAMC] + domestic_aviation_sum
     )
 
-    regional_sector_stack[TRANSPORTATION_SECTOR_CEDS] = (
-        regional_sector_stack[TRANSPORTATION_SECTOR_IAMC]
-        - regional_sector_stack[DOMESTIC_AVIATION_SECTOR_IAMC]
+    regional_sector_cols[TRANSPORTATION_SECTOR_CEDS] = (
+        regional_sector_cols[TRANSPORTATION_SECTOR_IAMC]
+        - regional_sector_cols[DOMESTIC_AVIATION_SECTOR_IAMC]
     )
 
     # Drop out sectors we're not using
-    world_sector_stack = world_sector_stack[
-        world_sector_stack.columns.difference([INTERNATIONAL_AVIATION_SECTOR_IAMC])
+    world_sector_cols = world_sector_cols[
+        world_sector_cols.columns.difference([INTERNATIONAL_AVIATION_SECTOR_IAMC])
     ]
-    regional_sector_stack = regional_sector_stack[
-        regional_sector_stack.columns.difference(
+    regional_sector_cols = regional_sector_cols[
+        regional_sector_cols.columns.difference(
             [DOMESTIC_AVIATION_SECTOR_IAMC, TRANSPORTATION_SECTOR_IAMC]
         )
     ]
 
     get_out = partial(
-        unstack_sector_and_return_to_variable,
+        stack_sector_and_return_to_variable,
         sectors_name="sectors",
         time_name=time_name,
     )
-    world_out = get_out(world_sector_stack)
-    regional_out = get_out(regional_sector_stack)
+    world_out = get_out(world_sector_cols)
+    regional_out = get_out(regional_sector_cols)
 
     res = pd.concat([world_out, regional_out.reorder_levels(world_out.index.names)])
 
@@ -519,30 +596,239 @@ def aggregate_sector(
     time_name: str,
     allow_missing: list[str] | None = None,
 ) -> pd.DataFrame:
-    stacked = stack_sector(indf, time_name=time_name)
+    sector_cols = unstack_sector(indf, time_name=time_name)
 
     to_sum = sector_components
     if allow_missing is not None:
-        missing = {c for c in to_sum if c not in stacked}
+        missing = {c for c in to_sum if c not in sector_cols}
         # Anything which is missing and allowed to be missing,
         # we can drop from to_sum
         to_drop_from_sum = missing.intersection(set(allow_missing))
         to_sum = list(set(to_sum) - to_drop_from_sum)
 
-    stacked[sector_out] = stacked[to_sum].sum(axis="columns", min_count=len(to_sum))
-    stacked = stacked.drop(to_sum, axis="columns")
+    sector_cols[sector_out] = sector_cols[to_sum].sum(
+        axis="columns", min_count=len(to_sum)
+    )
+    sector_cols = sector_cols.drop(to_sum, axis="columns")
 
-    res = unstack_sector_and_return_to_variable(
-        stacked, time_name=time_name, sectors_name="sectors"
+    res = stack_sector_and_return_to_variable(
+        sector_cols, time_name=time_name, sectors_name="sectors"
     )
 
     return res
 
 
-def do_pre_processing(
-    indf: pd.DataFrame, world_region: str, time_name: str, region_level: str
+def rename_and_filter_to_ceds_aligned_sectors(
+    indf: pd.DataFrame, time_name: str
+) -> pd.DataFrame:
+    sector_cols = unstack_sector(indf, time_name=time_name)
+
+    renamed = sector_cols.rename(
+        REAGGREGATED_TO_CEDS_MAP, axis="columns", errors="raise"
+    )
+
+    res = stack_sector_and_return_to_variable(
+        renamed, time_name=time_name, sectors_name="sectors"
+    )
+    # Funny things can happen when unstacking for some reason
+    res = res.dropna(how="all")
+
+    return res
+
+
+def aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa: PLR0913
+    gridding_emissions: pd.DataFrame,
+    world_region: str,
+    time_name: str,
+    region_level: str,
+    global_workflow_co2_fossil_sector_iamc: str,
+    global_workflow_co2_biosphere_sector_iamc: str,
+    co2_fossil_sectors_ceds: tuple[str, ...] = CO2_FOSSIL_SECTORS_CEDS,
+    co2_biosphere_sectors_ceds: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_CEDS,
+) -> pd.DataFrame:
+    """
+    Aggregate the gridding workflow emissions to global workflow emissions
+
+    Parameters
+    ----------
+    gridding_emissions
+        [pd.DataFrame][pandas.DataFrame] used for gridding
+
+    world_region
+        Name of the world/world total region
+
+    time_name
+        Name of the columns (i.e. time axis) in `gridding_emissions`
+
+    region_level
+        The name of the index level which contains region-level data
+
+    global_workflow_co2_fossil_sector_iamc
+        Name of the global workflow CO2 fossil sector using IAMC naming conventions
+
+    global_workflow_co2_biosphere_sector_iamc
+        Name of the global workflow CO2 biosphere sector using IAMC naming conventions
+
+    co2_fossil_sectors_ceds
+        CEDS CO2 sectors that should be included in the fossil CO2 sector
+
+    co2_biosphere_sectors_ceds
+        CEDS CO2 sectors that should be included in the biosphere CO2 sector
+
+    Returns
+    -------
+    :
+        Derived output that can be used with the global workflow
+    """
+    try:
+        from pandas_indexing.core import assignlevel, formatlevel
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "stack_sector_and_return_to_variable", requirement="pandas_indexing"
+        ) from exc
+
+    split_data = split_world_and_regional_data(
+        gridding_emissions, world_region=world_region
+    )
+    sector_cols_world = unstack_sector(split_data.world, time_name=time_name)
+    sector_cols_regional = unstack_sector(split_data.regional, time_name=time_name)
+
+    in_both_world_and_regional = sector_cols_world.columns.intersection(
+        sector_cols_regional.columns
+    )
+    if not in_both_world_and_regional.empty:
+        msg = (
+            "The following sectors are in both world and regional data: "
+            f"{in_both_world_and_regional}"
+        )
+        raise AssertionError(msg)
+
+    missing = {*co2_biosphere_sectors_ceds, *co2_fossil_sectors_ceds}
+    in_data = {*sector_cols_world.columns, *sector_cols_regional.columns}
+    not_handled = in_data - missing
+    if not_handled:
+        msg = (
+            "The following sectors "
+            f"will not be included in the CO2 output: {not_handled}"
+        )
+        raise AssertionError(msg)
+
+    missing = missing - in_data
+    if missing:
+        msg = f"The following sectors are missing from the expected sectors: {missing}"
+        raise AssertionError(msg)
+
+    def filter(idf: pd.DataFrame, co2: bool) -> pd.DataFrame:
+        co2_locator = idf.index.get_level_values("species") == "CO2"
+        if co2:
+            return idf.loc[co2_locator]
+
+        return idf.loc[~co2_locator]
+
+    def get_out(idf: pd.DataFrame) -> pd.DataFrame:
+        return formatlevel(
+            idf.unstack(time_name), variable="{table}|{species}", drop=True
+        )
+
+    non_co2 = get_out(
+        filter(
+            sector_cols_world.sum(axis="columns")
+            + sector_cols_regional.unstack(region_level).sum(axis="columns"),
+            co2=False,
+        )
+    )
+
+    co2_world = filter(sector_cols_world, co2=True)
+    co2_regional = filter(sector_cols_regional, co2=True)
+    co2_fossil_sectors_from_world = [
+        c for c in co2_world if c in co2_fossil_sectors_ceds
+    ]
+    co2_fossil_sectors_from_regional = list(
+        set(co2_fossil_sectors_ceds) - set(co2_fossil_sectors_from_world)
+    )
+
+    co2_fossil_world_sum = co2_world[co2_fossil_sectors_from_world].sum(axis="columns")
+    co2_fossil_regional_sum = (
+        co2_regional[co2_fossil_sectors_from_regional]
+        .groupby(co2_regional.index.names.difference([region_level]))
+        .sum()
+        .sum(axis="columns")
+    )
+
+    def get_out_co2(indf: pd.DataFrame, sector: str) -> pd.DataFrame:
+        tmp = indf.to_frame(sector)
+        tmp.columns.name = "sectors"
+
+        return stack_sector_and_return_to_variable(
+            tmp,
+            time_name=time_name,
+            sectors_name="sectors",
+        )
+
+    co2_fossil = get_out_co2(
+        co2_fossil_world_sum + co2_fossil_regional_sum,
+        sector=global_workflow_co2_fossil_sector_iamc,
+    )
+    co2_biosphere = get_out_co2(
+        assignlevel(
+            co2_regional[list(co2_biosphere_sectors_ceds)]
+            .groupby(co2_regional.index.names.difference([region_level]))
+            .sum()
+            .sum(axis="columns"),
+            region=world_region,
+        ),
+        sector=global_workflow_co2_biosphere_sector_iamc,
+    )
+
+    res = pd.concat([co2_fossil, co2_biosphere, non_co2])
+
+    return res
+
+
+def get_global_workflow_emissions_not_from_gridding_variables(  # noqa: PLR0913
+    df_clean_units: pd.DataFrame,
+    gridding_variables: list[str],
+    level_separator: str,
+    region_level: str,
+    world_region: str,
+    variable_level: str,
+    unit_level: str,
+) -> pd.DataFrame:
+    species_from_gridding = {v.split(level_separator)[1] for v in gridding_variables}
+
+    indf_variables = df_clean_units.index.get_level_values(variable_level).unique()
+    not_used_in_gridding_variables = [
+        v for v in indf_variables if not any(s in v for s in species_from_gridding)
+    ]
+
+    to_keep = df_clean_units.loc[
+        df_clean_units.index.get_level_values(variable_level).isin(
+            not_used_in_gridding_variables
+        )
+        & (df_clean_units.index.get_level_values(region_level) == world_region)
+        # equiv not usable for now
+        & ~df_clean_units.index.get_level_values(unit_level).str.contains("equiv")
+    ]
+
+    return to_keep
+
+
+def do_pre_processing(  # noqa: PLR0913
+    indf: pd.DataFrame,
+    world_region: str,
+    time_name: str,
+    region_level: str,
+    variable_level: str,
+    unit_level: str,
+    level_separator: str,
 ) -> CMIP7ScenarioMIPPreProcessingResult:
-    data_for_gridding = get_raw_data_for_gridding(indf, world_region=world_region)
+    indf_clean_units = strip_pint_incompatible_characters_from_units(
+        indf,
+        units_index_level="unit",
+    )
+    data_for_gridding = get_raw_data_for_gridding(
+        indf_clean_units, world_region=world_region
+    )
 
     # From here on in, we are carrying both global and regional data,
     # but only at the regional detail we need.
@@ -572,25 +858,90 @@ def do_pre_processing(
         time_name=time_name,
     )
 
-    split_data = split_world_and_regional_data(
-        agriculture_aggregated, world_region=world_region
-    )
-    split_data.world
-    split_data.regional
-    breakpoint()
     gridding_workflow_emissions = rename_and_filter_to_ceds_aligned_sectors(
-        agriculture_aggregated
-    )
-    aggregate_gridding_workflow_emissions_to_global_workflow_emissions(
-        gridding_workflow_emissions
+        agriculture_aggregated, time_name=time_name
     )
 
-    # convert to CEDS sectors and only keep what we need
-    # get any other global stuff from the raw input
-    # put global stuff together
-    # get a gcages version
+    global_workflow_emissions_from_gridding_emissions = (
+        aggregate_gridding_workflow_emissions_to_global_workflow_emissions(
+            gridding_workflow_emissions,
+            world_region=world_region,
+            time_name=time_name,
+            region_level=region_level,
+            global_workflow_co2_fossil_sector_iamc="Energy and Industrial Processes",
+            global_workflow_co2_biosphere_sector_iamc="AFOLU",
+        )
+    )
+
+    global_workflow_emissions_not_from_gridding_emissions = (
+        get_global_workflow_emissions_not_from_gridding_variables(
+            df_clean_units=indf_clean_units,
+            gridding_variables=gridding_workflow_emissions.index.get_level_values(
+                variable_level
+            )
+            .unique()
+            .tolist(),
+            level_separator=level_separator,
+            region_level=region_level,
+            world_region=world_region,
+            variable_level=variable_level,
+            unit_level=unit_level,
+        )
+    )
+
+    global_workflow_emissions_iamc = pd.concat(
+        [
+            global_workflow_emissions_from_gridding_emissions,
+            global_workflow_emissions_not_from_gridding_emissions.reorder_levels(
+                global_workflow_emissions_from_gridding_emissions.index.names
+            ),
+        ]
+    )
+
+    global_workflow_emissions = update_index_levels_func(
+        global_workflow_emissions_iamc,
+        {
+            "variable": partial(
+                convert_variable_name,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+    )
+
+    res = CMIP7ScenarioMIPPreProcessingResult(
+        gridding_workflow_emissions=gridding_workflow_emissions,
+        global_workflow_emissions=global_workflow_emissions,
+        global_workflow_emissions_iamc=global_workflow_emissions_iamc,
+    )
 
     return res
+
+
+def get_required_ceds_index(
+    world_region: str, model_regions: Iterable[str]
+) -> pd.MultiIndex:
+    required_ceds_index = pd.MultiIndex.from_tuples(
+        [
+            *(
+                (f"Emissions|{species}|{sector}", world_region)
+                for species, sector in itertools.product(
+                    REQUIRED_GRIDDING_SPECIES_IAMC, REQUIRED_WORLD_SECTORS_CEDS
+                )
+            ),
+            *(
+                (f"Emissions|{species}|{sector}", model_region)
+                for species, sector, model_region in itertools.product(
+                    REQUIRED_GRIDDING_SPECIES_IAMC,
+                    REQUIRED_REGIONAL_SECTORS_CEDS,
+                    model_regions,
+                )
+            ),
+        ],
+        names=["variable", "region"],
+    )
+
+    return required_ceds_index
 
 
 @define
@@ -668,6 +1019,9 @@ class CMIP7ScenarioMIPPreProcessor:
             world_region=self.world_region,
             time_name="year",
             region_level="region",
+            variable_level="variable",
+            unit_level="unit",
+            level_separator="|",
             iterable_input=(
                 gdf for _, gdf in in_emissions.groupby(["model", "scenario"])
             ),
@@ -683,7 +1037,7 @@ class CMIP7ScenarioMIPPreProcessor:
                     "global_workflow_emissions",
                     "gridding_workflow_emissions",
                 ]:
-                    if res_ms.isnull().any().any():
+                    if getattr(res_ms, attr).isnull().any().any():
                         ms = (
                             res_ms.index.droplevels(
                                 res_ms.index.names.difference(["model", "scenario"])
@@ -701,16 +1055,34 @@ class CMIP7ScenarioMIPPreProcessor:
             ]:
                 res_d[attr].append(getattr(res_ms, attr))
 
+            complete_index_ms = get_required_ceds_index(
+                world_region=self.world_region,
+                model_regions=res_ms.gridding_workflow_emissions.index.get_level_values(
+                    "region"
+                ).difference([self.world_region]),
+            )
+            assert_all_groups_are_complete(
+                res_ms.gridding_workflow_emissions, complete_index=complete_index_ms
+            )
+
         res = CMIP7ScenarioMIPPreProcessingResult(
             **{k: pd.concat(v) for k, v in res_d.items()}
         )
         if self.run_checks:
-            assert_all_expected_variables_and_regions_included(
-                res.gridding_workflow_emissions
+            reaggreated_gridded_emissions = aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa: E501
+                gridding_emissions=res.gridding_workflow_emissions,
+                world_region=self.world_region,
+                time_name="year",
+                region_level="region",
+                global_workflow_co2_fossil_sector_iamc="Energy and Industrial Processes",  # noqa: E501
+                global_workflow_co2_biosphere_sector_iamc="AFOLU",
             )
-            assert_gridding_and_global_emissions_are_consistent(
-                gridding_workflow_emissions=res.gridding_workflow_emissions,
-                global_workflow_emissions_iamc=res.global_workflow_emissions_iamc,
+            assert_frame_equal(
+                multi_index_lookup(
+                    res.global_workflow_emissions_iamc,
+                    reaggreated_gridded_emissions.index,
+                ),
+                reaggreated_gridded_emissions,
             )
 
         return res
