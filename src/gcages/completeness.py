@@ -37,6 +37,108 @@ class NotCompleteError(ValueError):
         super().__init__(error_msg)
 
 
+def get_missing_levels(
+    index: pd.MultiIndex,
+    complete_index: pd.MultiIndex,
+    levels_to_drop: list[str] | None = None,
+    unit_col: str | None = None,
+) -> pd.MultiIndex:
+    """
+    Get missing levels in an index
+
+    Here, complete is defined by `complete_index`,
+    which specifies the levels that should be in `index`.
+
+    Parameters
+    ----------
+    index
+        Index to check
+
+    complete_index
+        Index which defines the meaning of 'complete'
+
+    levels_to_drop
+        Levels to drop from `index` before checking for completeness
+
+        If not supplied, we use all the index levels in `index`
+        except those that appear in `complete_index` and the `unit_col`,
+        specifically
+        `index.names.difference([*complete_index.names, unit_col])`.
+
+    unit_col
+        Unit column (differences here do not indicate missing levels)
+
+        Only needed if `levels_to_drop` is `None`.
+
+    Examples
+    --------
+    >>> to_check = pd.MultiIndex.from_tuples(
+    ...     [
+    ...         ("sa", "va", "W"),
+    ...         ("sa", "vb", "W"),
+    ...         ("sb", "va", "W"),
+    ...         ("sb", "vb", "W"),
+    ...     ],
+    ...     names=["scenario", "variable", "unit"],
+    ... )
+    >>> to_check  # doctest: +NORMALIZE_WHITESPACE
+    MultiIndex([('sa', 'va', 'W'),
+            ('sa', 'vb', 'W'),
+            ('sb', 'va', 'W'),
+            ('sb', 'vb', 'W')],
+           names=['scenario', 'variable', 'unit'])
+    >>> # A checker, by which `to_check` is complete
+    >>> checker_a = pd.MultiIndex.from_tuples(
+    ...     [
+    ...         ("va",),
+    ...         ("vb",),
+    ...     ],
+    ...     names=["variable"],
+    ... )
+    >>> get_missing_levels(to_check, complete_index=checker_a, unit_col="unit")
+    MultiIndex([], names=['variable'])
+    >>> # Empty index i.e. no missing levels
+    >>>
+    >>> # A checker which includes variables that aren't present in `to_check`
+    >>> checker_b = pd.MultiIndex.from_tuples(
+    ...     [
+    ...         ("va",),
+    ...         ("vb",),
+    ...         ("vc",),
+    ...     ],
+    ...     names=["variable"],
+    ... )
+    >>> get_missing_levels(
+    ...     to_check, complete_index=checker_b, unit_col="unit"
+    ... )  # doctest: +NORMALIZE_WHITESPACE
+    MultiIndex([('vc',)],
+           names=['variable'])
+    """
+    if levels_to_drop is None:
+        if unit_col is None:
+            msg = "If levels_to_drop is `None` then `unit_col` must be supplied"
+            raise AssertionError(msg)
+
+        # Check against the levels that are in `complete_index`
+        # (also ignoring units if they are there)
+        levels_to_drop = list(
+            {*index.names.difference(complete_index.names), unit_col}  # type: ignore # pandas-stubs confused
+        )
+
+    index_to_check = index.droplevel(levels_to_drop)
+
+    if not isinstance(index_to_check, pd.MultiIndex):
+        index_to_check = pd.MultiIndex.from_arrays(
+            [index_to_check.values], names=[index_to_check.name]
+        )
+
+    missing_levels = complete_index.difference(  # type: ignore # pandas-stubs out of date
+        index_to_check.reorder_levels(complete_index.names)
+    )
+
+    return missing_levels
+
+
 def assert_all_groups_are_complete(
     to_check: pd.DataFrame,
     complete_index: pd.MultiIndex,
@@ -144,16 +246,10 @@ def assert_all_groups_are_complete(
         {*to_check.index.names.difference(complete_index.names), unit_col}  # type: ignore # pandas-stubs confused
     )
     for group_values, gdf in to_check.groupby(group_keys):
-        idx_to_check = gdf.index.droplevel(idx_to_check_drop_levels)
-
-        if not isinstance(idx_to_check, pd.MultiIndex):
-            idx_to_check = pd.MultiIndex.from_arrays(
-                [idx_to_check.values], names=[idx_to_check.name]
-            )
-
-        missing_levels = complete_index.difference(  # type: ignore # pandas-stubs out of date
-            idx_to_check.reorder_levels(complete_index.names)
+        missing_levels = get_missing_levels(
+            gdf.index, complete_index, levels_to_drop=idx_to_check_drop_levels
         )
+
         if not missing_levels.empty:
             tmp = missing_levels.to_frame(index=False)
             # Could probably do this better too if we need speed
