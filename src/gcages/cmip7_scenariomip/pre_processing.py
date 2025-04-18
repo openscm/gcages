@@ -171,6 +171,7 @@ def process_transport_variables(  # noqa: PLR0913
         df_stacked[aviation_domestic_sector_in]
         + df_stacked[aviation_international_sector_in]
     )
+
     df_stacked[transportation_sector_out] = (
         df_stacked[transportation_sector_in] - df_stacked[aviation_domestic_sector_in]
     )
@@ -217,6 +218,10 @@ def aggregate_industry_sector(
     df_split = split_variable(df)
 
     df_stacked = df_split.unstack("sector").stack("year", future_stack=True)
+    if "Other" not in df_stacked:
+        # TODO: remove this hack
+        df_stacked["Other"] = 0.0
+
     df_stacked[sector_out] = df_stacked[list(sectors_to_aggregate)].sum(axis="columns")
 
     res = combine_to_make_variable(

@@ -45,7 +45,35 @@ def default_data_structure_definition():
 
     dsd = nomenclature.definition.DataStructureDefinition(exp_path / "definitions")
 
+    species_to_check = [
+        "CO2",
+        "CH4",
+        "N2O",
+        "BC",
+        "CO",
+        "NH3",
+        "OC",
+        "NOx",
+        "Sulfur",
+        "VOC",
+    ]
+    suffixes_to_check = [
+        # Totals
+        *species_to_check,
+        # Energy
+        # "Energy|Supply",
+        # "Energy|Demand",
+        # "Energy|Demand|Transportation",
+        "Energy",
+        "AFOLU",
+        # "AFOLU|Land"
+    ]
     for variable in dsd.variable:
-        dsd.variable[variable].check_aggregate = True
+        if (
+            variable.startswith("Emissions")
+            and any(species in variable for species in species_to_check)
+            and any(variable.endswith(s) for s in suffixes_to_check)
+        ):
+            dsd.variable[variable].check_aggregate = True
 
     return dsd
