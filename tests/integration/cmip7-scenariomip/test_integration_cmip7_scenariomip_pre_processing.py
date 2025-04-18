@@ -12,7 +12,8 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
-from gcages.cmip7_scenariomip.pre_processing import InternalConsistencyError
+
+# from gcages.cmip7_scenariomip.pre_processing import InternalConsistencyError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import assert_frame_equal
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
@@ -89,29 +90,34 @@ def add_gas_totals(indf):
 @pytest.fixture(scope="session")
 def example_raw_input():
     bottom_level_sectors = [
-        # Aviation stuff
-        "Energy|Demand|Transportation|Domestic Aviation",
-        # something so we can get "Energy|Demand|Transportation" as a sum
-        "Energy|Demand|Transportation|Rail",
-        "Energy|Demand|Bunkers|International Aviation",
+        # Energy sector
+        "Energy|Supply",
         # Industrial sector stuff
         "Energy|Demand|Industry",
         "Energy|Demand|Other Sector",
         "Industrial Processes",
         "Other",
-        # Energy sector
-        "Energy|Supply",
-        # International shipping
-        "Energy|Demand|Bunkers|International Shipping",
         # Residential commercial and other
         "Energy|Demand|Residential and Commercial and AFOFI",
         # Solvents production and application
         "Product Use",
+        # Aviation stuff
+        "Energy|Demand|Transportation|Domestic Aviation",
+        # something so we can get "Energy|Demand|Transportation" as a sum
+        "Energy|Demand|Transportation|Rail",
+        "Energy|Demand|Bunkers|International Aviation",
+        # International shipping
+        "Energy|Demand|Bunkers|International Shipping",
         # Waste
         "Waste",
         # Agriculture
         "AFOLU|Agriculture",
-        # Imperfect but put these in agriculture too for now
+        # Burning sectors
+        "AFOLU|Agricultural Waste Burning",
+        "AFOLU|Land|Fires|Forest Burning",
+        "AFOLU|Land|Fires|Grassland Burning",
+        "AFOLU|Land|Fires|Peat Burning",
+        # Imperfect but put these in to test agriculture aggregation too for now
         # (we don't have a better source to harmonise too,
         # except for CO2 but they don't use CO2 LULUCF
         # emissions as input anyway, they use land-use change patterns).
@@ -123,11 +129,6 @@ def example_raw_input():
         "AFOLU|Land|Harvested Wood Products",
         "AFOLU|Land|Other",
         "AFOLU|Land|Wetlands",
-        # Burning sectors
-        "AFOLU|Agricultural Waste Burning",
-        "AFOLU|Land|Fires|Forest Burning",
-        "AFOLU|Land|Fires|Grassland Burning",
-        "AFOLU|Land|Fires|Peat Burning",
     ]
 
     timesteps = np.arange(2015, 2100 + 1, 5)
@@ -136,14 +137,25 @@ def example_raw_input():
             ["model_a"],
             ["scenario_a"],
             ["Emissions"],
-            ["CO2", "CH4"],
+            [
+                "CO2",
+                "CH4",
+                "N2O",
+                "BC",
+                "CO",
+                "NH3",
+                "OC",
+                "NOx",
+                "Sulfur",
+                "VOC",
+            ],
             ["model_a|China", "model_a|Pacific OECD"],
             timesteps,
         ],
         names=["model", "scenario", "table", "gas", "region", "year"],
     )
     df = pd.DataFrame(
-        RNG.random(timesteps.size * 4),
+        RNG.random(start_index.shape[0]),
         columns=pd.Index(["Other"], name="sector"),
         index=start_index,
     )
@@ -155,12 +167,20 @@ def example_raw_input():
     df = add_gas_totals(df)
 
     def get_unit(v):
-        if "CO2" in v:
-            return "Mt CO2/yr"
-        if "CH4" in v:
-            return "Mt CH4/yr"
-
-        raise NotImplementedError(v)
+        species = v.split("|")[1]
+        unit_map = {
+            "BC": "Mt BC/yr",
+            "CH4": "Mt CH4/yr",
+            "CO": "Mt CO/yr",
+            "CO2": "Mt CO2/yr",
+            "N2O": "kt N2O/yr",
+            "NH3": "Mt NH3/yr",
+            "NOx": "Mt NO2/yr",
+            "OC": "Mt OC/yr",
+            "Sulfur": "Mt SO2/yr",
+            "VOC": "Mt VOC/yr",
+        }
+        return unit_map[species]
 
     df["unit"] = df.index.get_level_values("variable").map(get_unit)
     df = df.set_index("unit", append=True)
@@ -205,7 +225,6 @@ def example_raw_input():
 def processed_output(example_raw_input, default_data_structure_definition):
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially
-        data_structure_definition=default_data_structure_definition,
     )
 
     processed = pre_processor(example_raw_input)
