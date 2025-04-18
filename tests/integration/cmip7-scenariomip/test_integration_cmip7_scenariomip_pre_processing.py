@@ -488,7 +488,7 @@ def test_output_internal_consistency_gcages(processed_output):
     )
 
 
-def test_output_start_region_sector_consistency(example_raw_input, processed_output):
+def test_output_vs_start_region_sector_consistency(example_raw_input, processed_output):
     # TODO: put this in `self.run_checks` too
     to_check = processed_output.region_sector_workflow_emissions
     to_check_split = split_variable(to_check)
@@ -533,11 +533,88 @@ def test_input_not_internally_consistent_error_obvious(
     # Just delete a high level variable
     inp = inp.loc[~pix.ismatch(variable="**CO2|Energy")]
 
-    # # Modify a variable without altering the rest of the tree
-    # breakpoint()
-    # inp.loc[pix.ismatch(variable="**CO2|Energy")] *= 3.0
+    exp_components = sorted(
+        default_data_structure_definition.variable["Emissions|CO2"].components
+    )
+    exp_components_included = [
+        "Emissions|CO2|AFOLU",
+        "Emissions|CO2|Industrial Processes",
+        "Emissions|CO2|Other",
+        "Emissions|CO2|Product Use",
+        "Emissions|CO2|Waste",
+    ]
+    exp_components_missing = [
+        "Emissions|CO2|Energy",
+        "Emissions|CO2|Other Capture and Removal",
+    ]
 
-    with pytest.raises(InternalConsistencyError, match=re.escape("junk")):
+    exp_error_lines_except_df = f"""There are reporting issues in your data.
+The issue occurs for the following variables:
+
+1. Emissions|CO2
+  - these are the expected component variables from the data structure definition: {exp_components}
+  - if you have reported data that is not part of the expected component variables, this may be the issue
+  - of the given components, these variables:
+    - are included in the data: {exp_components_included}
+    - are missing from the data: {exp_components_missing}
+
+Here is a view of the difference between the variable values
+and the sum of their expected components:"""  # noqa: E501
+    with pytest.raises(
+        InternalConsistencyError,
+        match=(
+            "".join(
+                [
+                    re.escape(exp_error_lines_except_df),
+                    # Check the DataFrame is shown too
+                    r"\s*year\s*2015.*",
+                    r"\s*",
+                    r"\s*".join(
+                        [
+                            "model",
+                            "scenario",
+                            "region",
+                            "variable",
+                            "unit",
+                            "aggregation",
+                        ]
+                    ),
+                ]
+            )
+        ),
+    ):
+        # Checks on by default
+        CMIP7ScenarioMIPPreProcessor(
+            data_structure_definition=default_data_structure_definition
+        )(inp)
+
+
+def test_input_not_internally_consistent_error_mismatch(
+    example_raw_input, default_data_structure_definition
+):
+    inp = example_raw_input.copy()
+
+    # Modify a variable without altering the rest of the tree
+    inp.loc[pix.ismatch(variable="**CO2|Energy")] *= 3.0
+
+    exp_components_included = [
+        "Emissions|CO2|AFOLU",
+        "Emissions|CO2|Energy",
+        "Emissions|CO2|Industrial Processes",
+        "Emissions|CO2|Other",
+        "Emissions|CO2|Product Use",
+        "Emissions|CO2|Waste",
+    ]
+    exp_components_missing = [
+        "Emissions|CO2|Other Capture and Removal",
+    ]
+    exp_error_lines_to_check = f"""  - of the given components, these variables:
+    - are included in the data: {exp_components_included}
+    - are missing from the data: {exp_components_missing}"""
+
+    with pytest.raises(
+        InternalConsistencyError, match=re.escape(exp_error_lines_to_check)
+    ):
         # Checks on by default
         CMIP7ScenarioMIPPreProcessor(
             data_structure_definition=default_data_structure_definition
@@ -557,7 +634,37 @@ def test_input_not_internally_consistent_error_deep(
     )
     inp = pix.concat([inp, to_add])
 
-    with pytest.raises(InternalConsistencyError, match=re.escape("junk")):
+    exp_error_lines_except_df = """There are reporting issues in your data.
+The issue occurs for the following variables:
+
+1. Emissions|CO2|Energy|Demand|Transportation
+  - the variable has no components in the data structure definition, so we assume that we are insted checking over the variables in the hierarchy: ['Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation', 'Emissions|CO2|Energy|Demand|Transportation|Rail', 'Emissions|CO2|Energy|Demand|Transportation|Light-Duty Vehicle']
+
+Here is a view of the difference between the variable values
+and the sum of their expected components:"""  # noqa: E501
+    with pytest.raises(
+        InternalConsistencyError,
+        match=(
+            "".join(
+                [
+                    re.escape(exp_error_lines_except_df),
+                    # Check the DataFrame is shown too
+                    r"\s*year\s*2015.*",
+                    r"\s*",
+                    r"\s*".join(
+                        [
+                            "model",
+                            "scenario",
+                            "region",
+                            "variable",
+                            "unit",
+                            "aggregation",
+                        ]
+                    ),
+                ]
+            )
+        ),
+    ):
         # Checks on by default
         CMIP7ScenarioMIPPreProcessor(
             data_structure_definition=default_data_structure_definition
@@ -612,6 +719,18 @@ def test_input_missing_key_variable_error(example_raw_input, to_remove):
     with pytest.raises(KeyError, match=re.escape("junk")):
         # Checks on by default
         CMIP7ScenarioMIPPreProcessor()(inp)
+
+
+def test_input_not_internally_consistent_error_regional(example_raw_input):
+    # It might be impossible to get regional reporting errors
+    # because we can just throw away world data
+    # (e.g. if there is nothing which is reported only at the World level,
+    # which would be a change from CMIP6 where international shipping and aviation
+    # was only reported at the global level).
+    # We should be able to check this by checking that, if we sum up
+    # regional and sectoral data, we get World totals for gases
+    # (TODO: this test on actual data).
+    assert False, "TODO: ask Jarmo whether this is even possible"
 
 
 # Underlying logic:

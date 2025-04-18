@@ -498,20 +498,75 @@ class InternalConsistencyError(ValueError):
         indf: pd.DataFrame,
         reporting_issues: pd.DataFrame,
         dsd: DataStructureDefinitionLike,
+        level_separator: str,
     ) -> None:
-        # Continue from here:
-        # - create a helpful summary which identifies:
-        #   - failure points (just stack year from reporting_issues)
-        #   - the variables that dsd includes in components
-        #   - the variables that indf actually includes
-        #   - the difference between the two above
-        raise NotImplementedError
-        error_msg = (
-            "The DataFrame is not complete. "
-            f"The following expected levels are missing:\n{missing}\n"
-            f"The complete index expected for each level is:\n"
-            f"{complete_index.to_frame(index=False)}"
+        reporting_issues_wide = (
+            reporting_issues.melt(ignore_index=False, var_name="aggregation")
+            .set_index("aggregation", append=True)["value"]
+            .unstack("year")
         )
+        indf_variables = indf.index.get_level_values("variable").unique()
+
+        msg_l = [
+            "There are reporting issues in your data.",
+            "The issue occurs for the following variables:",
+        ]
+        for i, variable_with_issue in enumerate(
+            reporting_issues.index.get_level_values("variable").unique()
+        ):
+            msg_l.extend(("", f"{i + 1}. {variable_with_issue}"))
+
+            dsd_components = dsd.variable[variable_with_issue].components
+            if dsd_components is not None:
+                msg_l.append(
+                    "  - these are the expected component variables "
+                    "from the data structure definition: "
+                    f"{sorted(dsd_components)}",
+                )
+                msg_l.append(
+                    "  - if you have reported data "
+                    "that is not part of the expected component variables, "
+                    "this may be the issue",
+                )
+                included_in_df = sorted(
+                    indf_variables.intersection(dsd_components).tolist()
+                )
+                missing_from_df = sorted(
+                    list(set(dsd_components) - set(indf_variables))
+                )
+
+                msg_l.extend(
+                    (
+                        "  - of the given components, these variables:",
+                        f"    - are included in the data: {included_in_df}",
+                        f"    - are missing from the data: {missing_from_df}",
+                    )
+                )
+
+            else:
+                indf_variables_in_hierarchy = [
+                    v
+                    for v in indf_variables
+                    if v.startswith(variable_with_issue)
+                    and v.split(variable_with_issue)[-1].count(level_separator) == 1
+                ]
+                msg_l.append(
+                    "  - the variable has no components "
+                    "in the data structure definition, "
+                    "so we assume that we are insted checking "
+                    "over the variables in the hierarchy: "
+                    f"{indf_variables_in_hierarchy}"
+                )
+
+        msg_l.extend(
+            (
+                "",
+                "Here is a view of the difference between the variable values",
+                "and the sum of their expected components:",
+                f"{reporting_issues_wide}",
+            )
+        )
+        error_msg = "\n".join(msg_l)
         super().__init__(error_msg)
 
 
@@ -541,7 +596,34 @@ def assert_data_is_internally_consistent(
     dsd: DataStructureDefinitionLike,
     rtol: float = 1e-3,
     atol: float = 1e-8,
+    level_separator: str = "|",
 ) -> None:
+    """
+    Assert that data is internally consistent
+
+    Parameters
+    ----------
+    indf
+        Data to check
+
+    dsd
+        Data structure definition to use for checking
+
+    rtol
+        Relative tolerance to apply while checking consistency
+
+    atol
+        Absolute tolerance to apply while checking consistency
+
+    level_separator
+        Separator between levels in the variable hierarchy
+
+    Raises
+    ------
+    InternalConsistencyError
+        The data is not internally consistent
+
+    """
     try:
         import pyam
     except ImportError as exc:
@@ -559,6 +641,7 @@ def assert_data_is_internally_consistent(
         indf=indf,
         reporting_issues=reporting_issues,
         dsd=dsd,
+        level_separator=level_separator,
     )
 
 
