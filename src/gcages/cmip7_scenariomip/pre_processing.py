@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import multiprocessing
 from collections import defaultdict
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -57,6 +58,11 @@ This variable is provided as a global variable for clarity and consistency.
 If you change it, we do not guarantee the package's performance.
 """
 
+INDUSTRIAL_SECTOR_CEDS: str = "Industrial Sector"
+"""
+Sector name used for the industrial sector in CEDS
+"""
+
 DOMESTIC_AVIATION_SECTOR_IAMC: str = "Energy|Demand|Transportation|Domestic Aviation"
 """
 Assumed sector for the domestic aviation sector (IAMC naming convention)
@@ -67,9 +73,19 @@ INTERNATIONAL_AVIATION_SECTOR_IAMC: str = "Energy|Demand|Bunkers|International A
 Assumed reporting for the international aviation sector (IAMC naming convention)
 """
 
+AVIATION_SECTOR_CEDS: str = "Aircraft"
+"""
+Sector name used for aviation in CEDS
+"""
+
 TRANSPORTATION_SECTOR_IAMC: str = "Energy|Demand|Transportation"
 """
 Assumed reporting for the transportation sector (IAMC naming convention)
+"""
+
+TRANSPORTATION_SECTOR_CEDS: str = "Transportation Sector"
+"""
+Sector name used for transport in CEDS
 """
 
 AGRICULTURE_SECTOR_COMPONENTS_IAMC: tuple[str, ...] = (
@@ -87,6 +103,11 @@ If they are not supplied, they are assumed to be zero.
 
 This variable is provided as a global variable for clarity and consistency.
 If you change it, we do not guarantee the package's performance.
+"""
+
+AGRICULTURE_SECTOR_CEDS: str = "Agriculture"
+"""
+Sector name used for the agriculture sector in CEDS
 """
 
 REQUIRED_GRIDDING_SECTORS_REGIONAL_IAMC: tuple[str, ...] = (
@@ -254,9 +275,9 @@ class SplitData:
 
 
 def split_world_and_regional_data(indf: pd.DataFrame, world_region: str) -> SplitData:
-    world_idxer = indf.index.get_level_values("region") == world_region
-    world_data = indf.loc[world_idxer]
-    regional_data = indf.loc[~world_idxer]
+    world_locator = indf.index.get_level_values("region") == world_region
+    world_data = indf.loc[world_locator]
+    regional_data = indf.loc[~world_locator]
 
     return SplitData(world=world_data, regional=regional_data)
 
@@ -410,11 +431,166 @@ class CMIP7ScenarioMIPPreProcessingResult:
     """
 
 
-def do_pre_processing(
-    indf: pd.DataFrame, world_region: str
-) -> CMIP7ScenarioMIPPreProcessingResult:
+def stack_sector(indf: pd.DataFrame, time_name: str) -> pd.DataFrame:
+    try:
+        from pandas_indexing.core import extractlevel
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "stack_sector", requirement="pandas_indexing"
+        ) from exc
+
+    res = (
+        extractlevel(indf, variable="{table}|{gas}|{sectors}")
+        .unstack("sectors")
+        .stack(time_name)
+    )
+
+    return res
+
+
+def unstack_sector_and_return_to_variable(
+    indf: pd.DataFrame, time_name: str, sectors_name: str
+) -> pd.DataFrame:
+    try:
+        from pandas_indexing.core import formatlevel
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "unstack_sector_and_return_to_variable", requirement="pandas_indexing"
+        ) from exc
+
+    res = formatlevel(
+        indf.unstack(time_name).stack(sectors_name),
+        variable="{table}|{gas}|{sectors}",
+        drop=True,
+    )
+
+    return res
+
+
+def reclassify_aviation_emissions(
+    indf: pd.DataFrame, world_region: str, time_name: str, region_level: str
+) -> pd.DataFrame:
     split_data = split_world_and_regional_data(indf, world_region=world_region)
+
+    regional_sector_stack = stack_sector(split_data.regional, time_name=time_name)
+    world_sector_stack = stack_sector(split_data.world, time_name=time_name)
+
+    domestic_aviation_sum = (
+        regional_sector_stack[DOMESTIC_AVIATION_SECTOR_IAMC]
+        .groupby(regional_sector_stack.index.names.difference([region_level]))
+        .sum()
+    )
+    world_sector_stack[AVIATION_SECTOR_CEDS] = (
+        world_sector_stack[INTERNATIONAL_AVIATION_SECTOR_IAMC] + domestic_aviation_sum
+    )
+
+    regional_sector_stack[TRANSPORTATION_SECTOR_CEDS] = (
+        regional_sector_stack[TRANSPORTATION_SECTOR_IAMC]
+        - regional_sector_stack[DOMESTIC_AVIATION_SECTOR_IAMC]
+    )
+
+    # Drop out sectors we're not using
+    world_sector_stack = world_sector_stack[
+        world_sector_stack.columns.difference([INTERNATIONAL_AVIATION_SECTOR_IAMC])
+    ]
+    regional_sector_stack = regional_sector_stack[
+        regional_sector_stack.columns.difference(
+            [DOMESTIC_AVIATION_SECTOR_IAMC, TRANSPORTATION_SECTOR_IAMC]
+        )
+    ]
+
+    get_out = partial(
+        unstack_sector_and_return_to_variable,
+        sectors_name="sectors",
+        time_name=time_name,
+    )
+    world_out = get_out(world_sector_stack)
+    regional_out = get_out(regional_sector_stack)
+
+    res = pd.concat([world_out, regional_out.reorder_levels(world_out.index.names)])
+
+    return res
+
+
+def aggregate_sector(
+    indf: pd.DataFrame,
+    sector_out: str,
+    sector_components: list[str],
+    time_name: str,
+    allow_missing: list[str] | None = None,
+) -> pd.DataFrame:
+    stacked = stack_sector(indf, time_name=time_name)
+
+    to_sum = sector_components
+    if allow_missing is not None:
+        missing = {c for c in to_sum if c not in stacked}
+        # Anything which is missing and allowed to be missing,
+        # we can drop from to_sum
+        to_drop_from_sum = missing.intersection(set(allow_missing))
+        to_sum = list(set(to_sum) - to_drop_from_sum)
+
+    stacked[sector_out] = stacked[to_sum].sum(axis="columns", min_count=len(to_sum))
+    stacked = stacked.drop(to_sum, axis="columns")
+
+    res = unstack_sector_and_return_to_variable(
+        stacked, time_name=time_name, sectors_name="sectors"
+    )
+
+    return res
+
+
+def do_pre_processing(
+    indf: pd.DataFrame, world_region: str, time_name: str, region_level: str
+) -> CMIP7ScenarioMIPPreProcessingResult:
+    data_for_gridding = get_raw_data_for_gridding(indf, world_region=world_region)
+
+    # From here on in, we are carrying both global and regional data,
+    # but only at the regional detail we need.
+    aviation_reclassified = reclassify_aviation_emissions(
+        data_for_gridding,
+        time_name=time_name,
+        world_region=world_region,
+        region_level=region_level,
+    )
+
+    industry_aggregated = aggregate_sector(
+        aviation_reclassified,
+        sector_out=INDUSTRIAL_SECTOR_CEDS,
+        sector_components=list(INDUSTRIAL_SECTOR_CEDS_COMPONENTS_IAMC),
+        time_name=time_name,
+    )
+
+    agriculture_aggregated = aggregate_sector(
+        industry_aggregated,
+        sector_out=AGRICULTURE_SECTOR_CEDS,
+        sector_components=list(AGRICULTURE_SECTOR_COMPONENTS_IAMC),
+        allow_missing=[
+            v
+            for v in AGRICULTURE_SECTOR_COMPONENTS_IAMC
+            if v not in REQUIRED_GRIDDING_SECTORS_REGIONAL_IAMC
+        ],
+        time_name=time_name,
+    )
+
+    split_data = split_world_and_regional_data(
+        agriculture_aggregated, world_region=world_region
+    )
+    split_data.world
+    split_data.regional
     breakpoint()
+    gridding_workflow_emissions = rename_and_filter_to_ceds_aligned_sectors(
+        agriculture_aggregated
+    )
+    aggregate_gridding_workflow_emissions_to_global_workflow_emissions(
+        gridding_workflow_emissions
+    )
+
+    # convert to CEDS sectors and only keep what we need
+    # get any other global stuff from the raw input
+    # put global stuff together
+    # get a gcages version
+
+    return res
 
 
 @define
@@ -490,6 +666,8 @@ class CMIP7ScenarioMIPPreProcessor:
         res_g = apply_op_parallel_progress(
             func_to_call=do_pre_processing,
             world_region=self.world_region,
+            time_name="year",
+            region_level="region",
             iterable_input=(
                 gdf for _, gdf in in_emissions.groupby(["model", "scenario"])
             ),
