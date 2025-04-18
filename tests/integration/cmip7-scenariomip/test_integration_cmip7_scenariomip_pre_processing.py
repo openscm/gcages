@@ -353,10 +353,48 @@ def test_output_vs_start_region_sector_consistency(example_raw_input, processed_
     assert_frame_equal(res_sectoral_regional_sum, exp_sectoral_regional_sum)
 
 
-def test_input_not_internally_consistent_error_obvious(example_raw_input):
+REQUIRED_SECTORS_REGIONAL = (
+    "Energy|Supply",
+    "Energy|Demand|Industry",
+    "Energy|Demand|Other Sector",
+    "Energy|Demand|Residential and Commercial and AFOFI",
+    "Energy|Demand|Transportation",
+    "Energy|Demand|Transportation|Domestic Aviation",
+    "Industrial Processes",
+    "Other",
+    "Product Use",
+    "Waste",
+    "AFOLU|Agriculture",
+    "AFOLU|Agricultural Waste Burning",
+    "AFOLU|Land|Fires|Forest Burning",
+    "AFOLU|Land|Fires|Grassland Burning",
+    "AFOLU|Land|Fires|Peat Burning",
+)
+
+REQUIRED_SECTORS_WORLD = (
+    "Energy|Demand|Bunkers|International Aviation",
+    "Energy|Demand|Bunkers|International Shipping",
+)
+
+OPTIONAL_SECTORS = (
+    "AFOLU|Land|Land Use and Land-Use Change",
+    "AFOLU|Land|Harvested Wood Products",
+    "AFOLU|Land|Other",
+    "AFOLU|Land|Wetlands",
+)
+
+
+def test_input_not_internally_consistent_error_missing_variable(example_raw_input):
     inp = example_raw_input.copy()
 
     # Delete a required high level variable
+    # (note that we only pick up variables we use, so e.g.
+    # deleting "**CO2|Energy" does nothing)
+    # TODO: parameterise so this is more obvious
+    # Cases:
+    # - variable we use at sectoral level: exp error
+    # - variable we use only at global level: exp error
+    # - variable we don't use: exp no error (doesn't matter for us)
     inp = inp.loc[~pix.ismatch(variable="**CO2|Energy|Supply")]
 
     exp_components_included = [
@@ -409,12 +447,17 @@ and the sum of their expected components:"""  # noqa: E501
         CMIP7ScenarioMIPPreProcessor()(inp)
 
 
-def test_input_not_internally_consistent_error_mismatch(
-    example_raw_input, default_data_structure_definition
-):
+def test_input_not_internally_consistent_error_incorrect_sum(example_raw_input):
     inp = example_raw_input.copy()
 
     # Modify a variable without altering the rest of the tree
+    # (note that we only pick up variables we use, so e.g.
+    # deleting "**CO2|Energy" does nothing)
+    # TODO: parameterise so this is more obvious
+    # Cases:
+    # - variable we use at sectoral level: exp error
+    # - variable we use only at global level: exp no error (mismatch doesn't matter for us)
+    # - variable we don't use: exp no error (doesn't matter for us)
     inp.loc[pix.ismatch(variable="**CO2|Energy")] *= 3.0
 
     exp_components_included = [
@@ -436,129 +479,10 @@ def test_input_not_internally_consistent_error_mismatch(
         InternalConsistencyError, match=re.escape(exp_error_lines_to_check)
     ):
         # Checks on by default
-        CMIP7ScenarioMIPPreProcessor(
-            data_structure_definition=default_data_structure_definition
-        )(inp)
-
-
-def test_input_not_internally_consistent_error_deep(
-    example_raw_input, default_data_structure_definition
-):
-    # Will need to update common-definitions to make this work
-    inp = example_raw_input.copy()
-    # Add an extra variable
-    to_add = inp.loc[
-        pix.ismatch(variable="Emissions|CO2|Energy|Demand|Transportation|Rail")
-    ].pix.assign(
-        variable="Emissions|CO2|Energy|Demand|Transportation|Light-Duty Vehicle"
-    )
-    inp = pix.concat([inp, to_add])
-
-    exp_error_lines_except_df = """There are reporting issues in your data.
-The issue occurs for the following variables:
-
-1. Emissions|CO2|Energy|Demand|Transportation
-  - the variable has no components in the data structure definition, so we assume that we are insted checking over the variables in the hierarchy: ['Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation', 'Emissions|CO2|Energy|Demand|Transportation|Rail', 'Emissions|CO2|Energy|Demand|Transportation|Light-Duty Vehicle']
-
-Here is a view of the difference between the variable values
-and the sum of their expected components:"""  # noqa: E501
-    with pytest.raises(
-        InternalConsistencyError,
-        match=(
-            "".join(
-                [
-                    re.escape(exp_error_lines_except_df),
-                    # Check the DataFrame is shown too
-                    r"\s*year\s*2015.*",
-                    r"\s*",
-                    r"\s*".join(
-                        [
-                            "model",
-                            "scenario",
-                            "region",
-                            "variable",
-                            "unit",
-                            "aggregation",
-                        ]
-                    ),
-                ]
-            )
-        ),
-    ):
-        # Checks on by default
-        CMIP7ScenarioMIPPreProcessor(
-            data_structure_definition=default_data_structure_definition
-        )(inp)
-
-
-@pytest.mark.parametrize(
-    "to_remove",
-    (
-        "Energy|Supply",
-        # "Industrial Sector",  # aggregated internally from the below
-        "Energy|Demand|Industry",
-        "Energy|Demand|Other Sector",
-        "Industrial Processes",
-        "Other",
-        "Energy|Demand|Residential and Commercial and AFOFI",
-        "Product Use",
-        # "Transportation Sector",  # aggregated internally from the below
-        "Energy|Demand|Transportation|Domestic Aviation",
-        "Energy|Demand|Bunkers|International Aviation",
-        "Energy|Demand|Transportation",
-        "Waste",
-        "Aircraft",
-        "Energy|Demand|Bunkers|International Shipping",
-        # "CEDS Agriculture",  # aggregated internally from the below
-        "AFOLU|Agriculture",
-        "AFOLU|Land|Land Use and Land-Use Change",
-        "AFOLU|Land|Harvested Wood Products",
-        "AFOLU|Land|Other",
-        "AFOLU|Land|Wetlands",
-        "AFOLU|Agricultural Waste Burning",
-        "AFOLU|Land|Fires|Forest Burning",
-        "AFOLU|Land|Fires|Grassland Burning",
-        pytest.param(
-            "AFOLU|Land|Fires|Peat Burning",
-            marks=[pytest.mark.xfail(reason="Internal hack being applied")],
-        ),
-    ),
-)
-def test_input_missing_key_variable_error(example_raw_input, to_remove):
-    pytest.xfail(reason="Need to think more carefully about this")
-    # It's complicated because we should catch it before the sum,
-    # because it's hard to clearly identify why the sum failed
-    # (often you just get silent passes with a bunch of NaNs
-    # because the sector is there for one variable but not another).
-    # It's hard because it's also not clear what should be a hard fail
-    # and what is allowed.
-    inp = example_raw_input.copy()
-    inp = inp.loc[~pix.ismatch(variable=f"**CH4|{to_remove}")]
-    inp.pix.unique("variable")
-
-    with pytest.raises(KeyError, match=re.escape("junk")):
-        # Checks on by default
         CMIP7ScenarioMIPPreProcessor()(inp)
-
-
-def test_input_not_internally_consistent_error_regional(example_raw_input):
-    # It might be impossible to get regional reporting errors
-    # because we can just throw away world data
-    # (e.g. if there is nothing which is reported only at the World level,
-    # which would be a change from CMIP6 where international shipping and aviation
-    # was only reported at the global level).
-    # We should be able to check this by checking that, if we sum up
-    # regional and sectoral data, we get World totals for gases
-    # (TODO: this test on actual data).
-    assert False, "TODO: ask Jarmo whether this is even possible"
 
 
 # Tests to write:
 # - domestic aviation reported only globally blows up as expected
-# - two scenarios that report on different time grids
-
-# Underlying logic:
-# - we're doing region-sector harmonisation
-# - hence we need regions and sectors lined up very specifically with CEDS
-# - hence this kind of pre-processing
-#   (if you want different pre-processing, use something more like AR6)
+# - two scenarios that report on different time grids also works
+#   (should be same result as handling them separately)

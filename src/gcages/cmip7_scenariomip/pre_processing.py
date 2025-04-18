@@ -1,5 +1,28 @@
 """
 Pre-processing part of the workflow
+
+This is extremely fiddly because the data is inhomogenous
+(some is reported at the regional level,
+other bits only at the global level
+and we need to be able to move between the two).
+
+This module implements the following logic.
+There are a lot of global variables.
+It is likely possible to split this out.
+However, it would be extremely difficult to test
+that the individual components can be altered
+and the whole stays consistent.
+As a result, we have written it like this to make clearer
+that this entire module is more or less coupled,
+If you alter any of the global variables,
+we don't guarantee correct behaviour.
+
+The underlying logic is this:
+
+- we're doing region-sector harmonisation
+- hence we need regions and sectors lined up very specifically with CEDS
+
+If you want simpler pre-processing, use one of the other pre-processing tools.
 """
 
 from __future__ import annotations
@@ -1074,6 +1097,8 @@ class CMIP7ScenarioMIPPreProcessor:
     The logic also goes through multiple layers,
     which makes it hard to clearly identify
     how techniques like dependency injection could actually be used.
+
+    For more details of the logic, see [gcages.cmip7_scenariomip][].
     """
 
     world_region: str = "World"
