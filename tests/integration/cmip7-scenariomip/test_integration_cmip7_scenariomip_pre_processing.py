@@ -10,8 +10,9 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
-
-# from gcages.cmip7_scenariomip.pre_processing import InternalConsistencyError
+from gcages.cmip7_scenariomip.pre_processing import (
+    get_gridded_emissions_sectoral_regional_sum,
+)
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
@@ -107,6 +108,7 @@ def test_industrial_sector_aggregation(example_raw_input, processed_output):
 
     example_raw_input_sectors = unstack_sector(example_raw_input)
     tmp = example_raw_input_sectors.copy()
+
     tmp[exp_sector] = tmp[exp_contributing_sectors].sum(
         axis="columns", min_count=len(exp_contributing_sectors)
     )
@@ -196,19 +198,23 @@ def test_output_consistency_with_input_for_non_region_sector(
     `processed_output.global_workflow_emissions`
     and the input emission
     """
-    region_sector_split_species = split_variable(
-        processed_output.region_sector_workflow_emissions
-    ).pix.unique("gas")
+    region_sector_split_species = unstack_sector(
+        processed_output.gridding_workflow_emissions
+    ).pix.unique("species")
 
     not_from_region_sector = [
         v
-        for v in processed_output.global_workflow_emissions.pix.unique("variable")
+        for v in processed_output.global_workflow_emissions_raw_names.pix.unique(
+            "variable"
+        )
         if not any(species in v for species in region_sector_split_species)
     ]
 
-    not_from_region_sector_res = processed_output.global_workflow_emissions.loc[
-        pix.isin(variable=not_from_region_sector)
-    ]
+    not_from_region_sector_res = (
+        processed_output.global_workflow_emissions_raw_names.loc[
+            pix.isin(variable=not_from_region_sector)
+        ]
+    )
 
     not_from_region_sector_compare = strip_pint_incompatible_characters_from_units(
         example_raw_input.loc[pix.isin(variable=not_from_region_sector)]
@@ -225,27 +231,28 @@ def test_output_internal_consistency(processed_output):
     """
     # Make sure that we can just aggregate semi-blindly
     assert (
-        processed_output.region_sector_workflow_emissions.pix.unique("variable").map(
+        processed_output.gridding_workflow_emissions.pix.unique("variable").map(
             lambda x: x.count("|")
         )
         == 2
     ).all()
-    region_sector_split = split_variable(
-        processed_output.region_sector_workflow_emissions
-    )
+    sector_cols = unstack_sector(processed_output.gridding_workflow_emissions)
 
-    non_sector_region_group_levels = region_sector_split.index.names.difference(
+    non_sector_region_group_levels = sector_cols.index.names.difference(
         ["sector", "region"]
     )
     region_sector_totals = (
-        region_sector_split.groupby(non_sector_region_group_levels)
+        sector_cols.sum(axis="columns")
+        .groupby(non_sector_region_group_levels)
         .sum()
         .pix.assign(region="World")
     )
 
-    region_sector_compare_non_co2 = region_sector_totals.loc[
-        ~pix.isin(gas="CO2")
-    ].pix.format(variable="{table}|{gas}", drop=True)
+    region_sector_compare_non_co2 = (
+        region_sector_totals.unstack("year")
+        .loc[~pix.isin(species="CO2")]
+        .pix.format(variable="{table}|{species}", drop=True)
+    )
 
     fossil_sectors = [
         "Energy Sector",
@@ -257,17 +264,28 @@ def test_output_internal_consistency(processed_output):
         "Aircraft",
         "International Shipping",
     ]
-    region_sector_compare_co2_fossil = combine_to_make_variable(
-        region_sector_split.loc[pix.isin(gas="CO2", sector=fossil_sectors)]
+    biosphere_sectors = [
+        "Agriculture",
+        "Agricultural Waste Burning",
+        "Forest Burning",
+        "Grassland Burning",
+        "Peat Burning",
+    ]
+    region_sector_compare_co2_fossil = stack_sector_and_return_to_variable(
+        sector_cols.loc[pix.isin(species="CO2"), fossil_sectors]
         .groupby(non_sector_region_group_levels)
         .sum()
-        .pix.assign(sector="Energy and Industrial Processes", region="World")
+        .pix.assign(sectors="Energy and Industrial Processes", region="World")
+        .sum(axis="columns")
+        .unstack("sectors")
     )
-    region_sector_compare_co2_afolu = combine_to_make_variable(
-        region_sector_split.loc[pix.isin(gas="CO2") & ~pix.isin(sector=fossil_sectors)]
+    region_sector_compare_co2_afolu = stack_sector_and_return_to_variable(
+        sector_cols.loc[pix.isin(species="CO2"), biosphere_sectors]
         .groupby(non_sector_region_group_levels)
         .sum()
-        .pix.assign(sector="AFOLU", region="World")
+        .pix.assign(sectors="AFOLU", region="World")
+        .sum(axis="columns")
+        .unstack("sectors")
     )
 
     region_sector_compare = pix.concat(
@@ -277,24 +295,28 @@ def test_output_internal_consistency(processed_output):
             region_sector_compare_non_co2,
         ]
     )
-    region_sector_split_species = region_sector_split.pix.unique("gas")
+    region_sector_split_species = sector_cols.pix.unique("species")
     from_region_sector = [
         v
-        for v in processed_output.global_workflow_emissions.pix.unique("variable")
+        for v in processed_output.global_workflow_emissions_raw_names.pix.unique(
+            "variable"
+        )
         if any(species in v for species in region_sector_split_species)
     ]
 
     from_region_sector_locator = pix.isin(variable=from_region_sector)
     assert_frame_equal(
-        processed_output.global_workflow_emissions.loc[from_region_sector_locator],
+        processed_output.global_workflow_emissions_raw_names.loc[
+            from_region_sector_locator
+        ],
         region_sector_compare,
     )
 
 
-def test_output_internal_consistency_gcages(processed_output):
+def test_output_internal_consistency_global_workflow_emissions(processed_output):
     assert_frame_equal(
         update_index_levels_func(
-            processed_output.global_workflow_emissions,
+            processed_output.global_workflow_emissions_raw_names,
             dict(
                 variable=partial(
                     convert_variable_name,
@@ -303,50 +325,34 @@ def test_output_internal_consistency_gcages(processed_output):
                 )
             ),
         ),
-        processed_output.global_workflow_emissions_gcages,
+        processed_output.global_workflow_emissions,
     )
 
 
 def test_output_vs_start_region_sector_consistency(example_raw_input, processed_output):
-    # TODO: put this in `self.run_checks` too
-    to_check = processed_output.region_sector_workflow_emissions
-    to_check_split = split_variable(to_check)
-
-    res_sectoral_sum = (
-        to_check_split.groupby(to_check_split.index.names.difference(["sector"]))
-        .sum()
-        .pix.format(variable="{table}|{gas}", drop=True)
-    )
-    exp_sectoral_sum = example_raw_input.loc[
-        pix.ismatch(
-            variable=res_sectoral_sum.pix.unique("variable"),
-            region=res_sectoral_sum.pix.unique("region"),
-        )
-    ]
-    assert_frame_equal(res_sectoral_sum, exp_sectoral_sum)
-
-    # We have renamed all the sectors in the output,
+    # We have renamed all the sectors
+    # and moved domestic aviation to global only in the output,
     # so we can't check the regional sum for each sector.
-    # Hence we jump straight to checking the regional sum of our sectoral sum.
-    res_sectoral_regional_sum = (
-        # Implicitly also testing that World is not in the output
-        # (users would have to aggregate that themselves)
-        res_sectoral_sum.groupby(res_sectoral_sum.index.names.difference(["region"]))
-        .sum()
-        .pix.assign(region="World")
+    # Hence we jump straight to checking the regional sum of our sectoral sum
+    # i.e. the total.
+    res_sectoral_regional_sum = get_gridded_emissions_sectoral_regional_sum(
+        processed_output.gridding_workflow_emissions,
+        time_name="year",
+        region_level="region",
+        world_region="World",
     )
+
     exp_sectoral_regional_sum = example_raw_input.loc[
         pix.ismatch(
             variable=res_sectoral_regional_sum.pix.unique("variable"),
             region=res_sectoral_regional_sum.pix.unique("region"),
         )
     ]
+
     assert_frame_equal(res_sectoral_regional_sum, exp_sectoral_regional_sum)
 
 
-def test_input_not_internally_consistent_error_obvious(
-    example_raw_input, default_data_structure_definition
-):
+def test_input_not_internally_consistent_error_obvious(example_raw_input):
     inp = example_raw_input.copy()
 
     # Just delete a high level variable

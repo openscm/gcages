@@ -652,5 +652,6 @@ def get_cmip7_scenariomip_like_input() -> pd.DataFrame:
         )
     global_only = pd.concat(global_only_l)
     df = pd.concat([df, global_only.reorder_levels(df.index.names)])
+    df.columns = df.columns.astype(int)
 
     return df

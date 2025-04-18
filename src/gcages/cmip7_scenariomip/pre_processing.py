@@ -9,10 +9,11 @@ import multiprocessing
 from collections import defaultdict
 from collections.abc import Iterable
 from functools import partial
+from typing import Any
 
 import numpy as np
 import pandas as pd
-from attrs import define
+from attrs import asdict, define
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
@@ -497,14 +498,14 @@ class CMIP7ScenarioMIPPreProcessingResult:
     Emissions that can be used with the 'normal' global workflow
     """
 
-    global_workflow_emissions_iamc: pd.DataFrame
+    global_workflow_emissions_raw_names: pd.DataFrame
     """
     Emissions consistent with those that can be used with the 'normal' global workflow
 
-    The difference is that these are reported with IAMC naming,
-    which isn't compatible with our runners
-    (so probably not what you want to use,
-    but perhaps helpful for plotting and direct comparisons).
+    The difference is that these are reported with CMIP7 ScenarioMIP naming,
+    which isn't compatible with our SCM runners (for example),
+    so is probably not what you want to use,
+    but perhaps helpful for plotting and direct comparisons.
     """
 
 
@@ -889,7 +890,7 @@ def do_pre_processing(  # noqa: PLR0913
         )
     )
 
-    global_workflow_emissions_iamc = pd.concat(
+    global_workflow_emissions_raw_names = pd.concat(
         [
             global_workflow_emissions_from_gridding_emissions,
             global_workflow_emissions_not_from_gridding_emissions.reorder_levels(
@@ -899,7 +900,7 @@ def do_pre_processing(  # noqa: PLR0913
     )
 
     global_workflow_emissions = update_index_levels_func(
-        global_workflow_emissions_iamc,
+        global_workflow_emissions_raw_names,
         {
             "variable": partial(
                 convert_variable_name,
@@ -912,10 +913,41 @@ def do_pre_processing(  # noqa: PLR0913
     res = CMIP7ScenarioMIPPreProcessingResult(
         gridding_workflow_emissions=gridding_workflow_emissions,
         global_workflow_emissions=global_workflow_emissions,
-        global_workflow_emissions_iamc=global_workflow_emissions_iamc,
+        global_workflow_emissions_raw_names=global_workflow_emissions_raw_names,
     )
 
     return res
+
+
+def assert_no_nans_in_res_ms(res_ms: CMIP7ScenarioMIPPreProcessingResult) -> None:
+    for attr in [
+        "global_workflow_emissions",
+        "gridding_workflow_emissions",
+    ]:
+        if getattr(res_ms, attr).isnull().any().any():
+            ms = (
+                res_ms.index.droplevels(
+                    res_ms.index.names.difference(["model", "scenario"])
+                )
+                .drop_duplicates()
+                .tolist()
+            )
+            msg = f"NaNs in res.{attr} for {ms}"
+            raise AssertionError(msg)
+
+
+def assert_column_type_unchanged_in_res_ms(
+    res_ms: CMIP7ScenarioMIPPreProcessingResult, in_column_type: Any
+) -> None:
+    for attr in [
+        "global_workflow_emissions",
+        "global_workflow_emissions_raw_names",
+        "gridding_workflow_emissions",
+    ]:
+        df = getattr(res_ms, attr)
+        if df.columns.dtype != in_column_type:
+            msg = "Column type has changed: " f"{df.columns.dtype=} {in_column_type}"
+            raise AssertionError(msg)
 
 
 def get_required_ceds_index(
@@ -942,6 +974,32 @@ def get_required_ceds_index(
     )
 
     return required_ceds_index
+
+
+def get_gridded_emissions_sectoral_regional_sum(
+    indf: pd.DataFrame, time_name: str, region_level: str, world_region: str
+) -> pd.DataFrame:
+    try:
+        from pandas_indexing.core import formatlevel
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "stack_sector_and_return_to_variable", requirement="pandas_indexing"
+        ) from exc
+
+    sector_cols = unstack_sector(indf, time_name=time_name)
+    sector_sum = sector_cols.sum(axis="columns")
+    region_sum = sector_sum.unstack(region_level).sum(axis="columns")
+
+    tmp = region_sum.to_frame(world_region)
+    tmp.columns.name = region_level
+
+    res = formatlevel(
+        tmp.unstack(time_name).stack(region_level),
+        variable="{table}|{species}",
+        drop=True,
+    )
+
+    return res
 
 
 @define
@@ -1033,27 +1091,13 @@ class CMIP7ScenarioMIPPreProcessor:
         res_d = defaultdict(list)
         for res_ms in res_g:
             if self.run_checks:
-                for attr in [
-                    "global_workflow_emissions",
-                    "gridding_workflow_emissions",
-                ]:
-                    if getattr(res_ms, attr).isnull().any().any():
-                        ms = (
-                            res_ms.index.droplevels(
-                                res_ms.index.names.difference(["model", "scenario"])
-                            )
-                            .drop_duplicates()
-                            .tolist()
-                        )
-                        msg = f"NaNs in res.{attr} for {ms}"
-                        raise AssertionError(msg)
+                assert_no_nans_in_res_ms(res_ms)
+                assert_column_type_unchanged_in_res_ms(
+                    res_ms, in_column_type=in_emissions.columns.dtype
+                )
 
-            for attr in [
-                "global_workflow_emissions",
-                "global_workflow_emissions_iamc",
-                "gridding_workflow_emissions",
-            ]:
-                res_d[attr].append(getattr(res_ms, attr))
+            for k, v in asdict(res_ms).items():
+                res_d[k].append(v)
 
             complete_index_ms = get_required_ceds_index(
                 world_region=self.world_region,
@@ -1069,6 +1113,24 @@ class CMIP7ScenarioMIPPreProcessor:
             **{k: pd.concat(v) for k, v in res_d.items()}
         )
         if self.run_checks:
+            # Check we didn't lose anything on the way
+            gridded_emisssions_sectoral_regional_sum = (
+                get_gridded_emissions_sectoral_regional_sum(
+                    res.gridding_workflow_emissions,
+                    time_name="year",
+                    region_level="region",
+                    world_region=self.world_region,
+                )
+            )
+            assert_frame_equal(
+                multi_index_lookup(
+                    in_emissions,
+                    gridded_emisssions_sectoral_regional_sum.index,
+                ),
+                gridded_emisssions_sectoral_regional_sum,
+            )
+
+            # Check internal consistency too
             reaggreated_gridded_emissions = aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa: E501
                 gridding_emissions=res.gridding_workflow_emissions,
                 world_region=self.world_region,
@@ -1079,7 +1141,7 @@ class CMIP7ScenarioMIPPreProcessor:
             )
             assert_frame_equal(
                 multi_index_lookup(
-                    res.global_workflow_emissions_iamc,
+                    res.global_workflow_emissions_raw_names,
                     reaggreated_gridded_emissions.index,
                 ),
                 reaggreated_gridded_emissions,
