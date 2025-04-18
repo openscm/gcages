@@ -487,6 +487,11 @@ class CMIP7ScenarioMIPPreProcessingResult:
     and harmonising at the region-sector level.
     """
 
+    gridding_workflow_emissions: pd.DataFrame
+    """
+    Emissions that can be used with the gridding workflow
+    """
+
     global_workflow_emissions: pd.DataFrame
     """
     Emissions that can be used with the 'normal' global workflow
@@ -500,11 +505,6 @@ class CMIP7ScenarioMIPPreProcessingResult:
     which isn't compatible with our runners
     (so probably not what you want to use,
     but perhaps helpful for plotting and direct comparisons).
-    """
-
-    gridding_workflow_emissions: pd.DataFrame
-    """
-    Emissions that can be used with the gridding workflow
     """
 
 
