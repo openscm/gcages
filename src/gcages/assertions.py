@@ -319,3 +319,27 @@ def assert_only_working_on_variable_unit_variations(indf: pd.DataFrame) -> None:
     if len(variations_in_other_cols) > 1:
         msg = f"variations_in_other_cols=\n{variations_in_other_cols}"
         raise AssertionError(msg)
+
+
+def assert_only_working_on_variable_unit_region_variations(indf: pd.DataFrame) -> None:
+    """
+    Assert that we're only working on variations in variable, unit and region
+
+    In other words, we don't have variations in scenarios, models etc.
+
+    Parameters
+    ----------
+    indf
+        Data to verify
+
+    Raises
+    ------
+    AssertionError
+        There are variations in columns other than variable and unit
+    """
+    variations_in_other_cols = indf.index.droplevel(
+        ["variable", "unit", "region"]
+    ).unique()
+    if len(variations_in_other_cols) > 1:
+        msg = f"variations_in_other_cols=\n{variations_in_other_cols}"
+        raise AssertionError(msg)
