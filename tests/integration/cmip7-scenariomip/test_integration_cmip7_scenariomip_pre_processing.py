@@ -4,6 +4,7 @@ Integration tests of our pre-processing for CMIP7 ScenarioMIP
 
 import itertools
 import re
+from contextlib import nullcontext as does_not_raise
 from functools import partial
 
 import pytest
@@ -14,6 +15,7 @@ from gcages.cmip7_scenariomip.pre_processing import (
     InternalConsistencyError,
     get_gridded_emissions_sectoral_regional_sum,
 )
+from gcages.completeness import NotCompleteError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
@@ -27,22 +29,22 @@ pix = pytest.importorskip("pandas_indexing")
 
 
 @pytest.fixture(scope="session")
-def example_raw_input():
+def example_complete_input():
     return get_cmip7_scenariomip_like_input()
 
 
 @pytest.fixture(scope="session")
-def processed_output(example_raw_input):
+def processed_output(example_complete_input):
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially
     )
 
-    processed = pre_processor(example_raw_input)
+    processed = pre_processor(example_complete_input)
 
     return processed
 
 
-def test_transport_shuffling(example_raw_input, processed_output):
+def test_transport_shuffling(example_complete_input, processed_output):
     """
     Test the moving of the transport data
 
@@ -60,9 +62,9 @@ def test_transport_shuffling(example_raw_input, processed_output):
         .any()
     ), df_to_check.pix.unique("variable")
 
-    example_raw_input_sectors = unstack_sector(example_raw_input)
+    example_complete_input_sectors = unstack_sector(example_complete_input)
 
-    tmp = example_raw_input_sectors.copy()
+    tmp = example_complete_input_sectors.copy()
     tmp["Aircraft"] = tmp[
         [
             "Energy|Demand|Transportation|Domestic Aviation",
@@ -74,7 +76,7 @@ def test_transport_shuffling(example_raw_input, processed_output):
         tmp[["Aircraft"]].dropna().loc[pix.ismatch(region="World")]
     )
 
-    tmp = example_raw_input_sectors.copy()
+    tmp = example_complete_input_sectors.copy()
     tmp["Transportation Sector"] = (
         tmp["Energy|Demand|Transportation"]
         - tmp["Energy|Demand|Transportation|Domestic Aviation"]
@@ -95,7 +97,7 @@ def test_transport_shuffling(example_raw_input, processed_output):
     )
 
 
-def test_industrial_sector_aggregation(example_raw_input, processed_output):
+def test_industrial_sector_aggregation(example_complete_input, processed_output):
     # Not interested in global level for this
     df_to_check = processed_output.gridding_workflow_emissions
 
@@ -107,8 +109,8 @@ def test_industrial_sector_aggregation(example_raw_input, processed_output):
         "Other",
     ]
 
-    example_raw_input_sectors = unstack_sector(example_raw_input)
-    tmp = example_raw_input_sectors.copy()
+    example_complete_input_sectors = unstack_sector(example_complete_input)
+    tmp = example_complete_input_sectors.copy()
 
     tmp[exp_sector] = tmp[exp_contributing_sectors].sum(
         axis="columns", min_count=len(exp_contributing_sectors)
@@ -124,7 +126,7 @@ def test_industrial_sector_aggregation(example_raw_input, processed_output):
     )
 
 
-def test_agricultural_sector_aggregation(example_raw_input, processed_output):
+def test_agricultural_sector_aggregation(example_complete_input, processed_output):
     # Not interested in global level for this
     df_to_check = processed_output.gridding_workflow_emissions
 
@@ -137,8 +139,8 @@ def test_agricultural_sector_aggregation(example_raw_input, processed_output):
         "AFOLU|Land|Wetlands",
     ]
 
-    example_raw_input_sectors = unstack_sector(example_raw_input)
-    tmp = example_raw_input_sectors.copy()
+    example_complete_input_sectors = unstack_sector(example_complete_input)
+    tmp = example_complete_input_sectors.copy()
     tmp[exp_sector] = tmp[exp_contributing_sectors].sum(
         axis="columns", min_count=len(exp_contributing_sectors)
     )
@@ -153,8 +155,8 @@ def test_agricultural_sector_aggregation(example_raw_input, processed_output):
     )
 
 
-def test_output_sectors(example_raw_input, processed_output):
-    example_raw_input_sectors = unstack_sector(example_raw_input)
+def test_output_sectors(example_complete_input, processed_output):
+    example_complete_input_sectors = unstack_sector(example_complete_input)
 
     exp_output_sectors = [
         # Fossil
@@ -178,8 +180,8 @@ def test_output_sectors(example_raw_input, processed_output):
     exp_output_variables = [
         f"{table}|{gas}|{sector}"
         for table, gas, sector in itertools.product(
-            example_raw_input_sectors.pix.unique("table"),
-            example_raw_input_sectors.loc[~pix.isin(region="World")].pix.unique(
+            example_complete_input_sectors.pix.unique("table"),
+            example_complete_input_sectors.loc[~pix.isin(region="World")].pix.unique(
                 "species"
             ),
             exp_output_sectors,
@@ -192,7 +194,7 @@ def test_output_sectors(example_raw_input, processed_output):
 
 
 def test_output_consistency_with_input_for_non_region_sector(
-    example_raw_input, processed_output
+    example_complete_input, processed_output
 ):
     """
     Test consistency between
@@ -218,7 +220,7 @@ def test_output_consistency_with_input_for_non_region_sector(
     )
 
     not_from_region_sector_compare = strip_pint_incompatible_characters_from_units(
-        example_raw_input.loc[pix.isin(variable=not_from_region_sector)]
+        example_complete_input.loc[pix.isin(variable=not_from_region_sector)]
     )
 
     assert_frame_equal(not_from_region_sector_res, not_from_region_sector_compare)
@@ -330,7 +332,9 @@ def test_output_internal_consistency_global_workflow_emissions(processed_output)
     )
 
 
-def test_output_vs_start_region_sector_consistency(example_raw_input, processed_output):
+def test_output_vs_start_region_sector_consistency(
+    example_complete_input, processed_output
+):
     # We have renamed all the sectors
     # and moved domestic aviation to global only in the output,
     # so we can't check the regional sum for each sector.
@@ -343,7 +347,7 @@ def test_output_vs_start_region_sector_consistency(example_raw_input, processed_
         world_region="World",
     )
 
-    exp_sectoral_regional_sum = example_raw_input.loc[
+    exp_sectoral_regional_sum = example_complete_input.loc[
         pix.ismatch(
             variable=res_sectoral_regional_sum.pix.unique("variable"),
             region=res_sectoral_regional_sum.pix.unique("region"),
@@ -384,71 +388,51 @@ OPTIONAL_SECTORS = (
 )
 
 
-def test_input_not_internally_consistent_error_missing_variable(example_raw_input):
-    inp = example_raw_input.copy()
-
-    # Delete a required high level variable
-    # (note that we only pick up variables we use, so e.g.
-    # deleting "**CO2|Energy" does nothing)
-    # TODO: parameterise so this is more obvious
-    # Cases:
-    # - variable we use at sectoral level: exp error
-    # - variable we use only at global level: exp error
-    # - variable we don't use: exp no error (doesn't matter for us)
-    inp = inp.loc[~pix.ismatch(variable="**CO2|Energy|Supply")]
-
-    exp_components_included = [
-        "Emissions|CO2|AFOLU",
-        "Emissions|CO2|Industrial Processes",
-        "Emissions|CO2|Other",
-        "Emissions|CO2|Product Use",
-        "Emissions|CO2|Waste",
-    ]
-    exp_components_missing = [
-        "Emissions|CO2|Energy",
-        "Emissions|CO2|Other Capture and Removal",
-    ]
-
-    exp_error_lines_except_df = f"""There are reporting issues in your data.
-The issue occurs for the following variables:
-
-1. Emissions|CO2
-  - if you have reported data that is not part of the expected component variables, this may be the issue
-  - of the given components, these variables:
-    - are included in the data: {exp_components_included}
-    - are missing from the data: {exp_components_missing}
-
-Here is a view of the difference between the variable values
-and the sum of their expected components:"""  # noqa: E501
-    with pytest.raises(
-        InternalConsistencyError,
-        match=(
-            "".join(
-                [
-                    re.escape(exp_error_lines_except_df),
-                    # Check the DataFrame is shown too
-                    r"\s*year\s*2015.*",
-                    r"\s*",
-                    r"\s*".join(
-                        [
-                            "model",
-                            "scenario",
-                            "region",
-                            "variable",
-                            "unit",
-                            "aggregation",
-                        ]
-                    ),
-                ]
+@pytest.mark.parametrize(
+    "sector_to_delete, exp",
+    (
+        *(
+            pytest.param(
+                v, pytest.raises(NotCompleteError), id=f"{v}_not-complete-error"
             )
+            for v in [*REQUIRED_SECTORS_REGIONAL, *REQUIRED_SECTORS_WORLD]
         ),
-    ):
+        *(
+            pytest.param(
+                v,
+                # pytest.raises(AssertionError, match=re.escape("junk")),
+                pytest.raises(KeyError, match=re.escape("junk")),
+                id=f"{v}_assertion-error",
+            )
+            # These don't cause completeness issues,
+            # but they do break the internal consistency of the data.
+            for v in OPTIONAL_SECTORS
+        ),
+        *(
+            pytest.param(v, does_not_raise(), id=f"{v}_can-be-missing")
+            for v in [
+                # Sectors what we don't consider at all
+                "Energy|Demand",
+                "Energy",
+                # # TODO: check whether we should be using this
+                # # (I guess we'll find out once we start using IAM data)
+                "Other Capture and Removal",
+            ]
+        ),
+    ),
+)
+def test_input_missing_variable(sector_to_delete, exp, example_complete_input):
+    inp = example_complete_input.copy()
+
+    inp = inp.loc[~pix.ismatch(variable=f"**CO2|{sector_to_delete}")]
+
+    with exp:
         # Checks on by default
         CMIP7ScenarioMIPPreProcessor()(inp)
 
 
-def test_input_not_internally_consistent_error_incorrect_sum(example_raw_input):
-    inp = example_raw_input.copy()
+def test_input_not_internally_consistent_error_incorrect_sum(example_complete_input):
+    inp = example_complete_input.copy()
 
     # Modify a variable without altering the rest of the tree
     # (note that we only pick up variables we use, so e.g.

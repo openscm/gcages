@@ -498,7 +498,42 @@ def assert_data_is_compatible_with_pre_processing(
         split_data.world, data_for_gridding_totals.index
     )
 
-    assert_frame_equal(data_for_gridding_totals, indf_global_totals)
+    try:
+        # TODO: add tolerance in here
+        assert_frame_equal(data_for_gridding_totals, indf_global_totals)
+    except AssertionError as exc:
+        # TODO: split out get difference between frames
+        left_align, right_align = data_for_gridding_totals.reorder_levels(
+            indf_global_totals.index.names
+        ).align(indf_global_totals)
+        comparison = left_align.compare(
+            right_align, result_names=("sum_of_components", "reported_totals")
+        ).stack("year")
+        errors_of_interest = comparison[
+            ~np.isclose(
+                comparison["sum_of_components"],
+                comparison["reported_totals"],
+                rtol=1e-4,
+            )
+        ]
+        errors_of_interest_variables = errors_of_interest.index.get_level_values(
+            "variable"
+        ).unique()
+        data_included_in_sum_for_variales_with_errors = data_for_gridding_raw_to_sum[
+            data_for_gridding_raw_to_sum.index.get_level_values("variable").map(
+                lambda x: any(v in x for v in errors_of_interest_variables)
+            )
+        ].index.to_frame(index=False)
+
+        msg = (
+            "If we add up all the data we will use for gridding "
+            "(which is at the sector and region level), "
+            "we don't get the reported global totals. "
+            "This is the data we used in the sum:\n"
+            f"{data_included_in_sum_for_variales_with_errors}"
+        )
+
+        raise AssertionError(msg) from exc
 
 
 class InternalConsistencyError(ValueError):
