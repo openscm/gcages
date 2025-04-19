@@ -912,7 +912,13 @@ def aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa:
         sector=global_workflow_co2_biosphere_sector_iamc,
     )
 
-    res = pd.concat([co2_fossil, co2_biosphere, non_co2]).sort_index(axis="columns")
+    res = pd.concat(
+        [
+            co2_fossil,
+            co2_biosphere.reorder_levels(co2_fossil.index.names),
+            non_co2.reorder_levels(co2_fossil.index.names),
+        ]
+    ).sort_index(axis="columns")
 
     return res
 
