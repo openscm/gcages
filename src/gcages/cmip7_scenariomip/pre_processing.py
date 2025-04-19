@@ -50,7 +50,7 @@ from gcages.assertions import (
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
-from gcages.testing import assert_frame_equal
+from gcages.testing import assert_frame_equal, compare_close
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 REQUIRED_GRIDDING_SPECIES_IAMC: tuple[str, ...] = (
@@ -464,8 +464,41 @@ def drop_out_domestic_aviation(indf: pd.DataFrame) -> pd.DataFrame:
     return res
 
 
+class InternalConsistencyError(ValueError):
+    """
+    Raised when there is an internal consistency issue in the data
+
+    Specifically, the sum of components doesn't match some total
+    """
+
+    def __init__(
+        self,
+        differences: pd.DataFrame,
+        data_that_was_summed: pd.DataFrame,
+    ) -> None:
+        differences_variables = differences.index.get_level_values("variable").unique()
+        data_that_was_summed_relevant_for_differences = data_that_was_summed[
+            data_that_was_summed.index.get_level_values("variable").map(
+                lambda x: any(v in x for v in differences_variables)
+            )
+        ].index.to_frame(index=False)
+
+        error_msg = (
+            "Summing the components does not equal the total. "
+            f"Differences:\n{differences}\n"
+            "This is the data we used in the sum:\n"
+            f"{data_that_was_summed_relevant_for_differences}"
+        )
+
+        super().__init__(error_msg)
+
+
 def assert_data_is_compatible_with_pre_processing(
-    indf: pd.DataFrame, world_region: str, region_level: str
+    indf: pd.DataFrame,
+    world_region: str,
+    region_level: str,
+    rtol_internal_consistency: float,
+    atol_internal_consistency: float,
 ) -> None:
     indf_drop_all_nan_cols = indf.dropna(how="all", axis="columns")
     if indf_drop_all_nan_cols.isnull().any().any():
@@ -498,61 +531,27 @@ def assert_data_is_compatible_with_pre_processing(
         split_data.world, data_for_gridding_totals.index
     )
 
-    try:
-        # TODO: add tolerance in here
-        assert_frame_equal(data_for_gridding_totals, indf_global_totals)
-    except AssertionError as exc:
-        # TODO: split out get difference between frames
-        left_align, right_align = data_for_gridding_totals.reorder_levels(
-            indf_global_totals.index.names
-        ).align(indf_global_totals)
-        comparison = left_align.compare(
-            right_align, result_names=("sum_of_components", "reported_totals")
-        ).stack("year")
-        errors_of_interest = comparison[
-            ~np.isclose(
-                comparison["sum_of_components"],
-                comparison["reported_totals"],
-                rtol=1e-4,
-            )
-        ]
-        errors_of_interest_variables = errors_of_interest.index.get_level_values(
-            "variable"
-        ).unique()
-        data_included_in_sum_for_variales_with_errors = data_for_gridding_raw_to_sum[
-            data_for_gridding_raw_to_sum.index.get_level_values("variable").map(
-                lambda x: any(v in x for v in errors_of_interest_variables)
-            )
-        ].index.to_frame(index=False)
-
-        msg = (
-            "If we add up all the data we will use for gridding "
-            "(which is at the sector and region level), "
-            "we don't get the reported global totals. "
-            "This is the data we used in the sum:\n"
-            f"{data_included_in_sum_for_variales_with_errors}"
+    differences = compare_close(
+        data_for_gridding_totals,
+        indf_global_totals,
+        left_name="total_from_sectors_and_regions_used_in_gridding",
+        right_name="total_reported_in_input",
+        rtol=rtol_internal_consistency,
+        atol=atol_internal_consistency,
+    )
+    if not differences.empty:
+        raise InternalConsistencyError(
+            differences=differences, data_that_was_summed=data_for_gridding_raw_to_sum
         )
 
-        raise AssertionError(msg) from exc
 
-
-class InternalConsistencyError(ValueError):
-    """
-    Raised when there is an internal consistency issue
-    """
-
-    def __init__(
-        self,
-        indf: pd.DataFrame,
-        reporting_issues: pd.DataFrame,
-        level_separator: str,
-    ) -> None:
-        raise NotImplementedError
-        super().__init__(error_msg)
-
-
-def assert_data_has_required_internal_consistency(
-    indf: pd.DataFrame, world_region: str, region_level: str, time_name: str
+def assert_data_has_required_internal_consistency(  # noqa: PLR0913
+    indf: pd.DataFrame,
+    world_region: str,
+    region_level: str,
+    time_name: str,
+    rtol_internal_consistency: float,
+    atol_internal_consistency: float,
 ) -> None:
     split_data = split_world_and_regional_data(indf, world_region=world_region)
 
@@ -595,7 +594,12 @@ def assert_data_has_required_internal_consistency(
         indf, gridding_data_regional_region_sector_sum.index
     )
 
-    assert_frame_equal(gridding_data_region_sector_sum, reported_region_sector_sum)
+    assert_frame_equal(
+        gridding_data_region_sector_sum,
+        reported_region_sector_sum,
+        rtol=rtol_internal_consistency,
+        atol=atol_internal_consistency,
+    )
 
 
 @define
@@ -1136,6 +1140,22 @@ class CMIP7ScenarioMIPPreProcessor:
     For more details of the logic, see [gcages.cmip7_scenariomip][].
     """
 
+    rtol_internal_consistency: float = 1e-4
+    """
+    Relative tolerance to apply when checking the internal consistency of the data
+
+    For example, when making sure that the sum of regional and sectoral information
+    matches repoted totals.
+    """
+
+    atol_internal_consistency: float = 1e-6
+    """
+    Absolute tolerance to apply when checking the internal consistency of the data
+
+    For example, when making sure that the sum of regional and sectoral information
+    matches repoted totals.
+    """
+
     world_region: str = "World"
     """
     String that identifies the world (i.e. global total) region
@@ -1186,9 +1206,14 @@ class CMIP7ScenarioMIPPreProcessor:
                 in_emissions, ["variable", "unit", "model", "scenario", "region"]
             )
 
-            assert_data_is_compatible_with_pre_processing(
-                in_emissions, world_region=self.world_region, region_level="region"
-            )
+            for _, msdf in in_emissions.groupby(["model", "scenario"]):
+                assert_data_is_compatible_with_pre_processing(
+                    msdf,
+                    world_region=self.world_region,
+                    region_level="region",
+                    rtol_internal_consistency=self.rtol_internal_consistency,
+                    atol_internal_consistency=self.atol_internal_consistency,
+                )
 
             if in_emissions.columns.name != "year":
                 msg = "The input emissions' column name should be 'year'"
@@ -1199,6 +1224,8 @@ class CMIP7ScenarioMIPPreProcessor:
                 world_region=self.world_region,
                 region_level="region",
                 time_name="year",
+                rtol_internal_consistency=self.rtol_internal_consistency,
+                atol_internal_consistency=self.atol_internal_consistency,
             )
 
         res_g = apply_op_parallel_progress(
@@ -1251,12 +1278,15 @@ class CMIP7ScenarioMIPPreProcessor:
                     world_region=self.world_region,
                 )
             )
+            in_emissions_totals_to_compare_to = multi_index_lookup(
+                in_emissions,
+                gridded_emisssions_sectoral_regional_sum.index,
+            )
             assert_frame_equal(
-                multi_index_lookup(
-                    in_emissions,
-                    gridded_emisssions_sectoral_regional_sum.index,
-                ),
+                in_emissions_totals_to_compare_to,
                 gridded_emisssions_sectoral_regional_sum,
+                rtol=self.rtol_internal_consistency,
+                atol=self.atol_internal_consistency,
             )
 
             # Check internal consistency too
@@ -1274,6 +1304,8 @@ class CMIP7ScenarioMIPPreProcessor:
                     reaggreated_gridded_emissions.index,
                 ),
                 reaggreated_gridded_emissions,
+                rtol=self.rtol_internal_consistency,
+                atol=self.atol_internal_consistency,
             )
 
         return res

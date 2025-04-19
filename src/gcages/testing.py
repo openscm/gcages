@@ -419,6 +419,36 @@ def assert_frame_equal(
     )
 
 
+def compare_close(
+    left: pd.DataFrame,
+    right: pd.DataFrame,
+    left_name: str,
+    right_name: str,
+    rtol: float = 1e-8,
+    **kwargs: Any,
+) -> pd.DataFrame:
+    left_stacked = left.stack()
+    left_stacked.name = left_name
+
+    right_stacked = right.stack()
+    right_stacked.name = right_name
+
+    left_stacked_aligned, right_stacked_aligned = left_stacked.align(right_stacked)
+    differences_locator = ~np.isclose(
+        left_stacked_aligned, right_stacked_aligned, rtol=rtol, **kwargs
+    )
+
+    res = pd.concat(
+        [
+            left_stacked_aligned[differences_locator],
+            right_stacked_aligned[differences_locator],
+        ],
+        axis="columns",
+    )
+
+    return res
+
+
 # TODO: split this out into separate module
 def unstack_sector(indf: pd.DataFrame, time_name: str = "year") -> pd.DataFrame:
     try:

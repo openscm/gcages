@@ -3,7 +3,6 @@ Integration tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
 import itertools
-import re
 from contextlib import nullcontext as does_not_raise
 from functools import partial
 
@@ -400,11 +399,11 @@ OPTIONAL_SECTORS = (
         *(
             pytest.param(
                 v,
-                # pytest.raises(AssertionError, match=re.escape("junk")),
-                pytest.raises(KeyError, match=re.escape("junk")),
-                id=f"{v}_assertion-error",
+                pytest.raises(InternalConsistencyError),
+                id=f"{v}_internal-consistency-error",
             )
-            # These don't cause completeness issues,
+            # These don't cause completeness issues
+            # (because they're not required),
             # but they do break the internal consistency of the data.
             for v in OPTIONAL_SECTORS
         ),
@@ -431,42 +430,52 @@ def test_input_missing_variable(sector_to_delete, exp, example_complete_input):
         CMIP7ScenarioMIPPreProcessor()(inp)
 
 
-def test_input_not_internally_consistent_error_incorrect_sum(example_complete_input):
+@pytest.mark.parametrize(
+    "sector_to_modify, exp",
+    (
+        *(
+            pytest.param(
+                v,
+                pytest.raises(InternalConsistencyError),
+                id=f"{v}_internal-consistency-error",
+            )
+            for v in [
+                *REQUIRED_SECTORS_REGIONAL,
+                *REQUIRED_SECTORS_WORLD,
+                *OPTIONAL_SECTORS,
+            ]
+            # domestic aviation isn't used in the internal consistency checks,
+            # even though it is required to be reported
+            if "Domestic Aviation" not in v
+        ),
+        *(
+            pytest.param(v, does_not_raise(), id=f"{v}_can-be-missing")
+            for v in [
+                # Not used for internal consistency checking
+                "Energy|Demand|Transportation|Domestic Aviation",
+                # Sectors what we don't consider at all
+                "Energy|Demand",
+                "Energy",
+                # # TODO: check whether we should be using this
+                # # (I guess we'll find out once we start using IAM data)
+                "Other Capture and Removal",
+            ]
+        ),
+    ),
+)
+def test_input_not_internally_consistent_error_incorrect_sum(
+    sector_to_modify, exp, example_complete_input
+):
     inp = example_complete_input.copy()
 
-    # Modify a variable without altering the rest of the tree
-    # (note that we only pick up variables we use, so e.g.
-    # deleting "**CO2|Energy" does nothing)
-    # TODO: parameterise so this is more obvious
-    # Cases:
-    # - variable we use at sectoral level: exp error
-    # - variable we use only at global level: exp no error (mismatch doesn't matter for us)
-    # - variable we don't use: exp no error (doesn't matter for us)
-    inp.loc[pix.ismatch(variable="**CO2|Energy")] *= 3.0
+    # Modify a variable without altering the rest of the tree to match
+    inp.loc[pix.ismatch(variable=f"**NOx|{sector_to_modify}")] *= 1.1
 
-    exp_components_included = [
-        "Emissions|CO2|AFOLU",
-        "Emissions|CO2|Energy",
-        "Emissions|CO2|Industrial Processes",
-        "Emissions|CO2|Other",
-        "Emissions|CO2|Product Use",
-        "Emissions|CO2|Waste",
-    ]
-    exp_components_missing = [
-        "Emissions|CO2|Other Capture and Removal",
-    ]
-    exp_error_lines_to_check = f"""  - of the given components, these variables:
-    - are included in the data: {exp_components_included}
-    - are missing from the data: {exp_components_missing}"""
-
-    with pytest.raises(
-        InternalConsistencyError, match=re.escape(exp_error_lines_to_check)
-    ):
+    with exp:
         # Checks on by default
         CMIP7ScenarioMIPPreProcessor()(inp)
 
 
 # Tests to write:
-# - domestic aviation reported only globally blows up as expected
 # - two scenarios that report on different time grids also works
 #   (should be same result as handling them separately)
