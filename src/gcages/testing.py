@@ -12,6 +12,7 @@ from __future__ import annotations
 import functools
 import os
 import platform
+from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -20,6 +21,7 @@ import pandas as pd
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 if TYPE_CHECKING:
     import pytest
@@ -541,7 +543,24 @@ def add_gas_totals(indf):
     return res
 
 
-def get_cmip7_scenariomip_like_input() -> pd.DataFrame:
+def get_cmip7_scenariomip_like_input(
+    timesteps: NP_ARRAY_OF_FLOAT_OR_INT = np.arange(2015, 2100 + 1, 5),
+    model: str = "model_a",
+    scenario: str = "scenario_a",
+    regions: Iterable[str] = ("China", "Pacific OECD"),
+    species: Iterable[str] = (
+        "CO2",
+        "CH4",
+        "N2O",
+        "BC",
+        "CO",
+        "NH3",
+        "OC",
+        "NOx",
+        "Sulfur",
+        "VOC",
+    ),
+) -> pd.DataFrame:
     try:
         from pandas_indexing.core import assignlevel, formatlevel
     except ImportError as exc:
@@ -591,25 +610,13 @@ def get_cmip7_scenariomip_like_input() -> pd.DataFrame:
         "AFOLU|Land|Wetlands",
     ]
 
-    timesteps = np.arange(2015, 2100 + 1, 5)
     start_index = pd.MultiIndex.from_product(
         [
-            ["model_a"],
-            ["scenario_a"],
+            [model],
+            [scenario],
             ["Emissions"],
-            [
-                "CO2",
-                "CH4",
-                "N2O",
-                "BC",
-                "CO",
-                "NH3",
-                "OC",
-                "NOx",
-                "Sulfur",
-                "VOC",
-            ],
-            ["model_a|China", "model_a|Pacific OECD"],
+            species,
+            [f"{model}|{r}" for r in regions],
             timesteps,
         ],
         names=["model", "scenario", "table", "species", "region", "year"],

@@ -6,6 +6,7 @@ import itertools
 from contextlib import nullcontext as does_not_raise
 from functools import partial
 
+import numpy as np
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
@@ -36,6 +37,7 @@ def example_complete_input():
 def processed_output(example_complete_input):
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially
+        progress=False,
     )
 
     processed = pre_processor(example_complete_input)
@@ -427,7 +429,10 @@ def test_input_missing_variable(sector_to_delete, exp, example_complete_input):
 
     with exp:
         # Checks on by default
-        CMIP7ScenarioMIPPreProcessor()(inp)
+        CMIP7ScenarioMIPPreProcessor(
+            n_processes=None,
+            progress=False,
+        )(inp)
 
 
 @pytest.mark.parametrize(
@@ -473,9 +478,58 @@ def test_input_not_internally_consistent_error_incorrect_sum(
 
     with exp:
         # Checks on by default
-        CMIP7ScenarioMIPPreProcessor()(inp)
+        CMIP7ScenarioMIPPreProcessor(
+            n_processes=None,
+            progress=False,
+        )(inp)
 
 
-# Tests to write:
-# - two scenarios that report on different time grids also works
-#   (should be same result as handling them separately)
+def test_multiple_scenarios_different_time_axes():
+    scenario_1 = get_cmip7_scenariomip_like_input(
+        timesteps=np.arange(2010, 2100 + 1, 10), model="model_1", scenario="scenario_1"
+    )
+    scenario_2 = get_cmip7_scenariomip_like_input(
+        # five year steps, not ten, and starting in 2015
+        timesteps=np.arange(2015, 2100 + 1, 5),
+        model="model_2",
+        scenario="scenario_a",
+        regions=("India", "Brazil", "North America"),
+    )
+
+    pre_processor = CMIP7ScenarioMIPPreProcessor(
+        progress=False,
+        n_processes=None,  # process serially
+    )
+
+    res_1 = pre_processor(scenario_1)
+    res_2 = pre_processor(scenario_2)
+
+    scenarios_combined = pix.concat([scenario_1, scenario_2]).sort_index(axis="columns")
+    res_combined = pre_processor(scenarios_combined)
+
+    for res_individual in [res_1, res_2]:
+        for attr in [
+            "gridding_workflow_emissions",
+            "global_workflow_emissions",
+            "global_workflow_emissions_raw_names",
+        ]:
+            res_individual_df = getattr(res_individual, attr)
+
+            model_l = pix.uniquelevel(res_individual_df, "model")
+            if len(model_l) != 1:
+                raise AssertionError
+            model = model_l[0]
+            scenario_l = pix.uniquelevel(res_individual_df, "scenario")
+            if len(scenario_l) != 1:
+                raise AssertionError
+            scenario = scenario_l[0]
+
+            res_combined_df = getattr(res_combined, attr)
+            res_combined_df_ms = res_combined_df.loc[
+                pix.isin(model=model, scenario=scenario)
+            ]
+            res_combined_df_ms_nan_times_dropped = res_combined_df_ms.dropna(
+                how="all", axis="columns"
+            )
+
+            assert_frame_equal(res_individual_df, res_combined_df_ms_nan_times_dropped)

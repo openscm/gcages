@@ -7,12 +7,23 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Union
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-NUMERIC_DATA: TypeAlias = Union[float, int, np.floating[Any], np.integer[Any]]
+NP_FLOAT_OR_INT: TypeAlias = Union[np.floating[Any], np.integer[Any]]
+"""
+Type alias for a numpy float or int (not complex)
+"""
+
+NP_ARRAY_OF_FLOAT_OR_INT: TypeAlias = npt.NDArray[NP_FLOAT_OR_INT]
+"""
+Type alias for an array of numpy float or int (not complex)
+"""
+
+NUMERIC_DATA: TypeAlias = Union[float, int, NP_FLOAT_OR_INT]
 """
 Type alias for a value that can be used in the data of a [TimeseriesDataFrame][(m).]
 """

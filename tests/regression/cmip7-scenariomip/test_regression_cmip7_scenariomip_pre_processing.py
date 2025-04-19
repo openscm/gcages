@@ -21,12 +21,14 @@ HERE = Path(__file__).parents[0]
         ),
     ),
 )
+@pytest.mark.xfail(reason="no valid salted data yet")
 def test_pre_processing_regression(input_file, dataframe_regression):
     input_df = load_timeseries_csv(
         input_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_column_type=int,
     )
+    input_df.columns.name = "year"
 
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         n_processes=None,  # run serially

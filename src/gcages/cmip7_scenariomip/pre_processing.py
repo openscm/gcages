@@ -415,6 +415,7 @@ def get_region_sector_totals(
     assert_no_obvious_double_counting(
         indf_split.index.get_level_values("region").unique().tolist()
     )
+
     res = formatlevel(
         assignlevel(
             indf_split.groupby(
@@ -855,10 +856,14 @@ def aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa:
             idf.unstack(time_name), variable="{table}|{species}", drop=True
         )
 
+    sector_cols_world_sum = sector_cols_world.sum(axis="columns", skipna=False)
+    sector_cols_regional_s = sector_cols_regional.stack()
+    sector_cols_regional_sum = sector_cols_regional_s.groupby(
+        sector_cols_regional_s.index.names.difference([region_level, "sectors"])
+    ).sum()
     non_co2 = get_out(
         filter(
-            sector_cols_world.sum(axis="columns")
-            + sector_cols_regional.unstack(region_level).sum(axis="columns"),
+            sector_cols_world_sum + sector_cols_regional_sum,
             co2=False,
         )
     )
@@ -872,12 +877,14 @@ def aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa:
         set(co2_fossil_sectors_ceds) - set(co2_fossil_sectors_from_world)
     )
 
-    co2_fossil_world_sum = co2_world[co2_fossil_sectors_from_world].sum(axis="columns")
+    co2_fossil_world_sum = co2_world[co2_fossil_sectors_from_world].sum(
+        axis="columns", skipna=False
+    )
     co2_fossil_regional_sum = (
         co2_regional[co2_fossil_sectors_from_regional]
-        .groupby(co2_regional.index.names.difference([region_level]))
+        .stack()
+        .groupby(co2_regional.index.names.difference([region_level, "sectors"]))
         .sum()
-        .sum(axis="columns")
     )
 
     def get_out_co2(indf: pd.DataFrame, sector: str) -> pd.DataFrame:
@@ -897,15 +904,15 @@ def aggregate_gridding_workflow_emissions_to_global_workflow_emissions(  # noqa:
     co2_biosphere = get_out_co2(
         assignlevel(
             co2_regional[list(co2_biosphere_sectors_ceds)]
-            .groupby(co2_regional.index.names.difference([region_level]))
-            .sum()
-            .sum(axis="columns"),
+            .stack()
+            .groupby(co2_regional.index.names.difference([region_level, "sectors"]))
+            .sum(),
             region=world_region,
         ),
         sector=global_workflow_co2_biosphere_sector_iamc,
     )
 
-    res = pd.concat([co2_fossil, co2_biosphere, non_co2])
+    res = pd.concat([co2_fossil, co2_biosphere, non_co2]).sort_index(axis="columns")
 
     return res
 
@@ -947,8 +954,11 @@ def do_pre_processing(  # noqa: PLR0913
     unit_level: str,
     level_separator: str,
 ) -> CMIP7ScenarioMIPPreProcessingResult:
+    assert_only_working_on_variable_unit_region_variations(indf)
+
+    indf_reported_times = indf.dropna(how="all", axis="columns")
     indf_clean_units = strip_pint_incompatible_characters_from_units(
-        indf,
+        indf_reported_times,
         units_index_level="unit",
     )
     data_for_gridding = get_raw_data_for_gridding(
@@ -1110,18 +1120,19 @@ def get_gridded_emissions_sectoral_regional_sum(
             "stack_sector_and_return_to_variable", requirement="pandas_indexing"
         ) from exc
 
-    sector_cols = unstack_sector(indf, time_name=time_name)
-    sector_sum = sector_cols.sum(axis="columns")
-    region_sum = sector_sum.unstack(region_level).sum(axis="columns")
+    sector_cols = unstack_sector(indf, time_name=time_name).stack()
+    region_sector_sum = sector_cols.groupby(
+        sector_cols.index.names.difference([region_level, "sectors"])
+    ).sum()
 
-    tmp = region_sum.to_frame(world_region)
+    tmp = region_sector_sum.to_frame(world_region)
     tmp.columns.name = region_level
 
     res = formatlevel(
-        tmp.unstack(time_name).stack(region_level),
+        tmp.unstack(time_name).stack(region_level, future_stack=True),
         variable="{table}|{species}",
         drop=True,
-    )
+    ).sort_index(axis="columns")
 
     return res
 
@@ -1206,27 +1217,28 @@ class CMIP7ScenarioMIPPreProcessor:
                 in_emissions, ["variable", "unit", "model", "scenario", "region"]
             )
 
+            if in_emissions.columns.name != "year":
+                msg = "The input emissions' column name should be 'year'"
+                raise AssertionError(msg)
+
             for _, msdf in in_emissions.groupby(["model", "scenario"]):
+                msdf_drop_all_nan_times = msdf.dropna(how="all", axis="columns")
                 assert_data_is_compatible_with_pre_processing(
-                    msdf,
+                    msdf_drop_all_nan_times,
                     world_region=self.world_region,
                     region_level="region",
                     rtol_internal_consistency=self.rtol_internal_consistency,
                     atol_internal_consistency=self.atol_internal_consistency,
                 )
 
-            if in_emissions.columns.name != "year":
-                msg = "The input emissions' column name should be 'year'"
-                raise AssertionError(msg)
-
-            assert_data_has_required_internal_consistency(
-                in_emissions,
-                world_region=self.world_region,
-                region_level="region",
-                time_name="year",
-                rtol_internal_consistency=self.rtol_internal_consistency,
-                atol_internal_consistency=self.atol_internal_consistency,
-            )
+                assert_data_has_required_internal_consistency(
+                    msdf_drop_all_nan_times,
+                    world_region=self.world_region,
+                    region_level="region",
+                    time_name="year",
+                    rtol_internal_consistency=self.rtol_internal_consistency,
+                    atol_internal_consistency=self.atol_internal_consistency,
+                )
 
         res_g = apply_op_parallel_progress(
             func_to_call=do_pre_processing,
