@@ -289,7 +289,7 @@ This variable is provided as a global variable for clarity and consistency.
 If you change it, we do not guarantee the package's performance.
 """
 
-REAGGREGATED_TO_CEDS_MAP: dict[str, str] = {
+REAGGREGATED_TO_GRIDDING_SECTOR_MAP: dict[str, str] = {
     "Energy|Supply": "Energy Sector",
     INDUSTRIAL_SECTOR_CEDS: INDUSTRIAL_SECTOR_CEDS,
     "Energy|Demand|Residential and Commercial and AFOFI": "Residential Commercial Other",  # noqa: E501
@@ -305,7 +305,7 @@ REAGGREGATED_TO_CEDS_MAP: dict[str, str] = {
     "AFOLU|Land|Fires|Peat Burning": "Peat Burning",
 }
 """
-Map from re-aggreated variables to CEDS sectors
+Map from re-aggreated variables to sectors used for gridding
 """
 
 REQUIRED_WORLD_SECTORS_CEDS: tuple[str, ...] = ("Aircraft", "International Shipping")
@@ -750,7 +750,7 @@ def rename_and_filter_to_ceds_aligned_sectors(
     sector_cols = unstack_sector(indf, time_name=time_name)
 
     renamed = sector_cols.rename(
-        REAGGREGATED_TO_CEDS_MAP, axis="columns", errors="raise"
+        REAGGREGATED_TO_GRIDDING_SECTOR_MAP, axis="columns", errors="raise"
     )
 
     res = stack_sector_and_return_to_variable(
