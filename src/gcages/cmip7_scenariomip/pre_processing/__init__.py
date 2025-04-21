@@ -34,6 +34,9 @@ The underlying logic is this:
 from __future__ import annotations
 
 from gcages.cmip7_scenariomip.pre_processing.completeness import (
+    get_all_model_region_index_input,
+    get_all_world_index_input,
+    get_independent_index_input,
     get_required_model_region_index_input,
     get_required_world_index_input,
 )
@@ -45,6 +48,9 @@ from gcages.cmip7_scenariomip.pre_processing.constants import (
 __all__ = [
     "REQUIRED_MODEL_REGION_VARIABLES_INPUT",
     "REQUIRED_WORLD_VARIABLES_INPUT",
+    "get_all_model_region_index_input",
+    "get_all_world_index_input",
+    "get_independent_index_input",
     "get_required_model_region_index_input",
     "get_required_world_index_input",
 ]

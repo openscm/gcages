@@ -60,6 +60,32 @@ REQUIRED_WORLD_VARIABLES_INPUT: tuple[str, ...] = tuple(
 Variables required at the world level (input naming convention)
 """
 
+OPTIONAL_GRIDDING_SECTORS_WORLD_INPUT: tuple[str, ...] = ()
+"""
+Sectors (input naming) that are optional at the world level for gridding
+"""
+
+OPTIONAL_WORLD_VARIABLES_INPUT: tuple[str, ...] = tuple(
+    f"Emissions|{species}|{sector}"
+    for species in REQUIRED_GRIDDING_SPECIES_INPUT
+    for sector in OPTIONAL_GRIDDING_SECTORS_WORLD_INPUT
+)
+"""
+Optional variables at the world level (input naming convention)
+"""
+
+ALL_WORLD_VARIABLES_INPUT: tuple[str, ...] = tuple(
+    (*REQUIRED_WORLD_VARIABLES_INPUT, *OPTIONAL_WORLD_VARIABLES_INPUT)
+)
+"""
+All variables considered at the world level (input naming convention)
+"""
+
+INDEPENDENT_WORLD_VARIABLES_INPUT: tuple[str, ...] = ALL_WORLD_VARIABLES_INPUT
+"""
+Variables that are independent at the world level (input naming convention)
+"""
+
 INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT: tuple[str, ...] = (
     "Energy|Demand|Industry",
     "Energy|Demand|Other Sector",
@@ -117,3 +143,40 @@ REQUIRED_MODEL_REGION_VARIABLES_INPUT: tuple[str, ...] = tuple(
         and sector in REQUIRED_GRIDDING_SECTORS_MODEL_REGION_INPUT_CO2_EXCEPTIONS
     )
 )
+
+OPTIONAL_GRIDDING_SECTORS_MODEL_REGION_INPUT: tuple[str, ...] = (
+    "Other Capture and Removal",
+    "AFOLU|Land|Land Use and Land-Use Change",
+    "AFOLU|Land|Harvested Wood Products",
+    "AFOLU|Land|Other",
+    "AFOLU|Land|Wetlands",
+)
+"""
+Sectors (input naming) that are optional at the model region level for gridding
+"""
+
+OPTIONAL_MODEL_REGION_VARIABLES_INPUT: tuple[str, ...] = tuple(
+    f"Emissions|{species}|{sector}"
+    for species in REQUIRED_GRIDDING_SPECIES_INPUT
+    for sector in OPTIONAL_GRIDDING_SECTORS_MODEL_REGION_INPUT
+)
+"""
+Optional variables at the model region level (input naming convention)
+"""
+
+ALL_MODEL_REGION_VARIABLES_INPUT: tuple[str, ...] = tuple(
+    (*REQUIRED_MODEL_REGION_VARIABLES_INPUT, *OPTIONAL_MODEL_REGION_VARIABLES_INPUT)
+)
+"""
+All variables considered at the model region level (input naming convention)
+"""
+
+INDEPENDENT_MODEL_REGION_VARIABLES_INPUT: tuple[str, ...] = tuple(
+    v
+    for v in ALL_MODEL_REGION_VARIABLES_INPUT
+    # Avoid double counting
+    if DOMESTIC_AVIATION_SECTOR_INPUT not in v
+)
+"""
+Variables that are independent at the model region level (input naming convention)
+"""
