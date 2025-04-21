@@ -150,6 +150,7 @@ OPTIONAL_GRIDDING_SECTORS_MODEL_REGION_INPUT: tuple[str, ...] = (
     "AFOLU|Land|Harvested Wood Products",
     "AFOLU|Land|Other",
     "AFOLU|Land|Wetlands",
+    "AFOLU|Land|Fires|Peat Burning",
 )
 """
 Sectors (input naming) that are optional at the model region level for gridding
