@@ -630,6 +630,11 @@ def get_cmip7_scenariomip_like_input(
     for bls in bottom_level_sectors:
         df[bls] = RNG.random(df.index.shape[0])
 
+    df.loc[
+        df.index.get_level_values("species") == "CO2",
+        ["AFOLU|Land|Fires|Forest Burning", "AFOLU|Land|Fires|Grassland Burning"],
+    ] = np.nan
+
     df = aggregate_up_sectors(df)
     df = add_gas_totals(df)
 
