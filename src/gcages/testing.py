@@ -10,14 +10,16 @@ when you turn your tests into a package using `__init__.py` files
 from __future__ import annotations
 
 import functools
+import itertools
 import os
 import platform
 from collections.abc import Iterable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import numpy as np
 import pandas as pd
+from pandas_openscm.grouping import groupby_except
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.exceptions import MissingOptionalDependencyError
@@ -469,26 +471,8 @@ def unstack_sector(indf: pd.DataFrame, time_name: str = "year") -> pd.DataFrame:
     return res
 
 
-def stack_sector_and_return_to_variable(
-    indf: pd.DataFrame, time_name: str = "year", sectors_name: str = "sectors"
-) -> pd.DataFrame:
-    try:
-        from pandas_indexing.core import formatlevel
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "stack_sector_and_return_to_variable", requirement="pandas_indexing"
-        ) from exc
-
-    res = formatlevel(
-        indf.unstack(time_name).stack(sectors_name, future_stack=True),
-        variable="{table}|{species}|{sectors}",
-        drop=True,
-    )
-
-    return res
-
-
 def aggregate_up_sectors(indf, copy=False):
+    # TODO: doc string
     res = indf
     if copy:
         res = res.copy()
@@ -513,42 +497,17 @@ def aggregate_up_sectors(indf, copy=False):
 
             contributing.append(c)
 
-        res[aggregation] = res[contributing].sum(axis="columns")
+        # Sum with any data we have,
+        # don't require complete levels for all sectors
+        res[aggregation] = res[contributing].sum(axis="columns", min_count=1)
 
     return res
 
 
-def add_gas_totals(indf):
-    # Should be called after aggregate_up_sectors
-    try:
-        from pandas_indexing.core import formatlevel
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "add_gas_totals", requirement="pandas_indexing"
-        ) from exc
-
-    top_level = [c for c in indf if "|" not in c]
-
-    sector_stuff = stack_sector_and_return_to_variable(
-        indf, time_name="year", sectors_name="sectors"
-    )
-    gas_totals = formatlevel(
-        indf[top_level].sum(axis="columns").unstack("year"),
-        variable="{table}|{species}",
-        drop=True,
-    )
-
-    res = pd.concat([sector_stuff, gas_totals.reorder_levels(sector_stuff.index.names)])
-
-    return res
-
-
-def get_cmip7_scenariomip_like_input(
-    timesteps: NP_ARRAY_OF_FLOAT_OR_INT = np.arange(2015, 2100 + 1, 5),
-    model: str = "model_a",
-    scenario: str = "scenario_a",
-    regions: Iterable[str] = ("China", "Pacific OECD"),
-    species: Iterable[str] = (
+def get_cmip7_scenariomip_like_input_get_species_bottom_sectors_full_reporting() -> (
+    tuple[str, ...]
+):
+    species = (
         "CO2",
         "CH4",
         "N2O",
@@ -559,16 +518,8 @@ def get_cmip7_scenariomip_like_input(
         "NOx",
         "Sulfur",
         "VOC",
-    ),
-) -> pd.DataFrame:
-    try:
-        from pandas_indexing.core import assignlevel, formatlevel
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "get_cmip7_scenariomip_like_input", requirement="pandas_indexing"
-        ) from exc
-
-    bottom_level_sectors = [
+    )
+    bottom_level_sectors = (
         # Energy sector
         "Energy|Supply",
         # Industrial sector stuff
@@ -582,7 +533,9 @@ def get_cmip7_scenariomip_like_input(
         "Product Use",
         # Aviation stuff
         "Energy|Demand|Transportation|Domestic Aviation",
-        # something so we can get "Energy|Demand|Transportation" as a sum
+        # Other components of "Energy|Demand|Transportation"
+        # (doesn't actually matter what they are,
+        # as long as they can be added to domestic aviation above)
         "Energy|Demand|Transportation|Rail",
         "Energy|Demand|Bunkers|International Aviation",
         # International shipping
@@ -608,35 +561,75 @@ def get_cmip7_scenariomip_like_input(
         "AFOLU|Land|Harvested Wood Products",
         "AFOLU|Land|Other",
         "AFOLU|Land|Wetlands",
-    ]
-
-    start_index = pd.MultiIndex.from_product(
-        [
-            [model],
-            [scenario],
-            ["Emissions"],
-            species,
-            [f"{model}|{r}" for r in regions],
-            timesteps,
-        ],
-        names=["model", "scenario", "table", "species", "region", "year"],
     )
-    df = pd.DataFrame(
+    res = tuple(
+        (
+            (species, sectors)
+            for species, sectors in itertools.product(species, bottom_level_sectors)
+        )
+    )
+
+    return res
+
+
+def get_cmip7_scenariomip_like_input(
+    timesteps: NP_ARRAY_OF_FLOAT_OR_INT = np.arange(2015, 2100 + 1, 5),
+    model: str = "model_a",
+    scenario: str = "scenario_a",
+    regions: Iterable[str] = ("China", "Pacific OECD"),
+    get_species_bottom_level_sectors: Callable[
+        [], Iterable[str]
+    ] = get_cmip7_scenariomip_like_input_get_species_bottom_sectors_full_reporting,
+) -> pd.DataFrame:
+    try:
+        from pandas_indexing.core import assignlevel, concat, formatlevel
+        from pandas_indexing.selectors import ismatch
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_cmip7_scenariomip_like_input", requirement="pandas_indexing"
+        ) from exc
+
+    start_index = pd.MultiIndex.from_tuples(
+        [
+            (
+                model,
+                scenario,
+                "Emissions",
+                species,
+                sectors,
+                f"{model}|{region}",
+                timestep,
+            )
+            for model, scenario, (
+                species,
+                sectors,
+            ), region, timestep in itertools.product(
+                [model],
+                [scenario],
+                get_species_bottom_level_sectors(),
+                regions,
+                timesteps,
+            )
+        ],
+        names=["model", "scenario", "table", "species", "sectors", "region", "year"],
+    )
+    pds = pd.Series(
+        # Use random so conservation is not easily done by accident
         RNG.random(start_index.shape[0]),
-        columns=pd.Index(["Other"], name="sectors"),
         index=start_index,
     )
 
-    for bls in bottom_level_sectors:
-        df[bls] = RNG.random(df.index.shape[0])
-
-    df.loc[
-        df.index.get_level_values("species") == "CO2",
-        ["AFOLU|Land|Fires|Forest Burning", "AFOLU|Land|Fires|Grassland Burning"],
-    ] = np.nan
-
-    df = aggregate_up_sectors(df)
-    df = add_gas_totals(df)
+    hierarchy = (
+        aggregate_up_sectors(pds.unstack("sectors")).stack("sectors").unstack("year")
+    )
+    top_level = hierarchy.loc[ismatch(sectors="*")]
+    totals = groupby_except(top_level, "sectors").sum()
+    df = concat(
+        [
+            formatlevel(hierarchy, variable="{table}|{species}|{sectors}", drop=True),
+            formatlevel(totals, variable="{table}|{species}", drop=True),
+        ]
+    )
 
     def get_unit(v):
         species = v.split("|")[1]
@@ -665,10 +658,13 @@ def get_cmip7_scenariomip_like_input(
             df.reorder_levels(world_sum.index.names),
         ]
     )
+
     global_only_base = pd.DataFrame(
         RNG.random(timesteps.size)[np.newaxis, :],
         columns=df.columns,
-        index=start_index.droplevel(["region", "year", "species"]).drop_duplicates(),
+        index=start_index.droplevel(
+            ["region", "year", "species", "sectors"]
+        ).drop_duplicates(),
     )
     global_only_l = []
     for global_only_gas, unit in [

@@ -5,7 +5,7 @@ Post-processing part of the AR6 workflow
 from __future__ import annotations
 
 import multiprocessing
-from typing import Any, TypeVar, overload
+from typing import TypeVar
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from gcages.assertions import (
     assert_has_index_levels,
     assert_index_is_multiindex,
 )
+from gcages.index_manipulation import set_new_single_value_levels
 from gcages.post_processing import PostProcessingResult
 
 T = TypeVar("T")
@@ -80,49 +81,6 @@ def get_temperatures_in_line_with_assessment(
     # res.loc[:, list(assessment_time_period)].mean(axis="columns").groupby( ["model", "scenario"]).median()  # noqa: E501
 
     return res
-
-
-@overload
-def set_new_single_value_levels(
-    pandas_obj: pd.DataFrame,
-    levels_to_set: dict[str, Any],  # indicate not a collection somehow
-    copy: bool = True,
-) -> pd.DataFrame: ...
-
-
-@overload
-def set_new_single_value_levels(
-    pandas_obj: pd.Series[Any],
-    levels_to_set: dict[str, Any],  # indicate not a collection somehow
-    copy: bool = True,
-) -> pd.Series[Any]: ...
-
-
-def set_new_single_value_levels(  # noqa: D103
-    pandas_obj: pd.DataFrame | pd.Series[Any],
-    levels_to_set: dict[str, Any],  # indicate not a collection somehow
-    copy: bool = True,
-) -> pd.DataFrame | pd.Series[Any]:
-    # TODO: move to pandas-openscm
-    if copy:
-        pandas_obj = pandas_obj.copy()
-
-    new_names = levels_to_set.keys()
-    new_values = levels_to_set.values()
-
-    if not isinstance(pandas_obj.index, pd.MultiIndex):
-        raise TypeError(pandas_obj.index)
-
-    pandas_obj.index = pd.MultiIndex(
-        codes=[
-            *pandas_obj.index.codes,
-            *([[0] * pandas_obj.index.shape[0]] * len(new_values)),
-        ],
-        levels=[*pandas_obj.index.levels, *[pd.Index([value]) for value in new_values]],
-        names=[*pandas_obj.index.names, *new_names],
-    )
-
-    return pandas_obj
 
 
 def get_exceedance_probabilities_over_time(  # noqa: D103

@@ -10,17 +10,15 @@ import numpy as np
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
-from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
-from gcages.cmip7_scenariomip.pre_processing import (
+from gcages.cmip7_scenariomip import (
+    CMIP7ScenarioMIPPreProcessor,
     InternalConsistencyError,
-    get_gridded_emissions_sectoral_regional_sum,
 )
 from gcages.completeness import NotCompleteError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
     get_cmip7_scenariomip_like_input,
-    stack_sector_and_return_to_variable,
     unstack_sector,
 )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
@@ -28,24 +26,7 @@ from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 pix = pytest.importorskip("pandas_indexing")
 
 
-@pytest.fixture(scope="session")
-def example_complete_input():
-    return get_cmip7_scenariomip_like_input()
-
-
-@pytest.fixture(scope="session")
-def processed_output(example_complete_input):
-    pre_processor = CMIP7ScenarioMIPPreProcessor(
-        n_processes=None,  # run serially
-        progress=False,
-    )
-
-    processed = pre_processor(example_complete_input)
-
-    return processed
-
-
-def test_transport_shuffling(example_complete_input, processed_output):
+def test_transport_shuffling(example_input_output):
     """
     Test the moving of the transport data
 
