@@ -561,6 +561,8 @@ def get_cmip7_scenariomip_like_input_get_species_bottom_sectors_full_reporting()
         "AFOLU|Land|Harvested Wood Products",
         "AFOLU|Land|Other",
         "AFOLU|Land|Wetlands",
+        # TODO: think about where this should go
+        "Other Capture and Removal",
     )
     res = tuple(
         (

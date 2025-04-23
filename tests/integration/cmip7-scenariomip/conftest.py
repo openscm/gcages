@@ -2,7 +2,10 @@ import pandas as pd
 import pytest
 from attrs import define
 
-from gcages.cmip7_scenariomip import CMIP7ScenarioMIPPreProcessor
+from gcages.cmip7_scenariomip import (
+    CMIP7ScenarioMIPPreProcessingResult,
+    CMIP7ScenarioMIPPreProcessor,
+)
 from gcages.testing import get_cmip7_scenariomip_like_input
 
 
@@ -21,7 +24,15 @@ def pytest_generate_tests(metafunc):
 @define
 class ExampleInputOutput:
     input: pd.DataFrame
-    output: pd.DataFrame
+    model_regions: tuple[str, ...]
+    output: CMIP7ScenarioMIPPreProcessingResult
+
+
+@pytest.fixture(scope="session")
+def complete_input():
+    input = get_cmip7_scenariomip_like_input()
+
+    return input
 
 
 @pytest.fixture(scope="session")
@@ -32,10 +43,15 @@ def example_input_output(request):
     )
 
     if request.param == "all_reported":
-        example_input = get_cmip7_scenariomip_like_input()
+        model_regions_raw = ("China", "Pacific OECD")
+        model = "model_am"
+        input = get_cmip7_scenariomip_like_input(model=model, regions=model_regions_raw)
+        model_regions = [f"{model}|{r}" for r in model_regions_raw]
 
     # TODO: add over reporting e.g. with extra regions or variables
     # that we don't use
+    # (but not here, in its own test)
+
     # TODO: add more combos of reporting in between based on IAM submissions
     # elif request.param == "min_reported":
     #     # TODO: pass the drop outs in so that the totals are correct
@@ -100,6 +116,8 @@ def example_input_output(request):
     else:
         raise NotImplementedError(request.param)
 
-    processed = pre_processor(example_input)
+    processed = pre_processor(input)
 
-    return ExampleInputOutput(input=example_input_output)
+    return ExampleInputOutput(
+        input=input, model_regions=model_regions, output=processed
+    )

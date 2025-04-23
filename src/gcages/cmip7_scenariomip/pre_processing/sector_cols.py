@@ -84,7 +84,7 @@ def aggregate_sector(
     return indf
 
 
-def gridding_emissions_to_global_workflow_emissions(
+def convert_to_global_workflow_emissions(
     region_sector_df: pd.DataFrame,
     sector_df: pd.DataFrame,
     time_name: str,

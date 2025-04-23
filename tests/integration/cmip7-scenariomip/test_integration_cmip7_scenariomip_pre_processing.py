@@ -7,81 +7,93 @@ from contextlib import nullcontext as does_not_raise
 from functools import partial
 
 import numpy as np
+import pandas as pd
 import pytest
+from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.indexing import multi_index_lookup
 
 from gcages.cmip7_scenariomip import (
     CMIP7ScenarioMIPPreProcessor,
     InternalConsistencyError,
 )
-from gcages.completeness import NotCompleteError
+from gcages.cmip7_scenariomip.pre_processing.gridding_emissions_to_global_workflow_emissions import (
+    convert_gridding_emissions_to_global_workflow_emissions,
+)
+from gcages.completeness import assert_all_groups_are_complete
+from gcages.index_manipulation import (
+    combine_sectors,
+    combine_species,
+    set_new_single_value_levels,
+    split_sectors,
+)
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
     get_cmip7_scenariomip_like_input,
-    unstack_sector,
 )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 pix = pytest.importorskip("pandas_indexing")
 
 
-def test_transport_shuffling(example_input_output):
+def test_aviation_reaggregation(example_input_output):
     """
-    Test the moving of the transport data
+    Test the re-aggregation of the aviation data
 
     Domestic and international aviation should be added to make |Aircraft.
     Transportation should have domestic aviation
     subtracted to make |Transportation Sector.
     """
     # Not interested in global level for this
-    df_to_check = processed_output.gridding_workflow_emissions
+    res = example_input_output.output.gridding_workflow_emissions
 
     # The original Transportation should be dropped out
     assert (
-        not df_to_check.pix.unique("variable")
+        not res.pix.unique("variable")
         .str.endswith("Energy|Demand|Transportation")
         .any()
-    ), df_to_check.pix.unique("variable")
+    ), res.pix.unique("variable")
 
-    example_complete_input_sectors = unstack_sector(example_complete_input)
-
-    tmp = example_complete_input_sectors.copy()
-    tmp["Aircraft"] = tmp[
-        [
-            "Energy|Demand|Transportation|Domestic Aviation",
-            "Energy|Demand|Bunkers|International Aviation",
-        ]
-    ].sum(axis="columns", min_count=2)
-    exp_aircraft = stack_sector_and_return_to_variable(
-        # Only expect results reported at the World level
-        tmp[["Aircraft"]].dropna().loc[pix.ismatch(region="World")]
+    exp_aircraft = combine_sectors(
+        groupby_except(
+            split_sectors(example_input_output.input).loc[
+                # Only expect results reported at the World level
+                pix.ismatch(sectors="**Aviation", region="World")
+            ],
+            "sectors",
+        )
+        .sum()
+        .pix.assign(sectors="Aircraft")
     )
 
-    tmp = example_complete_input_sectors.copy()
+    assert_frame_equal(
+        res.loc[pix.ismatch(variable="**Aircraft")],
+        exp_aircraft,
+    )
+
+    tmp = (
+        split_sectors(example_input_output.input.loc[~pix.isin(region="World")])
+        .stack()
+        .unstack("sectors")
+    )
     tmp["Transportation Sector"] = (
         tmp["Energy|Demand|Transportation"]
         - tmp["Energy|Demand|Transportation|Domestic Aviation"]
     )
-    exp_transportation_sector = stack_sector_and_return_to_variable(
-        # Only expect results reported at the regional level
-        tmp[["Transportation Sector"]].dropna().loc[~pix.ismatch(region="World")]
+    exp_transport = combine_sectors(
+        tmp[["Transportation Sector"]].stack().unstack("year")
     )
 
     assert_frame_equal(
-        df_to_check.loc[pix.ismatch(variable="**Aircraft")],
-        exp_aircraft,
-    )
-
-    assert_frame_equal(
-        df_to_check.loc[pix.ismatch(variable="**Transportation Sector")],
-        exp_transportation_sector,
+        res.loc[pix.ismatch(variable="**Transportation Sector")],
+        exp_transport,
     )
 
 
-def test_industrial_sector_aggregation(example_complete_input, processed_output):
+def test_industrial_sector_aggregation(example_input_output):
     # Not interested in global level for this
-    df_to_check = processed_output.gridding_workflow_emissions
+    res = example_input_output.output.gridding_workflow_emissions
 
     exp_sector = "Industrial Sector"
     exp_contributing_sectors = [
@@ -91,26 +103,24 @@ def test_industrial_sector_aggregation(example_complete_input, processed_output)
         "Other",
     ]
 
-    example_complete_input_sectors = unstack_sector(example_complete_input)
-    tmp = example_complete_input_sectors.copy()
-
-    tmp[exp_sector] = tmp[exp_contributing_sectors].sum(
-        axis="columns", min_count=len(exp_contributing_sectors)
-    )
-    exp_sector_df = stack_sector_and_return_to_variable(
-        # Only expect results reported at the regional level
-        tmp[[exp_sector]].dropna().loc[~pix.ismatch(region="World")]
-    )
-
-    assert_frame_equal(
-        df_to_check.loc[pix.ismatch(variable=f"**{exp_sector}")],
-        exp_sector_df,
+    exp = combine_sectors(
+        groupby_except(
+            split_sectors(example_input_output.input).loc[
+                # Only expect results reported at the regional level
+                pix.isin(sectors=exp_contributing_sectors) & ~pix.isin(region="World")
+            ],
+            "sectors",
+        )
+        .sum()
+        .pix.assign(sectors=exp_sector)
     )
 
+    assert_frame_equal(res.loc[pix.ismatch(variable=f"**{exp_sector}")], exp)
 
-def test_agricultural_sector_aggregation(example_complete_input, processed_output):
+
+def test_agricultural_sector_aggregation(example_input_output):
     # Not interested in global level for this
-    df_to_check = processed_output.gridding_workflow_emissions
+    res = example_input_output.output.gridding_workflow_emissions
 
     exp_sector = "Agriculture"
     exp_contributing_sectors = [
@@ -121,37 +131,47 @@ def test_agricultural_sector_aggregation(example_complete_input, processed_outpu
         "AFOLU|Land|Wetlands",
     ]
 
-    example_complete_input_sectors = unstack_sector(example_complete_input)
-    tmp = example_complete_input_sectors.copy()
-    tmp[exp_sector] = tmp[exp_contributing_sectors].sum(
-        axis="columns", min_count=len(exp_contributing_sectors)
-    )
-    exp_sector_df = stack_sector_and_return_to_variable(
-        # Only expect results reported at the regional level
-        tmp[[exp_sector]].dropna().loc[~pix.ismatch(region="World")]
-    )
-
-    assert_frame_equal(
-        df_to_check.loc[pix.ismatch(variable=f"**{exp_sector}")],
-        exp_sector_df,
+    exp = combine_sectors(
+        groupby_except(
+            split_sectors(example_input_output.input).loc[
+                # Only expect results reported at the regional level
+                pix.isin(sectors=exp_contributing_sectors) & ~pix.isin(region="World")
+            ],
+            "sectors",
+        )
+        .sum()
+        .pix.assign(sectors=exp_sector)
     )
 
+    assert_frame_equal(res.loc[pix.ismatch(variable=f"**{exp_sector}")], exp)
 
-def test_output_sectors(example_complete_input, processed_output):
-    example_complete_input_sectors = unstack_sector(example_complete_input)
 
-    exp_output_sectors = [
-        # Fossil
+def test_output_index(example_input_output):
+    exp_output_species = [
+        "CO2",
+        "CH4",
+        "N2O",
+        "BC",
+        "CO",
+        "NH3",
+        "OC",
+        "NOx",
+        "Sulfur",
+        "VOC",
+    ]
+
+    exp_output_sectors_world = [
+        "Aircraft",
+        "International Shipping",
+    ]
+
+    exp_output_sectors_model_region = [
         "Energy Sector",
         "Industrial Sector",
         "Residential Commercial Other",
         "Solvents Production and Application",
         "Transportation Sector",
         "Waste",
-        # Bunkers
-        "Aircraft",
-        "International Shipping",
-        # AFOLU
         "Agriculture",
         "Agricultural Waste Burning",
         "Forest Burning",
@@ -159,149 +179,85 @@ def test_output_sectors(example_complete_input, processed_output):
         "Peat Burning",
     ]
 
-    exp_output_variables = [
-        f"{table}|{gas}|{sector}"
-        for table, gas, sector in itertools.product(
-            example_complete_input_sectors.pix.unique("table"),
-            example_complete_input_sectors.loc[~pix.isin(region="World")].pix.unique(
-                "species"
-            ),
-            exp_output_sectors,
-        )
-    ]
+    exp_index = pd.MultiIndex.from_tuples(
+        [
+            *[
+                (f"Emissions|{species}|{sector}", "World")
+                for species, sector in itertools.product(
+                    exp_output_species, exp_output_sectors_world
+                )
+            ],
+            *[
+                (f"Emissions|{species}|{sector}", region)
+                for species, sector, region in itertools.product(
+                    exp_output_species,
+                    exp_output_sectors_model_region,
+                    example_input_output.model_regions,
+                )
+            ],
+        ],
+        names=["variable", "region"],
+    )
 
-    assert set(exp_output_variables) == set(
-        processed_output.gridding_workflow_emissions.pix.unique("variable")
+    assert_all_groups_are_complete(
+        example_input_output.output.gridding_workflow_emissions, exp_index
     )
 
 
-def test_output_consistency_with_input_for_non_region_sector(
-    example_complete_input, processed_output
-):
+def test_output_consistency_with_input_for_non_region_sector(example_input_output):
     """
-    Test consistency between
-    `processed_output.global_workflow_emissions`
-    and the input emission
+    Test consistency between the output that is not at the region-sector level
+    and the input emissions for species that aren't used in gridding
     """
-    region_sector_split_species = unstack_sector(
-        processed_output.gridding_workflow_emissions
+    gridding_species = split_sectors(
+        example_input_output.output.gridding_workflow_emissions
     ).pix.unique("species")
 
     not_from_region_sector = [
         v
-        for v in processed_output.global_workflow_emissions_raw_names.pix.unique(
+        for v in example_input_output.output.global_workflow_emissions_raw_names.pix.unique(  # noqa: E501
             "variable"
         )
-        if not any(species in v for species in region_sector_split_species)
+        if not any(species in v for species in gridding_species)
     ]
 
     not_from_region_sector_res = (
-        processed_output.global_workflow_emissions_raw_names.loc[
+        example_input_output.output.global_workflow_emissions_raw_names.loc[
             pix.isin(variable=not_from_region_sector)
         ]
     )
 
     not_from_region_sector_compare = strip_pint_incompatible_characters_from_units(
-        example_complete_input.loc[pix.isin(variable=not_from_region_sector)]
+        example_input_output.input.loc[pix.isin(variable=not_from_region_sector)]
     )
 
     assert_frame_equal(not_from_region_sector_res, not_from_region_sector_compare)
 
 
-def test_output_internal_consistency(processed_output):
+def test_output_internal_consistency(example_input_output):
     """
-    Test consistency between
-    `processed_output.global_workflow_emissions`
-    and `processed_output.region_sector_workflow_emissions`
+    Test consistency between the output that is not at the region-sector level
+    and the output that is at the world level
     """
-    # Make sure that we can just aggregate semi-blindly
-    assert (
-        processed_output.gridding_workflow_emissions.pix.unique("variable").map(
-            lambda x: x.count("|")
+    global_workflow_emissions_derived = (
+        convert_gridding_emissions_to_global_workflow_emissions(
+            example_input_output.output.gridding_workflow_emissions,
+            global_workflow_co2_fossil_sector="Energy and Industrial Processes",
+            global_workflow_co2_biosphere_sector="AFOLU",
         )
-        == 2
-    ).all()
-    sector_cols = unstack_sector(processed_output.gridding_workflow_emissions)
-
-    non_sector_region_group_levels = sector_cols.index.names.difference(
-        ["sector", "region"]
-    )
-    region_sector_totals = (
-        sector_cols.sum(axis="columns")
-        .groupby(non_sector_region_group_levels)
-        .sum()
-        .pix.assign(region="World")
     )
 
-    region_sector_compare_non_co2 = (
-        region_sector_totals.unstack("year")
-        .loc[~pix.isin(species="CO2")]
-        .pix.format(variable="{table}|{species}", drop=True)
+    exp_compare = multi_index_lookup(
+        example_input_output.output.global_workflow_emissions_raw_names,
+        global_workflow_emissions_derived.index,
     )
-
-    fossil_sectors = [
-        "Energy Sector",
-        "Industrial Sector",
-        "Residential Commercial Other",
-        "Solvents Production and Application",
-        "Transportation Sector",
-        "Waste",
-        "Aircraft",
-        "International Shipping",
-    ]
-    biosphere_sectors = [
-        "Agriculture",
-        "Agricultural Waste Burning",
-        "Forest Burning",
-        "Grassland Burning",
-        "Peat Burning",
-    ]
-    region_sector_compare_co2_fossil = stack_sector_and_return_to_variable(
-        sector_cols.loc[pix.isin(species="CO2"), fossil_sectors]
-        .groupby(non_sector_region_group_levels)
-        .sum()
-        .pix.assign(sectors="Energy and Industrial Processes", region="World")
-        .sum(axis="columns")
-        .unstack("sectors")
-    )
-    region_sector_compare_co2_afolu = stack_sector_and_return_to_variable(
-        sector_cols.loc[pix.isin(species="CO2"), biosphere_sectors]
-        .groupby(non_sector_region_group_levels)
-        .sum()
-        .pix.assign(sectors="AFOLU", region="World")
-        .sum(axis="columns")
-        .unstack("sectors")
-    )
-
-    region_sector_compare = pix.concat(
-        [
-            region_sector_compare_co2_fossil,
-            region_sector_compare_co2_afolu,
-            region_sector_compare_non_co2,
-        ]
-    )
-    region_sector_split_species = sector_cols.pix.unique("species")
-    from_region_sector = [
-        v
-        for v in processed_output.global_workflow_emissions_raw_names.pix.unique(
-            "variable"
-        )
-        if any(species in v for species in region_sector_split_species)
-    ]
-
-    from_region_sector_locator = pix.isin(variable=from_region_sector)
-    assert_frame_equal(
-        processed_output.global_workflow_emissions_raw_names.loc[
-            from_region_sector_locator
-        ],
-        region_sector_compare,
-    )
+    assert_frame_equal(exp_compare, global_workflow_emissions_derived)
 
 
-def test_output_internal_consistency_global_workflow_emissions(processed_output):
+def test_output_internal_consistency_global_workflow_emissions(example_input_output):
     assert_frame_equal(
         update_index_levels_func(
-            processed_output.global_workflow_emissions_raw_names,
+            example_input_output.output.global_workflow_emissions_raw_names,
             dict(
                 variable=partial(
                     convert_variable_name,
@@ -310,51 +266,52 @@ def test_output_internal_consistency_global_workflow_emissions(processed_output)
                 )
             ),
         ),
-        processed_output.global_workflow_emissions,
+        example_input_output.output.global_workflow_emissions,
     )
 
 
-def test_output_vs_start_region_sector_consistency(
-    example_complete_input, processed_output
-):
+def test_output_vs_start_region_sector_consistency(example_input_output):
     # We have renamed all the sectors
     # and moved domestic aviation to global only in the output,
     # so we can't check the regional sum for each sector.
     # Hence we jump straight to checking the regional sum of our sectoral sum
     # i.e. the total.
-    res_sectoral_regional_sum = get_gridded_emissions_sectoral_regional_sum(
-        processed_output.gridding_workflow_emissions,
-        time_name="year",
-        region_level="region",
-        world_region="World",
+    gridded_emisssions_sectoral_regional_sum = set_new_single_value_levels(
+        combine_species(
+            groupby_except(
+                split_sectors(
+                    example_input_output.output.gridding_workflow_emissions,
+                    bottom_level="sectors",
+                ),
+                ["region", "sectors"],
+            ).sum()
+        ),
+        {"region": "World"},
     )
 
-    exp_sectoral_regional_sum = example_complete_input.loc[
-        pix.ismatch(
-            variable=res_sectoral_regional_sum.pix.unique("variable"),
-            region=res_sectoral_regional_sum.pix.unique("region"),
-        )
-    ]
-
-    assert_frame_equal(res_sectoral_regional_sum, exp_sectoral_regional_sum)
+    in_emissions_totals_to_compare_to = multi_index_lookup(
+        example_input_output.input,
+        gridded_emisssions_sectoral_regional_sum.index,
+    )
+    assert_frame_equal(
+        in_emissions_totals_to_compare_to,
+        gridded_emisssions_sectoral_regional_sum,
+    )
 
 
 REQUIRED_SECTORS_REGIONAL = (
     "Energy|Supply",
     "Energy|Demand|Industry",
-    "Energy|Demand|Other Sector",
     "Energy|Demand|Residential and Commercial and AFOFI",
     "Energy|Demand|Transportation",
     "Energy|Demand|Transportation|Domestic Aviation",
     "Industrial Processes",
-    "Other",
     "Product Use",
     "Waste",
     "AFOLU|Agriculture",
     "AFOLU|Agricultural Waste Burning",
     "AFOLU|Land|Fires|Forest Burning",
     "AFOLU|Land|Fires|Grassland Burning",
-    "AFOLU|Land|Fires|Peat Burning",
 )
 
 REQUIRED_SECTORS_WORLD = (
@@ -363,10 +320,14 @@ REQUIRED_SECTORS_WORLD = (
 )
 
 OPTIONAL_SECTORS = (
+    "Energy|Demand|Other Sector",
+    "Other",
+    "Other Capture and Removal",
     "AFOLU|Land|Land Use and Land-Use Change",
     "AFOLU|Land|Harvested Wood Products",
     "AFOLU|Land|Other",
     "AFOLU|Land|Wetlands",
+    "AFOLU|Land|Fires|Peat Burning",
 )
 
 
@@ -374,9 +335,7 @@ OPTIONAL_SECTORS = (
     "sector_to_delete, exp",
     (
         *(
-            pytest.param(
-                v, pytest.raises(NotCompleteError), id=f"{v}_not-complete-error"
-            )
+            pytest.param(v, pytest.raises(ValueError), id=f"{v}_not-complete-error")
             for v in [*REQUIRED_SECTORS_REGIONAL, *REQUIRED_SECTORS_WORLD]
         ),
         *(
@@ -396,24 +355,18 @@ OPTIONAL_SECTORS = (
                 # Sectors what we don't consider at all
                 "Energy|Demand",
                 "Energy",
-                # # TODO: check whether we should be using this
-                # # (I guess we'll find out once we start using IAM data)
-                "Other Capture and Removal",
             ]
         ),
     ),
 )
-def test_input_missing_variable(sector_to_delete, exp, example_complete_input):
-    inp = example_complete_input.copy()
+def test_input_missing_variable(sector_to_delete, exp, complete_input):
+    inp = complete_input
 
     inp = inp.loc[~pix.ismatch(variable=f"**CO2|{sector_to_delete}")]
 
     with exp:
         # Checks on by default
-        CMIP7ScenarioMIPPreProcessor(
-            n_processes=None,
-            progress=False,
-        )(inp)
+        CMIP7ScenarioMIPPreProcessor(n_processes=None, progress=False)(inp)
 
 
 @pytest.mark.parametrize(
@@ -450,9 +403,9 @@ def test_input_missing_variable(sector_to_delete, exp, example_complete_input):
     ),
 )
 def test_input_not_internally_consistent_error_incorrect_sum(
-    sector_to_modify, exp, example_complete_input
+    sector_to_modify, exp, complete_input
 ):
-    inp = example_complete_input.copy()
+    inp = complete_input
 
     # Modify a variable without altering the rest of the tree to match
     inp.loc[pix.ismatch(variable=f"**NOx|{sector_to_modify}")] *= 1.1

@@ -47,7 +47,7 @@ from gcages.cmip7_scenariomip.pre_processing.constants import (
 )
 from gcages.cmip7_scenariomip.pre_processing.sector_cols import (
     aggregate_sector,
-    gridding_emissions_to_global_workflow_emissions,
+    convert_to_global_workflow_emissions,
     reclassify_aviation_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
@@ -216,7 +216,7 @@ def do_pre_processing(  # noqa: PLR0913
     )
 
     global_workflow_emissions_from_gridding_emissions = (
-        gridding_emissions_to_global_workflow_emissions(
+        convert_to_global_workflow_emissions(
             region_sector_df=region_sector_gridding_df_sector_col,
             sector_df=sector_gridding_df_sector_col,
             time_name=time_name,
@@ -364,7 +364,7 @@ class CMIP7ScenarioMIPPreProcessor:
 
         assumed_model_regions = [
             r
-            for r in in_emissions.index.get_level_values("region")
+            for r in in_emissions.index.get_level_values("region").unique()
             if r != self.world_region
         ]
         if self.run_checks:
