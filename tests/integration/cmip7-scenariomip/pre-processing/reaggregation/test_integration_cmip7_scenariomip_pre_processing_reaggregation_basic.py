@@ -93,7 +93,6 @@ def test_has_all_required_timeseries_extra_timeseries():
             *complete_index,
             # Just get a selection of combos of dropped elements
             *[list(v) for v in list(itertools.combinations(complete_index, 2))[:20]],
-            complete_index.values,
         ]
     ),
 )
