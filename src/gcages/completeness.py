@@ -170,6 +170,14 @@ def assert_all_groups_are_complete(
     unit_col
         Unit column (differences here do not indicate incompleteness)
 
+    Raises
+    ------
+    ValueError
+        `to_check` is empty
+
+    NotCompleteError
+        `to_check` is not complete
+
     Examples
     --------
     >>> to_check = pd.DataFrame(
@@ -231,9 +239,9 @@ def assert_all_groups_are_complete(
     1       vb
     2       vc
     """  # noqa: E501
-    # TODO: add direct test for this in relevant tests
     if to_check.empty:
-        raise NotCompleteError(missing=complete_index, complete_index=complete_index)
+        msg = "`to_check` is empty"
+        raise ValueError(msg)
 
     # Probably a smarter way to do this rather than looping, I can't see it now
     if unit_col not in to_check.index.names:

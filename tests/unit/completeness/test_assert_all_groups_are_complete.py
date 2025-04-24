@@ -175,6 +175,24 @@ from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
             ),
             id="missing-regional",
         ),
+        pytest.param(
+            pd.DataFrame(
+                np.arange(2).reshape((1, 2)),
+                columns=[2015, 2100],
+                index=pd.MultiIndex.from_tuples(
+                    [
+                        ("sa", "va", "r1", "W"),
+                    ],
+                    names=["scenario", "variable", "region", "unit"],
+                ),
+            ).iloc[:0, :],
+            pd.MultiIndex.from_product(
+                [["va", "vb"], ["r1", "r2"]],
+                names=["variable", "region"],
+            ),
+            pytest.raises(ValueError, match=re.escape("`to_check` is empty")),
+            id="empty-input",
+        ),
     ),
 )
 def test_assert_all_groups_are_complete(df, complete_index, exp):
