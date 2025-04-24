@@ -231,6 +231,10 @@ def assert_all_groups_are_complete(
     1       vb
     2       vc
     """  # noqa: E501
+    # TODO: add direct test for this in relevant tests
+    if to_check.empty:
+        raise NotCompleteError(missing=complete_index, complete_index=complete_index)
+
     # Probably a smarter way to do this rather than looping, I can't see it now
     if unit_col not in to_check.index.names:
         msg = f"{unit_col=} is not in {to_check.index.names=}"

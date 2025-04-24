@@ -395,8 +395,7 @@ def test_input_missing_variable(sector_to_delete, exp, complete_input):
                 # Sectors what we don't consider at all
                 "Energy|Demand",
                 "Energy",
-                # # TODO: check whether we should be using this
-                # # (I guess we'll find out once we start using IAM data)
+                # TODO: use this properly
                 "Other Capture and Removal",
             ]
         ),
