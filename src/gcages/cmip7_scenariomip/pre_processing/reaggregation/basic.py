@@ -12,8 +12,17 @@ import sys
 
 import pandas as pd
 from attrs import define
+from pandas_openscm.grouping import groupby_except
+from pandas_openscm.indexing import multi_index_lookup
 
 from gcages.completeness import assert_all_groups_are_complete
+from gcages.index_manipulation import (
+    combine_species,
+    set_new_single_value_levels,
+    split_sectors,
+)
+from gcages.internal_consistency import InternalConsistencyError
+from gcages.testing import compare_close
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -321,6 +330,31 @@ def get_required_timeseries_index(
     return res
 
 
+def get_internal_consistency_checking_index(
+    model_regions: tuple[str, ...],
+    world_region: str = "World",
+    region_level: str = "region",
+    variable_level: str = "variable",
+) -> pd.MultiIndex:
+    world_internal_consistency_checking = pd.MultiIndex.from_product(
+        [COMPLETE_WORLD_VARIABLES, [world_region]], names=[variable_level, region_level]
+    )
+    model_region_consistency_checking_variables = [
+        v
+        for v in COMPLETE_MODEL_REGION_VARIABLES
+        # Avoid double counting with "Energy|Demand|Transportation"
+        if "Energy|Demand|Transportation|Domestic Aviation" not in v
+    ]
+    model_region_consistency_checking = pd.MultiIndex.from_product(
+        [model_region_consistency_checking_variables, model_regions],
+        names=[variable_level, region_level],
+    )
+
+    res = world_internal_consistency_checking.append(model_region_consistency_checking)
+
+    return res
+
+
 def has_all_required_timeseries(
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
@@ -332,3 +366,91 @@ def has_all_required_timeseries(
             model_regions=model_regions,
         ),
     )
+
+
+DEFAULT_INTERNAL_CONSISTENCY_TOLERANCES = {
+    "Emissions|BC": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|CH4": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|CO": dict(rtol=1e-3, atol=1e-6),
+    # Higher absolute tolerance because of reporting units
+    "Emissions|CO2": dict(rtol=1e-3, atol=1.0),
+    "Emissions|NH3": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|NOx": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|OC": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
+    "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
+}
+"""
+Default tolerances used when checking the internal consistency of data
+"""
+
+
+def is_internally_consistent(
+    df: pd.DataFrame,
+    model_regions: tuple[str, ...],
+    world_region: str = "World",
+    region_level: str = "region",
+    variable_level: str = "variable",
+    tols: dict[str, dict[str, float]] | None = None,
+) -> None:
+    if tols is None:
+        tols = DEFAULT_INTERNAL_CONSISTENCY_TOLERANCES
+
+    internal_consistency_checking_index = get_internal_consistency_checking_index(
+        model_regions=model_regions
+    )
+
+    df_internal_consistency_checking = multi_index_lookup(
+        df, internal_consistency_checking_index
+    )
+
+    # Hard-code the logic here
+    # because that's what is needed for consistency with the rest of the module.
+    # If you sum over the sectors and regions of the index which provides internal consistency,
+    # you should get the reported totals.
+    def get_aggregate_variable(v: str) -> str:
+        return "|".join(v.split("|")[:2])
+
+    for (
+        variable,
+        df_internal_consistency_checking_variable,
+    ) in df_internal_consistency_checking.groupby(
+        df_internal_consistency_checking.index.get_level_values(variable_level).map(
+            get_aggregate_variable
+        )
+    ):
+        df_variable = df.loc[
+            (df.index.get_level_values(variable_level) == variable)
+            & (df.index.get_level_values(region_level) == world_region)
+        ]
+        if df_variable.empty:
+            # Nothing reported so can move on
+            continue
+
+        df_variable_aggregate = set_new_single_value_levels(
+            combine_species(
+                groupby_except(
+                    split_sectors(
+                        df_internal_consistency_checking_variable,
+                        bottom_level="sectors",
+                    ),
+                    ["sectors", "region"],
+                ).sum()
+            ),
+            {region_level: world_region},
+        ).reorder_levels(df_variable.index.names)
+
+        comparison_variable = compare_close(
+            left=df_variable,
+            right=df_variable_aggregate,
+            left_name="reported_total",
+            right_name="derived_from_input",
+            **tols[variable],
+        )
+
+        if not comparison_variable.empty:
+            raise InternalConsistencyError(
+                differences=comparison_variable,
+                data_that_was_summed=df_internal_consistency_checking_variable,
+            )
