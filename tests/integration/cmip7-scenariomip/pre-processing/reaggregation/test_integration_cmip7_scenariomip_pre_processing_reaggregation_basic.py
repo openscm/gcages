@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     get_internal_consistency_checking_index,
@@ -30,6 +30,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
 )
 from gcages.completeness import NotCompleteError
 from gcages.index_manipulation import set_new_single_value_levels
+from gcages.internal_consistency import InternalConsistencyError
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 RNG = np.random.default_rng()
@@ -235,19 +236,31 @@ def test_is_internally_consistent_correct_dataset():
 
 
 @pytest.mark.parametrize(
-    "complete_index, to_remove, model, model_regions, world_region",
+    [
+        "internal_consistency_checking_index",
+        "to_remove",
+        "model",
+        "model_regions",
+        "world_region",
+    ],
     (
-        pytest.param(complete_index, to_remove, model, model_regions, world_region)
+        pytest.param(
+            internal_consistency_checking_index,
+            to_remove,
+            model,
+            model_regions,
+            world_region,
+        )
         for model in ["model_a"]
         for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
         for world_region in ["World"]
-        for complete_index in [
+        for internal_consistency_checking_index in [
             get_internal_consistency_checking_index(
                 model_regions, world_region=world_region
             )
         ]
         for optional_index in [
-            complete_index.difference(
+            internal_consistency_checking_index.difference(
                 get_required_timeseries_index(
                     model_regions=model_regions, world_region=world_region
                 )
@@ -261,7 +274,7 @@ def test_is_internally_consistent_correct_dataset():
     ),
 )
 def test_is_internally_consistent_correct_dataset_missing_timeseries(
-    complete_index, to_remove, model, model_regions, world_region
+    internal_consistency_checking_index, to_remove, model, model_regions, world_region
 ):
     """
     Check that `is_internally_consistent` does not raise for missing optional timeseries
@@ -271,7 +284,7 @@ def test_is_internally_consistent_correct_dataset_missing_timeseries(
     We don't need to test what happens if required timeseries are missing
     because that is caught by `has_all_required_timeseries`.
     """
-    base_index = complete_index.drop(to_remove)
+    base_index = internal_consistency_checking_index.drop(to_remove)
 
     df = get_df(base_index=base_index, model=model)
 
@@ -286,9 +299,25 @@ def test_is_internally_consistent_correct_dataset_missing_timeseries(
         (
             "model_a",
             (
-                ["Emissions|CO2|Energy|Demand|Transportation|Rail", "model_a|China"],
+                # Domestic aviation can be added late
+                # because it's not used in checking the internal consistency
+                # (it's effectively shadowed by **Transportation)
                 [
-                    "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                    "Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation",
+                    "model_a|China",
+                ],
+                [
+                    "Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation",
+                    "model_a|Pacific OECD",
+                ],
+            ),
+        ),
+        (
+            "model_a",
+            (
+                ["Emissions|CH4|Energy|Demand|Transportation|Rail", "model_a|China"],
+                [
+                    "Emissions|CH4|Energy|Demand|Transportation|Rail",
                     "model_a|Pacific OECD",
                 ],
             ),
@@ -300,19 +329,18 @@ def test_is_internally_consistent_correct_dataset_missing_timeseries(
         (
             "model_a",
             (
-                ["Emissions|CO2|Energy|Demand|Transportation|Rail", "model_a|China"],
+                ["Emissions|N2O|Energy|Demand|Transportation|Rail", "model_a|China"],
                 [
-                    "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                    "Emissions|N2O|Energy|Demand|Transportation|Rail",
                     "model_a|Pacific OECD",
                 ],
-                ["Emissions|CO2|Unused", "World"],
+                ["Emissions|N2O|Unused", "World"],
             ),
         ),
     ),
 )
 def test_is_internally_consistent_correct_dataset_extra_timeseries(
-    model,
-    extra_variable_regions,
+    model, extra_variable_regions
 ):
     """
     Check that `is_internally_consistent` does not raise
@@ -354,19 +382,214 @@ def test_is_internally_consistent_correct_dataset_extra_timeseries(
     assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
 
 
-def test_is_internally_consistent_incorrect_dataset():
-    # Should pass
-    assert False
+@pytest.mark.parametrize(
+    "full_df, to_modify, model_regions",
+    (
+        pytest.param(
+            full_df,
+            to_modify,
+            model_regions,
+        )
+        for model in ["model_a"]
+        for world_region in ["World"]
+        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
+        for internal_consistency_checking_index in [
+            get_internal_consistency_checking_index(
+                model_regions, world_region=world_region
+            )
+        ]
+        for full_df in [
+            get_aggregate_df(
+                get_df(internal_consistency_checking_index, model=model),
+                world_region=world_region,
+            )
+        ]
+        for to_modify in [
+            *[[v] for v in internal_consistency_checking_index],
+            # Get a selection of combos of dropped elements
+            *[
+                list(v)
+                for v in list(
+                    itertools.combinations(internal_consistency_checking_index, 2)
+                )[:10]
+            ],
+        ]
+    ),
+)
+def test_is_internally_consistent_incorrect_dataset(full_df, to_modify, model_regions):
+    """
+    Test that `is_internally_consistent` raises if the data is not internally consistent
+
+    Here the internal inconsistency is because of an incorrrect sum
+    """
+    to_modify_index = pd.MultiIndex.from_tuples(to_modify, names=["variable", "region"])
+    to_modify_locator = multi_index_match(full_df.index, to_modify_index)
+    # + 1.1 as default CO2 tolerance is atol=1.0
+    full_df.loc[to_modify_locator, :] += 1.1
+
+    match = r"\s*.*".join([r"\s*".join([v, r]) for v, r in to_modify])
+    with pytest.raises(InternalConsistencyError, match=match):
+        is_internally_consistent(full_df, model_regions=model_regions)
 
 
-def test_is_internally_consistent_incorrect_dataset_missing_timeseries():
-    # Should pass
-    assert False
+@pytest.mark.parametrize(
+    "full_df, to_remove, model_regions",
+    (
+        pytest.param(
+            full_df,
+            to_modify,
+            model_regions,
+        )
+        for model in ["model_a"]
+        for world_region in ["World"]
+        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
+        for internal_consistency_checking_index in [
+            get_internal_consistency_checking_index(
+                model_regions, world_region=world_region
+            )
+        ]
+        for full_df in [
+            get_aggregate_df(
+                get_df(internal_consistency_checking_index, model=model),
+                world_region=world_region,
+            )
+        ]
+        for to_modify in [
+            *[[v] for v in internal_consistency_checking_index],
+            # Get a selection of combos of dropped elements
+            *[
+                list(v)
+                for v in list(
+                    itertools.combinations(internal_consistency_checking_index, 2)
+                )[:10]
+            ],
+        ]
+    ),
+)
+def test_is_internally_consistent_incorrect_dataset_missing_timeseries(
+    full_df, to_remove, model_regions
+):
+    """
+    Test that `is_internally_consistent` raises if the data is not internally consistent
+
+    Here the internal inconsistency is because of missing reporting
+    """
+    to_remove_index = pd.MultiIndex.from_tuples(to_remove, names=["variable", "region"])
+    full_df = full_df.loc[~multi_index_match(full_df.index, to_remove_index)]
+
+    with pytest.raises(InternalConsistencyError):
+        is_internally_consistent(
+            full_df,
+            model_regions=model_regions,
+            # Have to make the tolerances tighter as our test data
+            # is generated in the range [0, 1]
+            tols={
+                v: dict(rtol=1e-3, atol=1e-6)
+                for v in (
+                    "Emissions|BC",
+                    "Emissions|CH4",
+                    "Emissions|CO",
+                    "Emissions|CO2",
+                    "Emissions|NH3",
+                    "Emissions|NOx",
+                    "Emissions|OC",
+                    "Emissions|Sulfur",
+                    "Emissions|VOC",
+                    "Emissions|N2O",
+                )
+            },
+        )
 
 
-def test_is_internally_consistent_incorrect_dataset_extra_timeseries():
-    # Should pass
-    assert False
+@pytest.mark.parametrize(
+    "model, extra_variable_regions",
+    (
+        (
+            "model_a",
+            (
+                # Some random other sector
+                ["Emissions|CO2|Other other", "model_a|China"],
+                ["Emissions|CO2|Other other", "model_a|Pacific OECD"],
+            ),
+        ),
+        (
+            "model_a",
+            (
+                # Extra sector that is not used directly
+                # but will influence the total
+                ["Emissions|BC|Energy|Demand|Special", "model_a|China"],
+                ["Emissions|BC|Energy|Demand|Special", "model_a|Pacific OECD"],
+            ),
+        ),
+        (
+            # Some extra sector only at the world level
+            "model_a",
+            (["Emissions|CH4|Unused", "World"],),
+        ),
+        (
+            "model_a",
+            (
+                # Both of the above
+                ["Emissions|N2O|Other other", "model_a|China"],
+                ["Emissions|N2O|Other other", "model_a|Pacific OECD"],
+                ["Emissions|NOx|Unused", "World"],
+            ),
+        ),
+    ),
+)
+def test_is_internally_consistent_incorrect_dataset_extra_timeseries(
+    model, extra_variable_regions
+):
+    """
+    Check that `is_internally_consistent` raises that break the expected hierarchy
+    with variables that aren't actually used for the gridding.
+
+    In other words, check that we check what we're interested in,
+    not the internal consistency of the entire dataset which is undefined
+    because the internal consistency rules are undefined.
+    """
+    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
+    world_region = "World"
+
+    extras_idx = pd.MultiIndex.from_tuples(
+        extra_variable_regions, names=["variable", "region"]
+    )
+    base_index = get_internal_consistency_checking_index(
+        model_regions, world_region=world_region
+    ).append(extras_idx)
+
+    # Aggregate up, including the extras.
+    # The total will therefore rely on the extras,
+    # but they won't be used when checking,
+    # hence the error
+    # (this is an error of alignment with what we care about, not within the hierarchy).
+    df = get_aggregate_df(
+        get_df(base_index=base_index, model=model), world_region=world_region
+    )
+
+    match = r"\s*.*".join([r"\s*".join([v, r]) for v, r in extra_variable_regions])
+    with pytest.raises(InternalConsistencyError, match=match):
+        is_internally_consistent(
+            df,
+            model_regions=model_regions,
+            # Have to make the tolerances tighter as our test data
+            # is generated in the range [0, 1]
+            tols={
+                v: dict(rtol=1e-6, atol=1e-8)
+                for v in (
+                    "Emissions|BC",
+                    "Emissions|CH4",
+                    "Emissions|CO",
+                    "Emissions|CO2",
+                    "Emissions|NH3",
+                    "Emissions|NOx",
+                    "Emissions|OC",
+                    "Emissions|Sulfur",
+                    "Emissions|VOC",
+                    "Emissions|N2O",
+                )
+            },
+        )
 
 
 def test_to_complete_from_full_dataset():
