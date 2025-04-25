@@ -55,7 +55,7 @@ def get_df(
 
 def aggregate_df(indf: pd.DataFrame) -> pd.DataFrame:
     # TODO: move this into pandas-openscm
-    pix = pytest.importorskip("pandas_indexing")
+    pytest.importorskip("pandas_indexing")
 
     level_separator = "|"
     level_to_aggregate = "variable"
@@ -197,11 +197,11 @@ def test_has_all_required_timeseries_extra_timeseries():
 @pytest.mark.parametrize(
     "complete_index, to_remove, model, model_regions",
     (
-        pytest.param(complete_index, row, model, model_regions)
+        pytest.param(complete_index, to_remove, model, model_regions)
         for model in ["model_a"]
         for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
         for complete_index in [get_required_timeseries_index(model_regions)]
-        for row in [
+        for to_remove in [
             *complete_index,
             # Just get a selection of combos of dropped elements
             *[list(v) for v in list(itertools.combinations(complete_index, 2))[:20]],
@@ -234,15 +234,124 @@ def test_is_internally_consistent_correct_dataset():
     assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
 
 
-def test_is_internally_consistent_correct_dataset_missing_timeseries():
-    # Should pass
-    assert False
-    is_internally_consistent()
+@pytest.mark.parametrize(
+    "complete_index, to_remove, model, model_regions, world_region",
+    (
+        pytest.param(complete_index, to_remove, model, model_regions, world_region)
+        for model in ["model_a"]
+        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
+        for world_region in ["World"]
+        for complete_index in [
+            get_internal_consistency_checking_index(
+                model_regions, world_region=world_region
+            )
+        ]
+        for optional_index in [
+            complete_index.difference(
+                get_required_timeseries_index(
+                    model_regions=model_regions, world_region=world_region
+                )
+            )
+        ]
+        for to_remove in [
+            *optional_index,
+            # Get a selection of combos of dropped elements
+            *[list(v) for v in list(itertools.combinations(optional_index, 2))[:5]],
+        ]
+    ),
+)
+def test_is_internally_consistent_correct_dataset_missing_timeseries(
+    complete_index, to_remove, model, model_regions, world_region
+):
+    """
+    Check that `is_internally_consistent` does not raise for missing optional timeseries
+
+    The data still has to be internally consistent, of course.
+
+    We don't need to test what happens if required timeseries are missing
+    because that is caught by `has_all_required_timeseries`.
+    """
+    base_index = complete_index.drop(to_remove)
+
+    df = get_df(base_index=base_index, model=model)
+
+    df_to_check = get_aggregate_df(df, world_region=world_region)
+
+    assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
 
 
-def test_is_internally_consistent_correct_dataset_extra_timeseries():
-    # Should pass
-    assert False
+@pytest.mark.parametrize(
+    "model, extra_variable_regions",
+    (
+        (
+            "model_a",
+            (
+                ["Emissions|CO2|Energy|Demand|Transportation|Rail", "model_a|China"],
+                [
+                    "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                    "model_a|Pacific OECD",
+                ],
+            ),
+        ),
+        (
+            "model_a",
+            (["Emissions|CO2|Unused", "World"],),
+        ),
+        (
+            "model_a",
+            (
+                ["Emissions|CO2|Energy|Demand|Transportation|Rail", "model_a|China"],
+                [
+                    "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                    "model_a|Pacific OECD",
+                ],
+                ["Emissions|CO2|Unused", "World"],
+            ),
+        ),
+    ),
+)
+def test_is_internally_consistent_correct_dataset_extra_timeseries(
+    model,
+    extra_variable_regions,
+):
+    """
+    Check that `is_internally_consistent` does not raise
+    if we add extra timeseries that break the hierarchy
+    but only with variables that aren't actually used for the gridding.
+
+    In other words, check that we check what we're interested in,
+    not the internal consistency of the entire dataset which is undefined
+    because the internal consistency rules are undefined.
+    """
+    scenario = "scenario_a"
+    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
+    world_region = "World"
+
+    df = get_df(
+        base_index=get_internal_consistency_checking_index(
+            model_regions, world_region=world_region
+        ),
+        model=model,
+    )
+
+    df_aggregated = get_aggregate_df(df, world_region=world_region)
+    extras_idx = pd.MultiIndex.from_tuples(
+        extra_variable_regions, names=["variable", "region"]
+    )
+    extras = pd.DataFrame(
+        RNG.random((extras_idx.shape[0], df.columns.size)),
+        columns=df.columns,
+        index=extras_idx,
+    )
+    extras = set_new_single_value_levels(
+        extras, {"model": model, "scenario": scenario, "unit": "Mt"}
+    )
+
+    df_to_check = pd.concat(
+        [df_aggregated, extras.reorder_levels(df_aggregated.index.names)]
+    )
+
+    assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
 
 
 def test_is_internally_consistent_incorrect_dataset():
