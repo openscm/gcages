@@ -21,9 +21,6 @@ from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     get_internal_consistency_checking_index,
     # to_complete_timeseries,
-    # COMPLETE_TIMESERIES_INDEX,
-    # NAIVE_SUM_TIMESERIES_INDEX,
-    # OPTIONAL_TIMESERIES_INDEX,
     get_required_timeseries_index,
     has_all_required_timeseries,
     is_internally_consistent,
@@ -596,21 +593,24 @@ def test_to_complete_from_full_dataset():
     # start with the full index
     # call to complete
     # should get back the full index
+    # assert res.assumed_zero is None
     assert False
 
 
 def test_to_complete_extra_timeseries():
-    # Should get just the complete bits back
+    # Should get just the complete bits back i.e. extras are dropped
+    # assert res.assumed_zero is None
     assert False
-    to_complete_timeseries()
 
 
 def test_to_complete_missing_timeseries():
-    # Should get the optional timeseries as zeros
+    # Should get back a complete index with the optional timeseries as zeros
+    # assert res.assumed_zero is equal to the missing timeseries filled with zeros
     assert False
 
 
 def test_to_complete_extra_and_missing_optional_timeseries():
     # Should get just the complete bits back
     # Optional timeseries filled with zeros
+    # assert res.assumed_zero is equal to the missing timeseries filled with zeros
     assert False
