@@ -710,7 +710,7 @@ def to_gridding_sectors(
             components
         ].sum(axis="columns")
         region_sector_df_gridding = region_sector_df_gridding.drop(
-            components, axis="columns"
+            list(set(components) - {gridding_sector}), axis="columns"
         )
 
     sector_df_gridding_like_input = combine_sectors(

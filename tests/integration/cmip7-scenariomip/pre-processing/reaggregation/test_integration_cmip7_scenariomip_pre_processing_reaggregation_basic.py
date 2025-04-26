@@ -1110,10 +1110,12 @@ def test_complete_to_gridding_sectors_straightforward_sector(
 
 def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_gridding_res):
     input, res = complete_to_gridding_res
+    assert False
 
 
 def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
     input, res = complete_to_gridding_res
+    assert False
 
 
 # Test of gridding sectors to global workflow go elsewhere
