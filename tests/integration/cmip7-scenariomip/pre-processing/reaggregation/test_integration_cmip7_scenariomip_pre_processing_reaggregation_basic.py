@@ -27,11 +27,14 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     has_all_required_timeseries,
     is_internally_consistent,
     to_complete,
+    to_gridding_sectors,
 )
 from gcages.completeness import NotCompleteError
 from gcages.index_manipulation import (
+    combine_sectors,
     create_levels_based_on_existing,
     set_new_single_value_levels,
+    split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
 from gcages.testing import assert_frame_equal, compare_close
@@ -332,11 +335,12 @@ def get_df(  # noqa: PLR0913
     scenario_level: str = "scenario",
     unit_level: str = "unit",
     variable_level: str = "variable",
+    columns_name: str = "year",
 ) -> pd.DataFrame:
     res = set_new_single_value_levels(
         pd.DataFrame(
             RNG.random((base_index.shape[0], timepoints.size)),
-            columns=timepoints,
+            columns=pd.Index(timepoints, name=columns_name),
             index=create_levels_based_on_existing(
                 base_index, create_from={"unit": ("variable", guess_unit)}
             ),
@@ -1061,5 +1065,55 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
     assert_frame_equal(res.assumed_zero, exp_zeros)
 
 
-# Tests of complete to gridding sectors
+@pytest.fixture
+def complete_to_gridding_res():
+    input = COMPLETE_DF
+
+    res = to_gridding_sectors(input)
+
+    input_stacked = split_sectors(input).stack().unstack("sectors")
+
+    return input_stacked, res
+
+
+@pytest.mark.parametrize(
+    "gridding_sector_definition",
+    (
+        pytest.param(gs, id=name)
+        for name, gs in GRIDDING_SECTORS.items()
+        if name
+        not in ("Aircraft", "Domestic aviation headache", "Transportation Sector")
+    ),
+)
+def test_complete_to_gridding_sectors_straightforward_sector(
+    complete_to_gridding_res, gridding_sector_definition
+):
+    input_stacked, res = complete_to_gridding_res
+
+    if gridding_sector_definition.spatial_resolution == "model region":
+        region_locator = input_stacked.index.get_level_values("region") != WORLD_REGION
+
+    else:
+        region_locator = input_stacked.index.get_level_values("region") == WORLD_REGION
+
+    tmp = input_stacked.loc[
+        region_locator,
+        list(gridding_sector_definition.input_sectors),
+    ]
+    tmp[gridding_sector_definition.gridding_sector] = tmp.sum(axis="columns")
+    exp = combine_sectors(
+        tmp[[gridding_sector_definition.gridding_sector]].unstack().stack("sectors")
+    ).reorder_levels(res.index.names)
+
+    assert_frame_equal(multi_index_lookup(res, exp.index), exp)
+
+
+def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_gridding_res):
+    input, res = complete_to_gridding_res
+
+
+def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
+    input, res = complete_to_gridding_res
+
+
 # Test of gridding sectors to global workflow go elsewhere

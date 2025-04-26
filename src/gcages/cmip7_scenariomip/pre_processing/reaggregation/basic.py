@@ -115,7 +115,7 @@ SECTOR_DOMESTIC_AVIATION = "Energy|Demand|Transportation|Domestic Aviation"
 Domestic aviation sector
 """
 
-gridding_sectors = (
+gridding_sectors_reporting = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
@@ -250,7 +250,7 @@ gridding_sectors = (
 
 COMPLETE_WORLD_VARIABLES: tuple[str, ...] = tuple(
     v
-    for gs in gridding_sectors
+    for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.WORLD
     for v in gs.to_complete_variables(all_species=COMPLETE_GRIDDING_SPECIES)
 )
@@ -260,7 +260,7 @@ Complete set of variables at the world level
 
 REQUIRED_WORLD_VARIABLES: tuple[str, ...] = tuple(
     v
-    for gs in gridding_sectors
+    for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.WORLD
     for v in gs.to_required_variables(all_species=COMPLETE_GRIDDING_SPECIES)
 )
@@ -277,7 +277,7 @@ Optional set of variables at the world level
 
 COMPLETE_MODEL_REGION_VARIABLES: tuple[str, ...] = tuple(
     v
-    for gs in gridding_sectors
+    for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.MODEL_REGION
     for v in gs.to_complete_variables(all_species=COMPLETE_GRIDDING_SPECIES)
 )
@@ -287,7 +287,7 @@ Complete set of variables at the model region level
 
 REQUIRED_MODEL_REGION_VARIABLES: tuple[str, ...] = tuple(
     v
-    for gs in gridding_sectors
+    for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.MODEL_REGION
     for v in gs.to_required_variables(all_species=COMPLETE_GRIDDING_SPECIES)
 )
@@ -609,5 +609,129 @@ def to_complete(
         )
         complete = pd.concat([keep, assumed_zero.reorder_levels(keep.index.names)])
         res = ToCompleteResult(complete=complete, assumed_zero=assumed_zero)
+
+    return res
+
+
+def to_gridding_sectors(
+    indf: pd.DataFrame, region_level: str = "region", world_region: str = "World"
+) -> pd.DataFrame:
+    # Processing is way easier if we split into two DataFrame's
+    # and stack the sectors
+    world_locator = indf.index.get_level_values(region_level) == world_region
+
+    # Data that is at the world level i.e. has no region information
+    sector_df = (
+        split_sectors(
+            indf.loc[world_locator].reset_index("region", drop=True),
+            bottom_level="sectors",
+        )
+        .stack()
+        .unstack("sectors")
+    )
+    # Data with region information
+    region_sector_df = (
+        split_sectors(indf.loc[~world_locator], bottom_level="sectors")
+        .stack()
+        .unstack("sectors")
+    )
+
+    # Move domestic aviation to the global level
+    domestic_aviation_sum = groupby_except(
+        region_sector_df[SECTOR_DOMESTIC_AVIATION], region_level
+    ).sum()
+    sector_df["Aircraft"] = (
+        sector_df["Energy|Demand|Bunkers|International Aviation"]
+        + domestic_aviation_sum
+    )
+    # The gridding transport sector excludes the aviation (which we just moved)
+    region_sector_df["Energy|Demand|Transportation"] = (
+        region_sector_df["Energy|Demand|Transportation"]
+        - region_sector_df[SECTOR_DOMESTIC_AVIATION]
+    )
+    # Having done the move, drop the levels we no longer use
+    sector_df = sector_df.drop(
+        ["Energy|Demand|Bunkers|International Aviation"], axis="columns"
+    )
+    region_sector_df = region_sector_df.drop([SECTOR_DOMESTIC_AVIATION], axis="columns")
+
+    # Now it's very straight-forward
+    # Rename shipping at the world level without a loop
+    # because this is the only change
+    sector_df_gridding = sector_df.rename(
+        {"Energy|Demand|Bunkers|International Shipping": "International Shipping"},
+        axis="columns",
+    )
+
+    # Get the region-sector gridding df started
+    region_sector_df_gridding = region_sector_df.rename(
+        {"Energy|Demand|Bunkers|International Aviation": "Transportation Sector"},
+        axis="columns",
+    )
+    # Do other compilations.
+    # We can do this here with confidence
+    # because we assume that the users have used `to_complete`
+    # before calling this function.
+    for gridding_sector, components in (
+        ("Agriculture", ["AFOLU|Agriculture"]),
+        (
+            "Agricultural Waste Burning",
+            [
+                "AFOLU|Agricultural Waste Burning",
+                # Hmmm, almost definitely wrong
+                "AFOLU|Land|Harvested Wood Products",
+                "AFOLU|Land|Land Use and Land-Use Change",
+                "AFOLU|Land|Other",
+                "AFOLU|Land|Wetlands",
+            ],
+        ),
+        ("Energy Sector", ["Energy|Supply"]),
+        ("Forest Burning", ["AFOLU|Land|Fires|Forest Burning"]),
+        ("Grassland Burning", ["AFOLU|Land|Fires|Grassland Burning"]),
+        (
+            "Industrial Sector",
+            [
+                "Energy|Demand|Industry",
+                "Industrial Processes",
+                "Energy|Demand|Other Sector",
+                "Other",
+                "Other Capture and Removal",
+            ],
+        ),
+        ("Peat Burning", ["AFOLU|Land|Fires|Peat Burning"]),
+        (
+            "Residential Commercial Other",
+            ["Energy|Demand|Residential and Commercial and AFOFI"],
+        ),
+        ("Solvents Production and Application", ["Product Use"]),
+        ("Waste", ["Waste"]),
+    ):
+        region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
+            components
+        ].sum(axis="columns")
+        region_sector_df_gridding = region_sector_df_gridding.drop(
+            components, axis="columns"
+        )
+
+    sector_df_gridding_like_input = combine_sectors(
+        set_new_single_value_levels(
+            sector_df_gridding.unstack().stack("sectors"), {region_level: world_region}
+        ),
+        bottom_level="sectors",
+    )
+    region_sector_df_gridding_like_input = combine_sectors(
+        region_sector_df_gridding.unstack().stack("sectors"),
+        bottom_level="sectors",
+    )
+
+    res = pd.concat(
+        [
+            df.reorder_levels(indf.index.names)
+            for df in [
+                sector_df_gridding_like_input,
+                region_sector_df_gridding_like_input,
+            ]
+        ]
+    )
 
     return res
