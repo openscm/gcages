@@ -20,18 +20,21 @@ import pandas as pd
 import pytest
 from attrs import define
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     get_default_internal_conistency_checking_tolerances,
     has_all_required_timeseries,
     is_internally_consistent,
+    to_complete,
 )
 from gcages.completeness import NotCompleteError
-from gcages.index_manipulation import set_new_single_value_levels
+from gcages.index_manipulation import (
+    create_levels_based_on_existing,
+    set_new_single_value_levels,
+)
 from gcages.internal_consistency import InternalConsistencyError
-from gcages.testing import compare_close
+from gcages.testing import assert_frame_equal, compare_close
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 try:
@@ -43,19 +46,6 @@ except ImportError:
 
 RNG = np.random.default_rng()
 
-# TODO: function for generating aggregated case using caching for speed
-
-# TODO: change tests of internally consistent to use parameterisation
-#       1. internally consistent as far as we are concerned
-#          but not internally consistent from hierarchy point of view: does_not_raise
-#         - missing optional timeseries
-#         - with extra timeseries
-# TODO: use pint for tolerances
-
-# TODO: change tests of to complete to use parameterisation
-
-# Tests of complete to gridding sectors
-# Test of gridding sectors to global workflow go elsewhere
 
 COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
     "CO2",
@@ -347,26 +337,11 @@ def get_df(  # noqa: PLR0913
         pd.DataFrame(
             RNG.random((base_index.shape[0], timepoints.size)),
             columns=timepoints,
-            index=base_index,
+            index=create_levels_based_on_existing(
+                base_index, create_from={"unit": ("variable", guess_unit)}
+            ),
         ),
         {model_level: model, scenario_level: scenario},
-    )
-    # TODO: split this into pandas-openscm
-    # (smarter version of `update_levels`
-    # i.e. `add_levels_based_on_existing`)
-
-    # Step 1: copy existing variable into new level in index
-    variable_level_idx = res.index.names.index(variable_level)
-    res.index = pd.MultiIndex(
-        levels=[*res.index.levels, res.index.levels[variable_level_idx]],
-        codes=[*res.index.codes, res.index.codes[variable_level_idx]],
-        names=[*res.index.names, unit_level],
-    )
-    # Step 2: Apply the map
-    res = update_index_levels_func(
-        res,
-        {unit_level: guess_unit},
-        copy=False,
     )
 
     return res
@@ -981,27 +956,110 @@ def test_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
 
 
 def test_to_complete_from_full_dataset():
-    # start with the full index
-    # call to complete
-    # should get back the input
-    # assert res.assumed_zero is None
-    assert False
+    res = to_complete(COMPLETE_DF, model_regions=MODEL_REGIONS)
+
+    assert_frame_equal(res.complete, COMPLETE_DF)
+    assert res.assumed_zero is None
 
 
-def test_to_complete_extra_timeseries():
-    # Should get just the complete bits back i.e. extras are dropped
-    # assert res.assumed_zero is None
-    assert False
+@pytest.mark.parametrize(
+    "to_add",
+    (
+        get_df(
+            tuples_to_multi_index_vr(
+                [
+                    ("Emissions|CO2|ZN", "World"),
+                    *(
+                        ("Emissions|CO2|Energy|Demand|ZN", f"{MODEL}|{r}")
+                        for r in MODEL_REGIONS
+                    ),
+                ]
+            ),
+            model=MODEL,
+        ),
+    ),
+)
+def test_to_complete_extra_timeseries(to_add):
+    df = pd.concat(
+        [
+            COMPLETE_DF,
+            to_add.reorder_levels(COMPLETE_DF.index.names),
+        ]
+    )
+    res = to_complete(df, model_regions=MODEL_REGIONS)
+
+    assert_frame_equal(res.complete, COMPLETE_DF)
+    assert res.assumed_zero is None
 
 
-def test_to_complete_missing_timeseries():
-    # Should get back a complete index with the optional timeseries as zeros
-    # assert res.assumed_zero is equal to the missing timeseries filled with zeros
-    assert False
+@pytest.mark.parametrize(
+    "to_remove",
+    (
+        *(pytest.param(OPTIONAL_INDEX[[i]]) for i in range(OPTIONAL_INDEX.shape[0])),
+        pytest.param(OPTIONAL_INDEX[:4:2], id="multiple-levels-removed"),
+        pytest.param(OPTIONAL_INDEX, id="required-only"),
+    ),
+)
+def test_to_complete_missing_timeseries(to_remove):
+    to_remove_locator = multi_index_match(COMPLETE_DF.index, to_remove)
+    assert to_remove_locator.sum() > 0, "Test doing nothing"
+    df = COMPLETE_DF.loc[~to_remove_locator]
+    res = to_complete(df, model_regions=MODEL_REGIONS)
+
+    exp_zeros = COMPLETE_DF.loc[to_remove_locator] * 0.0
+
+    exp = pd.concat([df, exp_zeros.reorder_levels(df.index.names)])
+    assert_frame_equal(res.complete, exp)
+    assert_frame_equal(res.assumed_zero, exp_zeros)
 
 
-def test_to_complete_extra_and_missing_optional_timeseries():
-    # Should get just the complete bits back
-    # Optional timeseries filled with zeros
-    # assert res.assumed_zero is equal to the missing timeseries filled with zeros
-    assert False
+@pytest.mark.parametrize(
+    "to_remove",
+    (
+        *(pytest.param(OPTIONAL_INDEX[[i]]) for i in range(0, 12, 3)),
+        pytest.param(OPTIONAL_INDEX[:4:2], id="multiple-levels-removed"),
+        pytest.param(OPTIONAL_INDEX, id="required-only"),
+    ),
+)
+@pytest.mark.parametrize(
+    "to_add",
+    (
+        get_df(
+            tuples_to_multi_index_vr([("Emissions|CO2|ZN", "World")]),
+            model=MODEL,
+        ),
+        get_df(
+            tuples_to_multi_index_vr(
+                [
+                    ("Emissions|CO2|ZN", "World"),
+                    *(
+                        ("Emissions|CO2|Energy|Demand|ZN", f"{MODEL}|{r}")
+                        for r in MODEL_REGIONS
+                    ),
+                ]
+            ),
+            model=MODEL,
+        ),
+    ),
+)
+def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
+    to_remove_locator = multi_index_match(COMPLETE_DF.index, to_remove)
+    assert to_remove_locator.sum() > 0, "Test doing nothing"
+    df_after_removal = COMPLETE_DF.loc[~to_remove_locator]
+    df = pd.concat(
+        [
+            df_after_removal,
+            to_add.reorder_levels(COMPLETE_DF.index.names),
+        ]
+    )
+    res = to_complete(df, model_regions=MODEL_REGIONS)
+
+    exp_zeros = COMPLETE_DF.loc[to_remove_locator] * 0.0
+
+    exp = pd.concat([df_after_removal, exp_zeros.reorder_levels(df.index.names)])
+    assert_frame_equal(res.complete, exp)
+    assert_frame_equal(res.assumed_zero, exp_zeros)
+
+
+# Tests of complete to gridding sectors
+# Test of gridding sectors to global workflow go elsewhere

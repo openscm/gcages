@@ -11,14 +11,18 @@ from __future__ import annotations
 import sys
 from typing import TYPE_CHECKING
 
+import numpy as np
 import pandas as pd
 from attrs import define
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.indexing import multi_index_match
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
-from gcages.completeness import assert_all_groups_are_complete
+from gcages.assertions import assert_only_working_on_variable_unit_region_variations
+from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
 from gcages.index_manipulation import (
+    combine_sectors,
     combine_species,
+    create_levels_based_on_existing,
     set_new_single_value_levels,
     split_sectors,
 )
@@ -524,3 +528,86 @@ def is_internally_consistent(
                 # data_that_was_not_summed=df_variable_not_used,
                 tolerances=tolerances_variable,
             )
+
+
+@define
+class ToCompleteResult:
+    """
+    Result of calling `to_complete`
+    """
+
+    complete: pd.DataFrame
+    """Complete [pd.DataFrame][pandas.DataFrame]"""
+
+    assumed_zero: pd.DataFrame | None
+    """
+    The timeseries that were assumed to be zero to make `self.complete`
+
+    If `None`, no timeseries were assumed to be zero.
+    """
+
+
+def to_complete(
+    indf: pd.DataFrame,
+    model_regions: tuple[str, ...],
+    unit_level: str = "unit",
+    variable_level: str = "variable",
+    region_level: str = "region",
+    world_region: str = "World",
+) -> ToCompleteResult:
+    assert_only_working_on_variable_unit_region_variations(indf)
+
+    complete_index = get_complete_timeseries_index(
+        model_regions=model_regions,
+        region_level=region_level,
+        variable_level=variable_level,
+        world_region=world_region,
+    )
+
+    keep = multi_index_lookup(indf, complete_index)
+    missing_indexes = get_missing_levels(
+        keep.index, complete_index=complete_index, unit_col=unit_level
+    )
+    if missing_indexes.empty:
+        res = ToCompleteResult(complete=keep, assumed_zero=None)
+    else:
+        keep_split = split_sectors(keep, middle_level="species")
+
+        species_unit_map = {
+            species: unit
+            for species, unit in keep_split.index.droplevel(
+                keep_split.index.names.difference(["species", unit_level])
+            )
+            .drop_duplicates()
+            .reorder_levels(["species", unit_level])
+        }
+        missing_indexes_split = split_sectors(missing_indexes)
+        zeros_index_split = create_levels_based_on_existing(
+            missing_indexes_split, {unit_level: ("species", species_unit_map)}
+        )
+        zeros_index = combine_sectors(zeros_index_split, middle_level="species")
+
+        other_levels_deduped = indf.index.droplevel(
+            [variable_level, unit_level, region_level]
+        ).drop_duplicates()
+        if other_levels_deduped.shape[0] != 1:
+            msg = f"Multiple values in other levels:\n{other_levels_deduped=}"
+            raise AssertionError(msg)
+
+        extra_levels = {
+            level: value
+            for level, value in zip(other_levels_deduped.names, other_levels_deduped[0])
+        }
+        assumed_zero = set_new_single_value_levels(
+            pd.DataFrame(
+                np.zeros((zeros_index.shape[0], keep.shape[1])),
+                columns=keep.columns,
+                index=zeros_index,
+            ),
+            extra_levels,
+            copy=False,
+        )
+        complete = pd.concat([keep, assumed_zero.reorder_levels(keep.index.names)])
+        res = ToCompleteResult(complete=complete, assumed_zero=assumed_zero)
+
+    return res
