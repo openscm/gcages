@@ -24,16 +24,22 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
-    get_internal_consistency_checking_index,
-    # to_complete_timeseries,
-    get_required_timeseries_index,
+    get_default_internal_conistency_checking_tolerances,
     has_all_required_timeseries,
     is_internally_consistent,
 )
 from gcages.completeness import NotCompleteError
 from gcages.index_manipulation import set_new_single_value_levels
 from gcages.internal_consistency import InternalConsistencyError
+from gcages.testing import compare_close
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
+
+try:
+    import openscm_units
+
+    Q = openscm_units.unit_registry.Quantity
+except ImportError:
+    Q = None
 
 RNG = np.random.default_rng()
 
@@ -42,10 +48,6 @@ RNG = np.random.default_rng()
 # TODO: change tests of internally consistent to use parameterisation
 #       1. internally consistent as far as we are concerned
 #          but not internally consistent from hierarchy point of view: does_not_raise
-#         - missing optional timeseries
-#         - with extra timeseries
-#       1. internally consistent from hierarchy point of view
-#          but not as far as we are concerned: raises InternalConsistencyError
 #         - missing optional timeseries
 #         - with extra timeseries
 # TODO: use pint for tolerances
@@ -101,138 +103,141 @@ class GriddingSectorComponentsReporting:
         )
 
 
-GRIDDING_SECTORS = (
-    GriddingSectorComponentsReporting(
-        gridding_sector="Agriculture",
-        spatial_resolution="model region",
-        input_sectors=("AFOLU|Agriculture",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Agricultural Waste Burning",
-        spatial_resolution="model region",
-        input_sectors=(
-            "AFOLU|Agricultural Waste Burning",
-            "AFOLU|Land|Harvested Wood Products",
-            "AFOLU|Land|Land Use and Land-Use Change",
-            "AFOLU|Land|Other",
-            "AFOLU|Land|Wetlands",
+GRIDDING_SECTORS = {
+    gs.gridding_sector: gs
+    for gs in (
+        GriddingSectorComponentsReporting(
+            gridding_sector="Agriculture",
+            spatial_resolution="model region",
+            input_sectors=("AFOLU|Agriculture",),
+            input_sectors_optional=(),
+            input_species_optional=(),
         ),
-        input_sectors_optional=(
-            "AFOLU|Land|Harvested Wood Products",
-            "AFOLU|Land|Land Use and Land-Use Change",
-            "AFOLU|Land|Other",
-            "AFOLU|Land|Wetlands",
+        GriddingSectorComponentsReporting(
+            gridding_sector="Agricultural Waste Burning",
+            spatial_resolution="model region",
+            input_sectors=(
+                "AFOLU|Agricultural Waste Burning",
+                "AFOLU|Land|Harvested Wood Products",
+                "AFOLU|Land|Land Use and Land-Use Change",
+                "AFOLU|Land|Other",
+                "AFOLU|Land|Wetlands",
+            ),
+            input_sectors_optional=(
+                "AFOLU|Land|Harvested Wood Products",
+                "AFOLU|Land|Land Use and Land-Use Change",
+                "AFOLU|Land|Other",
+                "AFOLU|Land|Wetlands",
+            ),
+            input_species_optional=(
+                "BC",
+                "CO",
+                "OC",
+                "Sulfur",
+            ),
         ),
-        input_species_optional=(
-            "BC",
-            "CO",
-            "OC",
-            "Sulfur",
+        GriddingSectorComponentsReporting(
+            gridding_sector="Aircraft",
+            spatial_resolution="world",
+            input_sectors=(
+                "Energy|Demand|Bunkers|International Aviation",
+                # Domestic aviation is included too.
+                # However, it has to be reported at the regional level
+                # so we can subtract it from Transport
+                # (hence it doesn't appear here, see below)
+            ),
+            input_sectors_optional=(),
+            input_species_optional=("CH4",),
         ),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Aircraft",
-        spatial_resolution="world",
-        input_sectors=(
-            "Energy|Demand|Bunkers|International Aviation",
-            # Domestic aviation is included too.
-            # However, it has to be reported at the regional level
-            # so we can subtract it from Transport
-            # (hence it doesn't appear here, see below)
+        GriddingSectorComponentsReporting(
+            gridding_sector="Domestic aviation headache",
+            spatial_resolution="model region",
+            input_sectors=("Energy|Demand|Transportation|Domestic Aviation",),
+            input_sectors_optional=(),
+            input_species_optional=("CH4",),
         ),
-        input_sectors_optional=(),
-        input_species_optional=("CH4",),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Domestic aviation headache",
-        spatial_resolution="model region",
-        input_sectors=("Energy|Demand|Transportation|Domestic Aviation",),
-        input_sectors_optional=(),
-        input_species_optional=("CH4",),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Transportation Sector",
-        spatial_resolution="model region",
-        input_sectors=("Energy|Demand|Transportation",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Energy Sector",
-        spatial_resolution="model region",
-        input_sectors=("Energy|Supply",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Forest Burning",
-        spatial_resolution="model region",
-        input_sectors=("AFOLU|Land|Fires|Forest Burning",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Grassland Burning",
-        spatial_resolution="model region",
-        input_sectors=("AFOLU|Land|Fires|Grassland Burning",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Industrial Sector",
-        spatial_resolution="model region",
-        input_sectors=(
-            "Energy|Demand|Industry",
-            "Energy|Demand|Other Sector",
-            "Industrial Processes",
-            "Other",
-            "Other Capture and Removal",
+        GriddingSectorComponentsReporting(
+            gridding_sector="Transportation Sector",
+            spatial_resolution="model region",
+            input_sectors=("Energy|Demand|Transportation",),
+            input_sectors_optional=(),
+            input_species_optional=(),
         ),
-        input_sectors_optional=(
-            "Energy|Demand|Other Sector",
-            "Other",
-            "Other Capture and Removal",
+        GriddingSectorComponentsReporting(
+            gridding_sector="Energy Sector",
+            spatial_resolution="model region",
+            input_sectors=("Energy|Supply",),
+            input_sectors_optional=(),
+            input_species_optional=(),
         ),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="International Shipping",
-        spatial_resolution="world",
-        input_sectors=("Energy|Demand|Bunkers|International Shipping",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Peat Burning",
-        spatial_resolution="model region",
-        input_sectors=("AFOLU|Land|Fires|Peat Burning",),
-        input_sectors_optional=("AFOLU|Land|Fires|Peat Burning",),
-        input_species_optional=COMPLETE_GRIDDING_SPECIES,
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Residential Commercial Other",
-        spatial_resolution="model region",
-        input_sectors=("Energy|Demand|Residential and Commercial and AFOFI",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Solvents Production and Application",
-        spatial_resolution="model region",
-        input_sectors=("Product Use",),
-        input_sectors_optional=(),
-        input_species_optional=("BC", "CH4", "CO", "NOx", "OC", "Sulfur"),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Waste",
-        spatial_resolution="model region",
-        input_sectors=("Waste",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-)
+        GriddingSectorComponentsReporting(
+            gridding_sector="Forest Burning",
+            spatial_resolution="model region",
+            input_sectors=("AFOLU|Land|Fires|Forest Burning",),
+            input_sectors_optional=(),
+            input_species_optional=(),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Grassland Burning",
+            spatial_resolution="model region",
+            input_sectors=("AFOLU|Land|Fires|Grassland Burning",),
+            input_sectors_optional=(),
+            input_species_optional=(),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Industrial Sector",
+            spatial_resolution="model region",
+            input_sectors=(
+                "Energy|Demand|Industry",
+                "Energy|Demand|Other Sector",
+                "Industrial Processes",
+                "Other",
+                "Other Capture and Removal",
+            ),
+            input_sectors_optional=(
+                "Energy|Demand|Other Sector",
+                "Other",
+                "Other Capture and Removal",
+            ),
+            input_species_optional=(),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="International Shipping",
+            spatial_resolution="world",
+            input_sectors=("Energy|Demand|Bunkers|International Shipping",),
+            input_sectors_optional=(),
+            input_species_optional=(),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Peat Burning",
+            spatial_resolution="model region",
+            input_sectors=("AFOLU|Land|Fires|Peat Burning",),
+            input_sectors_optional=("AFOLU|Land|Fires|Peat Burning",),
+            input_species_optional=COMPLETE_GRIDDING_SPECIES,
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Residential Commercial Other",
+            spatial_resolution="model region",
+            input_sectors=("Energy|Demand|Residential and Commercial and AFOFI",),
+            input_sectors_optional=(),
+            input_species_optional=(),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Solvents Production and Application",
+            spatial_resolution="model region",
+            input_sectors=("Product Use",),
+            input_sectors_optional=(),
+            input_species_optional=("BC", "CH4", "CO", "NOx", "OC", "Sulfur"),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Waste",
+            spatial_resolution="model region",
+            input_sectors=("Waste",),
+            input_sectors_optional=(),
+            input_species_optional=(),
+        ),
+    )
+}
 
 
 def to_index(  # noqa: PLR0913
@@ -276,7 +281,7 @@ MODEL = "model_a"
 MODEL_REGIONS = [f"{MODEL}|{r}" for r in ["Pacific OECD", "China"]]
 
 COMPLETE_INDEX = to_index(
-    GRIDDING_SECTORS,
+    GRIDDING_SECTORS.values(),
     complete=True,
     all_species=COMPLETE_GRIDDING_SPECIES,
     world_region=WORLD_REGION,
@@ -284,7 +289,7 @@ COMPLETE_INDEX = to_index(
 )
 
 REQUIRED_INDEX = to_index(
-    GRIDDING_SECTORS,
+    GRIDDING_SECTORS.values(),
     complete=False,
     all_species=COMPLETE_GRIDDING_SPECIES,
     world_region=WORLD_REGION,
@@ -293,6 +298,23 @@ REQUIRED_INDEX = to_index(
 
 OPTIONAL_INDEX = COMPLETE_INDEX.difference(REQUIRED_INDEX)
 
+INTERNAL_CONSISTENCY_DOUBLE_COUNTERS = to_index(
+    [GRIDDING_SECTORS["Domestic aviation headache"]],
+    complete=True,
+    all_species=COMPLETE_GRIDDING_SPECIES,
+    world_region=WORLD_REGION,
+    model_regions=MODEL_REGIONS,
+)
+
+INTERNAL_CONSISTENCY_INDEX = COMPLETE_INDEX.difference(
+    INTERNAL_CONSISTENCY_DOUBLE_COUNTERS
+)
+"""
+To avoid double counting, you have to be careful
+
+This is why the internal consistency index is its own thing.
+"""
+
 
 def guess_unit(v: str) -> str:
     species = v.split("|")[1]
@@ -300,7 +322,7 @@ def guess_unit(v: str) -> str:
         "BC": "Mt BC/yr",
         "CH4": "Mt CH4/yr",
         "CO": "Mt CO/yr",
-        "CO2": "Mt CO2/yr",
+        "CO2": "Gt C/yr",
         "N2O": "kt N2O/yr",
         "NH3": "Mt NH3/yr",
         "NOx": "Mt NO2/yr",
@@ -472,11 +494,12 @@ def test_has_all_required_timeseries(to_remove, to_add, exp):
     1. missing multiple required rows raises
        (but not all combinations)
     1. extra rows don't cause an issue (whether single or multiple)
+
+    Beyond this, we rely on the implementation not having weird edge cases.
     """
-    base_df = COMPLETE_DF
+    to_check = COMPLETE_DF
     model_regions = MODEL_REGIONS
 
-    to_check = base_df.copy()
     if to_remove is not None:
         to_remove_locator = multi_index_match(to_check.index, to_remove)
         assert to_remove_locator.sum() > 0, "Test won't do anything"
@@ -493,13 +516,12 @@ def test_has_all_required_timeseries(to_remove, to_add, exp):
         has_all_required_timeseries(to_check, model_regions=model_regions)
 
 
-def aggregate_df(indf: pd.DataFrame) -> pd.DataFrame:
+def aggregate_df_level(indf: pd.DataFrame, on_clash: str = "raise") -> pd.DataFrame:
     # TODO: move this into pandas-openscm
     pytest.importorskip("pandas_indexing")
 
     level_separator = "|"
     level_to_aggregate = "variable"
-    on_clash = "raise"
     min_levels_output = 1
 
     level_groups = {
@@ -545,26 +567,45 @@ def aggregate_df(indf: pd.DataFrame) -> pd.DataFrame:
         if n_levels in level_groups:
             # Check if any of the aggregations clash with the input
             indf_at_aggregated_level = level_groups[n_levels]
-            clash = multi_index_lookup(
-                indf_at_aggregated_level, to_aggregate_sum_combined.index
+            clash_locator = multi_index_match(
+                indf_at_aggregated_level.index, to_aggregate_sum_combined.index
             )
-            if clash.empty:
+            if not clash_locator.any():
                 # No clashing data so simply keep all of `indf_at_aggregated_level`
                 keep_at_level.append(indf_at_aggregated_level)
 
             elif on_clash == "raise":
+                clash = indf_at_aggregated_level[clash_locator]
                 msg = f"Reaggregated levels are in the input. Clashing levels: {clash}"
                 # TODO: switch to custom error
                 raise ValueError(msg)
 
-            # elif on_clash == "verify":
-            # make sure that the aggregation is the same as what is already there
-            # in level_groups[n_levels - 1],
-            # raise if there is a difference
+            elif on_clash == "verify":
+                indf_compare = indf_at_aggregated_level[clash_locator]
+                to_aggregate_sum_combined_compare = multi_index_lookup(
+                    to_aggregate_sum_combined, indf_compare.index.remove_unused_levels()
+                )
+                comparison = compare_close(
+                    left=indf_compare,
+                    right=to_aggregate_sum_combined_compare,
+                    left_name="indf",
+                    right_name="aggregated_sum",
+                    # **tolerances,
+                )
+                if not comparison.empty:
+                    raise NotImplementedError
 
-            # elif on_clash == "overwrite":
-            # edit level_groups[n_levels - 1]
-            # to overwrite the clashing data
+            elif on_clash == "overwrite":
+                not_clashing = indf_at_aggregated_level[~clash_locator]
+                if not_clashing.empty:
+                    # (Nothing to keep from input so do nothing here)
+                    pass
+
+                else:
+                    # Only keep what doesn't clash, effectively overwriting the rest
+                    # by using to_aggregate_sum_combined
+                    # instead
+                    keep_at_level.append(not_clashing)
 
             else:
                 raise NotImplementedError(on_clash)
@@ -586,13 +627,16 @@ def aggregate_df(indf: pd.DataFrame) -> pd.DataFrame:
     return res
 
 
-def get_aggregate_df(indf: pd.DataFrame, world_region: str) -> pd.DataFrame:
+def get_aggregate_df(
+    indf: pd.DataFrame, world_region: str, on_clash_variable: str = "raise"
+) -> pd.DataFrame:
     # The way the data is specified, a blind sum over regions is fine.
     df_regional = indf.loc[indf.index.get_level_values("region") != world_region]
     df_region_sum = groupby_except(indf, "region").sum()
 
     df_region_sum_aggregated = set_new_single_value_levels(
-        aggregate_df(df_region_sum), {"region": world_region}
+        aggregate_df_level(df_region_sum, on_clash=on_clash_variable),
+        {"region": world_region},
     )
     res = pd.concat(
         [df_regional, df_region_sum_aggregated.reorder_levels(df_regional.index.names)]
@@ -601,434 +645,339 @@ def get_aggregate_df(indf: pd.DataFrame, world_region: str) -> pd.DataFrame:
     return res
 
 
-def test_has_all_required_timeseries_full_dataset():
-    model = "model_a"
-    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
+"""
+The next few tests are of `is_internally_consistent`
 
-    df = get_df(
-        base_index=get_required_timeseries_index(model_regions),
-        model=model,
-    )
+The combinatorics of this are difficult
+(you can't test all possible combinations of passing and missing things).
 
-    assert has_all_required_timeseries(df, model_regions=model_regions) is None
+Our strategy is to make sure that:
 
+1. an internally consistent dataset built off required timeseries,
+   complete timeseries or things in between passes
+1. modifications to an internally consistent set lead to the expected behaviour
+    - modifications of the hierarchy we care about raise
+    - modifications of other parts of the hierarchy cause no error
+1. a dataset which is internally consistent according to its own hierarchy,
+   but not according to the pieces we care about raises
+"""
 
-def test_has_all_required_timeseries_extra_timeseries():
-    model = "model_a"
-    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
-
-    base_index = get_required_timeseries_index(model_regions).append(
-        pd.MultiIndex.from_tuples(
-            [
-                ("junk", "World"),
-                ("junk", f"{model}|China"),
-                ("more junk", "model|not a region"),
-                ("Emissions|CH4|Transport|Something", "World"),
-            ],
-            names=["variable", "region"],
-        )
-    )
-
-    df = get_df(base_index=base_index, model=model)
-
-    assert has_all_required_timeseries(df, model_regions=model_regions) is None
-
-
-@pytest.mark.parametrize(
-    "complete_index, to_remove, model, model_regions",
-    (
-        pytest.param(complete_index, to_remove, model, model_regions)
-        for model in ["model_a"]
-        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
-        for complete_index in [get_required_timeseries_index(model_regions)]
-        for to_remove in [
-            *complete_index,
-            # Just get a selection of combos of dropped elements
-            *[list(v) for v in list(itertools.combinations(complete_index, 2))[:20]],
-        ]
-    ),
+COMPLETE_INTERNALLY_CONSISTENT_DF = get_aggregate_df(
+    get_df(INTERNAL_CONSISTENCY_INDEX, model=MODEL),
+    world_region=WORLD_REGION,
 )
-def test_has_all_required_timeseries_missing_timeseries(
-    complete_index, to_remove, model, model_regions
-):
-    df = get_df(base_index=complete_index.drop(to_remove), model=model)
 
-    with pytest.raises(NotCompleteError):
-        has_all_required_timeseries(df, model_regions=model_regions)
+SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX = (
+    INTERNAL_CONSISTENCY_INDEX.difference(OPTIONAL_INDEX[::2])
+)
 
-
-def test_is_internally_consistent_correct_dataset():
-    model = "model_a"
-    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
-    world_region = "World"
-
-    df = get_df(
-        base_index=get_internal_consistency_checking_index(
-            model_regions, world_region=world_region
-        ),
-        model=model,
+NOT_IN_SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX = (
+    INTERNAL_CONSISTENCY_INDEX.difference(
+        SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX
     )
+)
 
-    df_to_check = get_aggregate_df(df, world_region=world_region)
-
-    assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
+SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF = get_aggregate_df(
+    get_df(
+        SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX,
+        model=MODEL,
+    ),
+    world_region=WORLD_REGION,
+)
 
 
 @pytest.mark.parametrize(
-    [
-        "internal_consistency_checking_index",
-        "to_remove",
-        "model",
-        "model_regions",
-        "world_region",
-    ],
+    "df",
     (
         pytest.param(
-            internal_consistency_checking_index,
-            to_remove,
-            model,
-            model_regions,
-            world_region,
-        )
-        for model in ["model_a"]
-        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
-        for world_region in ["World"]
-        for internal_consistency_checking_index in [
-            get_internal_consistency_checking_index(
-                model_regions, world_region=world_region
-            )
-        ]
-        for optional_index in [
-            internal_consistency_checking_index.difference(
-                get_required_timeseries_index(
-                    model_regions=model_regions, world_region=world_region
-                )
-            )
-        ]
-        for to_remove in [
-            *optional_index,
-            # Get a selection of combos of dropped elements
-            *[list(v) for v in list(itertools.combinations(optional_index, 2))[:5]],
-        ]
-    ),
-)
-def test_is_internally_consistent_correct_dataset_missing_timeseries(
-    internal_consistency_checking_index, to_remove, model, model_regions, world_region
-):
-    """
-    Check that `is_internally_consistent` does not raise for missing optional timeseries
-
-    The data still has to be internally consistent, of course.
-
-    We don't need to test what happens if required timeseries are missing
-    because that is caught by `has_all_required_timeseries`.
-    """
-    base_index = internal_consistency_checking_index.drop(to_remove)
-
-    df = get_df(base_index=base_index, model=model)
-
-    df_to_check = get_aggregate_df(df, world_region=world_region)
-
-    assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
-
-
-@pytest.mark.parametrize(
-    "model, extra_variable_regions",
-    (
-        (
-            "model_a",
-            (
-                # Domestic aviation can be added late
-                # because it's not used in checking the internal consistency
-                # (it's effectively shadowed by **Transportation)
-                [
-                    "Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation",
-                    "model_a|China",
-                ],
-                [
-                    "Emissions|CO2|Energy|Demand|Transportation|Domestic Aviation",
-                    "model_a|Pacific OECD",
-                ],
-            ),
+            COMPLETE_INTERNALLY_CONSISTENT_DF,
+            id="complete",  # aggregation makes this complete
         ),
-        (
-            "model_a",
-            (
-                ["Emissions|CH4|Energy|Demand|Transportation|Rail", "model_a|China"],
-                [
-                    "Emissions|CH4|Energy|Demand|Transportation|Rail",
-                    "model_a|Pacific OECD",
-                ],
-            ),
-        ),
-        (
-            "model_a",
-            (["Emissions|CO2|Unused", "World"],),
-        ),
-        (
-            "model_a",
-            (
-                ["Emissions|N2O|Energy|Demand|Transportation|Rail", "model_a|China"],
-                [
-                    "Emissions|N2O|Energy|Demand|Transportation|Rail",
-                    "model_a|Pacific OECD",
-                ],
-                ["Emissions|N2O|Unused", "World"],
-            ),
-        ),
-    ),
-)
-def test_is_internally_consistent_correct_dataset_extra_timeseries(
-    model, extra_variable_regions
-):
-    """
-    Check that `is_internally_consistent` does not raise
-    if we add extra timeseries that break the hierarchy
-    but only with variables that aren't actually used for the gridding.
-
-    In other words, check that we check what we're interested in,
-    not the internal consistency of the entire dataset which is undefined
-    because the internal consistency rules are undefined.
-    """
-    scenario = "scenario_a"
-    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
-    world_region = "World"
-
-    df = get_df(
-        base_index=get_internal_consistency_checking_index(
-            model_regions, world_region=world_region
-        ),
-        model=model,
-    )
-
-    df_aggregated = get_aggregate_df(df, world_region=world_region)
-    extras_idx = pd.MultiIndex.from_tuples(
-        extra_variable_regions, names=["variable", "region"]
-    )
-    extras = pd.DataFrame(
-        RNG.random((extras_idx.shape[0], df.columns.size)),
-        columns=df.columns,
-        index=extras_idx,
-    )
-    extras = set_new_single_value_levels(
-        extras, {"model": model, "scenario": scenario, "unit": "Mt"}
-    )
-
-    df_to_check = pd.concat(
-        [df_aggregated, extras.reorder_levels(df_aggregated.index.names)]
-    )
-
-    assert is_internally_consistent(df_to_check, model_regions=model_regions) is None
-
-
-@pytest.mark.parametrize(
-    "full_df, to_modify, model_regions",
-    (
         pytest.param(
-            full_df,
-            to_modify,
-            model_regions,
-        )
-        for model in ["model_a"]
-        for world_region in ["World"]
-        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
-        for internal_consistency_checking_index in [
-            get_internal_consistency_checking_index(
-                model_regions, world_region=world_region
-            )
-        ]
-        for full_df in [
             get_aggregate_df(
-                get_df(internal_consistency_checking_index, model=model),
-                world_region=world_region,
-            )
-        ]
-        for to_modify in [
-            *[[v] for v in internal_consistency_checking_index],
-            # Get a selection of combos of dropped elements
-            *[
-                list(v)
-                for v in list(
-                    itertools.combinations(internal_consistency_checking_index, 2)
-                )[:10]
-            ],
-        ]
-    ),
-)
-def test_is_internally_consistent_incorrect_dataset(full_df, to_modify, model_regions):
-    """
-    Test that `is_internally_consistent` raises if the data is not internally consistent
-
-    Here the internal inconsistency is because of an incorrrect sum
-    """
-    to_modify_index = pd.MultiIndex.from_tuples(to_modify, names=["variable", "region"])
-    to_modify_locator = multi_index_match(full_df.index, to_modify_index)
-    # + 1.1 as default CO2 tolerance is atol=1.0
-    full_df.loc[to_modify_locator, :] += 1.1
-
-    match = r"\s*.*".join([r"\s*".join([v, r]) for v, r in to_modify])
-    with pytest.raises(InternalConsistencyError, match=match):
-        is_internally_consistent(full_df, model_regions=model_regions)
-
-
-@pytest.mark.parametrize(
-    "full_df, to_remove, model_regions",
-    (
+                get_df(
+                    INTERNAL_CONSISTENCY_INDEX.difference(OPTIONAL_INDEX), model=MODEL
+                ),
+                world_region=WORLD_REGION,
+            ),
+            id="required",
+        ),
         pytest.param(
-            full_df,
-            to_modify,
-            model_regions,
-        )
-        for model in ["model_a"]
-        for world_region in ["World"]
-        for model_regions in [[f"{model}|{r}" for r in ["Pacific OECD", "China"]]]
-        for internal_consistency_checking_index in [
-            get_internal_consistency_checking_index(
-                model_regions, world_region=world_region
-            )
-        ]
-        for full_df in [
-            get_aggregate_df(
-                get_df(internal_consistency_checking_index, model=model),
-                world_region=world_region,
-            )
-        ]
-        for to_modify in [
-            *[[v] for v in internal_consistency_checking_index],
-            # Get a selection of combos of dropped elements
-            *[
-                list(v)
-                for v in list(
-                    itertools.combinations(internal_consistency_checking_index, 2)
-                )[:10]
-            ],
-        ]
-    ),
-)
-def test_is_internally_consistent_incorrect_dataset_missing_timeseries(
-    full_df, to_remove, model_regions
-):
-    """
-    Test that `is_internally_consistent` raises if the data is not internally consistent
-
-    Here the internal inconsistency is because of missing reporting
-    """
-    to_remove_index = pd.MultiIndex.from_tuples(to_remove, names=["variable", "region"])
-    full_df = full_df.loc[~multi_index_match(full_df.index, to_remove_index)]
-
-    with pytest.raises(InternalConsistencyError):
-        is_internally_consistent(
-            full_df,
-            model_regions=model_regions,
-            # Have to make the tolerances tighter as our test data
-            # is generated in the range [0, 1]
-            tols={
-                v: dict(rtol=1e-3, atol=1e-6)
-                for v in (
-                    "Emissions|BC",
-                    "Emissions|CH4",
-                    "Emissions|CO",
-                    "Emissions|CO2",
-                    "Emissions|NH3",
-                    "Emissions|NOx",
-                    "Emissions|OC",
-                    "Emissions|Sulfur",
-                    "Emissions|VOC",
-                    "Emissions|N2O",
-                )
-            },
-        )
-
-
-@pytest.mark.parametrize(
-    "model, extra_variable_regions",
-    (
-        (
-            "model_a",
-            (
-                # Some random other sector
-                ["Emissions|CO2|Other other", "model_a|China"],
-                ["Emissions|CO2|Other other", "model_a|Pacific OECD"],
-            ),
-        ),
-        (
-            "model_a",
-            (
-                # Extra sector that is not used directly
-                # but will influence the total
-                ["Emissions|BC|Energy|Demand|Special", "model_a|China"],
-                ["Emissions|BC|Energy|Demand|Special", "model_a|Pacific OECD"],
-            ),
-        ),
-        (
-            # Some extra sector only at the world level
-            "model_a",
-            (["Emissions|CH4|Unused", "World"],),
-        ),
-        (
-            "model_a",
-            (
-                # Both of the above
-                ["Emissions|N2O|Other other", "model_a|China"],
-                ["Emissions|N2O|Other other", "model_a|Pacific OECD"],
-                ["Emissions|NOx|Unused", "World"],
-            ),
+            SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF,
+            id="in-between",
         ),
     ),
 )
-def test_is_internally_consistent_incorrect_dataset_extra_timeseries(
-    model, extra_variable_regions
-):
-    """
-    Check that `is_internally_consistent` raises that break the expected hierarchy
-    with variables that aren't actually used for the gridding.
-
-    In other words, check that we check what we're interested in,
-    not the internal consistency of the entire dataset which is undefined
-    because the internal consistency rules are undefined.
-    """
-    model_regions = [f"{model}|{r}" for r in ["Pacific OECD", "China"]]
-    world_region = "World"
-
-    extras_idx = pd.MultiIndex.from_tuples(
-        extra_variable_regions, names=["variable", "region"]
-    )
-    base_index = get_internal_consistency_checking_index(
-        model_regions, world_region=world_region
-    ).append(extras_idx)
-
-    # Aggregate up, including the extras.
-    # The total will therefore rely on the extras,
-    # but they won't be used when checking,
-    # hence the error
-    # (this is an error of alignment with what we care about, not within the hierarchy).
-    df = get_aggregate_df(
-        get_df(base_index=base_index, model=model), world_region=world_region
-    )
-
-    match = r"\s*.*".join([r"\s*".join([v, r]) for v, r in extra_variable_regions])
-    with pytest.raises(InternalConsistencyError, match=match):
+def test_is_internally_consistent_passes(df):
+    assert (
         is_internally_consistent(
             df,
-            model_regions=model_regions,
-            # Have to make the tolerances tighter as our test data
-            # is generated in the range [0, 1]
-            tols={
-                v: dict(rtol=1e-6, atol=1e-8)
-                for v in (
-                    "Emissions|BC",
-                    "Emissions|CH4",
-                    "Emissions|CO",
-                    "Emissions|CO2",
-                    "Emissions|NH3",
-                    "Emissions|NOx",
-                    "Emissions|OC",
-                    "Emissions|Sulfur",
-                    "Emissions|VOC",
-                    "Emissions|N2O",
-                )
-            },
+            model_regions=MODEL_REGIONS,
+            tolerances=get_default_internal_conistency_checking_tolerances(),
         )
+        is None
+    )
+
+
+def get_remove_modify_permutations(
+    rows: pd.MultiIndex,
+) -> Iterable[tuple[pd.MultiIndex | None, pd.MultiIndex | None, str]]:
+    return (
+        (rows, None, "removal"),
+        (None, rows, "modification"),
+    )
+
+
+@pytest.mark.parametrize(
+    "to_remove,to_modify,to_add,exp",
+    (
+        *(
+            pytest.param(
+                to_remove,
+                to_modify,
+                None,
+                pytest.raises(InternalConsistencyError),
+                id=f"internal-consistency-breaking-{id}",
+            )
+            for i in range(
+                SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX.shape[0]
+            )
+            for to_remove, to_modify, id in get_remove_modify_permutations(
+                SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX[[i]]
+            )
+        ),
+        *(
+            pytest.param(
+                None,
+                None,
+                INTERNAL_CONSISTENCY_DOUBLE_COUNTERS[[i]],
+                does_not_raise(),
+                id=f"internal-consistency-non-breaking-{id}-as-double-counter",
+            )
+            for i in range(INTERNAL_CONSISTENCY_DOUBLE_COUNTERS.shape[0])
+        ),
+        *(
+            pytest.param(
+                to_remove,
+                to_modify,
+                None,
+                pytest.raises(InternalConsistencyError),
+                id=f"internal-consistency-breaking-multiple-{id}s",
+            )
+            for to_remove, to_modify, id in get_remove_modify_permutations(
+                SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX[:6:2]
+            )
+        ),
+        *(
+            pytest.param(
+                None,
+                None,
+                NOT_IN_SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX[[i]],
+                pytest.raises(InternalConsistencyError),
+                id="internal-consistency-breaking-addition",
+            )
+            for i in range(
+                NOT_IN_SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX.shape[
+                    0
+                ]
+            )
+        ),
+        pytest.param(
+            None,
+            None,
+            NOT_IN_SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF_STARTING_INDEX[:6:2],
+            pytest.raises(InternalConsistencyError),
+            id="internal-consistency-breaking-multiple-additions",
+        ),
+        pytest.param(
+            None,
+            None,
+            tuples_to_multi_index_vr(
+                [
+                    (
+                        "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                        "World",
+                    )
+                ]
+            ),
+            does_not_raise(),
+            id="random-extra",
+        ),
+        pytest.param(
+            None,
+            None,
+            tuples_to_multi_index_vr(
+                [
+                    (
+                        "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                        "World",
+                    ),
+                    *(
+                        (
+                            "Emissions|CO2|Energy|Demand|Transportation|Rail",
+                            r,
+                        )
+                        for r in MODEL_REGIONS
+                    ),
+                ]
+            ),
+            does_not_raise(),
+            id="multiple-extras",
+        ),
+    ),
+)
+def test_is_internally_consistent_modifications(to_remove, to_modify, to_add, exp):
+    """
+    Tests of modifications to an internally consistent dataset
+
+    The combinatorics of this are difficult
+    (you can't test all possible combinations of missing things).
+    Our strategy is to make sure that:
+
+    1. removing/modifying any level fails (as the internal consistency is broken),
+       except those that don't affect internal consistency (e.g. domestic aviation)
+    1. removing/modifying multiple levels fails (as the internal consistency is broken)
+    1. adding any optional level fails (as the internal consistency is broken)
+    1. adding multiple optional levels fails (as the internal consistency is broken)
+    1. adding any extra level passes
+       (doesn't affect internal consistency we care about,
+       even though it does affect internal consistency
+       if you think the pipe is meant to separate internally consistent levels)
+       (in other words, make sure we only check the internal consistency
+       we care about)
+    1. adding multiple extra levels passes
+    """
+    to_check = SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF
+    model_regions = MODEL_REGIONS
+
+    if to_remove is not None:
+        to_remove_locator = multi_index_match(to_check.index, to_remove)
+        assert to_remove_locator.sum() > 0, "Test won't do anything"
+        to_check = to_check.loc[~to_remove_locator]
+
+    if to_modify is not None:
+        to_check = to_check.copy()
+        to_modify_locator = multi_index_match(to_check.index, to_modify)
+        assert to_modify_locator.sum() > 0, "Test won't do anything"
+        # Huge change, tolerance sensitivity tested elsewhere
+        to_check.loc[to_modify_locator] *= 3.0
+
+    if to_add is not None:
+        already_included_locator = multi_index_match(to_check.index, to_add)
+        assert already_included_locator.sum() == 0, "Test won't do anything"
+        to_add_df = get_df(to_add, model=MODEL)
+
+        to_check = pd.concat([to_check, to_add_df.reorder_levels(to_check.index.names)])
+
+    with exp:
+        is_internally_consistent(
+            to_check,
+            model_regions=model_regions,
+            tolerances=get_default_internal_conistency_checking_tolerances(),
+        )
+
+
+def test_is_internally_consistent_hierarchy_consistent():
+    """
+    Test that a dataset that is internally consistent from a hierarchy point of view,
+    but not in the way we care about raises
+    """
+    base_index = INTERNAL_CONSISTENCY_INDEX.append(
+        tuples_to_multi_index_vr(
+            [
+                (
+                    # Some other sector we've never heard of
+                    "Emissions|CH4|EnergyZN",
+                    WORLD_REGION,
+                )
+            ]
+        )
+    )
+
+    start_df = get_df(base_index=base_index, model=MODEL)
+    df = get_aggregate_df(start_df, world_region=WORLD_REGION)
+    with pytest.raises(InternalConsistencyError):
+        is_internally_consistent(
+            df,
+            model_regions=MODEL_REGIONS,
+            tolerances=get_default_internal_conistency_checking_tolerances(),
+        )
+
+
+@pytest.mark.parametrize(
+    "delta,tol_kwargs,exp",
+    (
+        pytest.param(
+            0.01,
+            dict(atol=1e-4),
+            pytest.raises(InternalConsistencyError),
+            id="atol-raises",
+        ),
+        pytest.param(
+            1.0,
+            dict(atol=Q(1.0, "MtCO2 / yr")),
+            pytest.raises(InternalConsistencyError),
+            id="atol-raises-pint",
+            marks=pytest.mark.skipif(Q is None, reason="Missing openscm-units"),
+        ),
+        pytest.param(
+            0.01,
+            dict(atol=1e-2),
+            does_not_raise(),
+            id="atol-edge-passes",
+        ),
+        pytest.param(
+            0.010001,
+            dict(atol=1e-2),
+            pytest.raises(InternalConsistencyError),
+            id="atol-overedge-raises",
+        ),
+        pytest.param(
+            0.1,
+            dict(atol=0.2),
+            does_not_raise(),
+            id="atol-passes",
+        ),
+        pytest.param(
+            0.01,
+            dict(rtol=1e-6),
+            pytest.raises(InternalConsistencyError),
+            id="rtol-raises",
+        ),
+        pytest.param(
+            0.01,
+            dict(rtol=Q(1e-6, "1")),
+            pytest.raises(InternalConsistencyError),
+            id="rtol-raises-pint",
+            marks=pytest.mark.skipif(Q is None, reason="Missing openscm-units"),
+        ),
+        pytest.param(
+            0.01,
+            dict(rtol=1e-1),
+            does_not_raise(),
+            id="rtol-passes",
+        ),
+    ),
+)
+def test_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
+    start = get_df(INTERNAL_CONSISTENCY_INDEX, model=MODEL)
+    # Set all values to one
+    start.loc[:, :] = 1.0
+    to_check = get_aggregate_df(start, world_region=WORLD_REGION)
+
+    # Break consistency by given amount
+    to_modify_locator = np.where(
+        to_check.index.get_level_values("variable").str.startswith(
+            "Emissions|CO2|Energy|Demand|Bunkers|International Shipping"
+        )
+    )[0][0]
+    to_check.iloc[to_modify_locator, :] += delta
+
+    tols = get_default_internal_conistency_checking_tolerances() | {
+        "Emissions|CO2": tol_kwargs
+    }
+    with exp:
+        is_internally_consistent(to_check, model_regions=MODEL_REGIONS, tolerances=tols)
 
 
 def test_to_complete_from_full_dataset():

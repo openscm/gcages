@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Union
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+import pint
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -59,4 +60,9 @@ scenario variable unit
 sa       va       W      1.0   2.1
          vb       W      3.0   2.0
 ```
+"""
+
+PINT_SCALAR: TypeAlias = pint.facets.numpy.quantity.NumpyQuantity[NP_FLOAT_OR_INT]
+"""
+Type alias for a pint quantity that wraps a numpy scalar
 """

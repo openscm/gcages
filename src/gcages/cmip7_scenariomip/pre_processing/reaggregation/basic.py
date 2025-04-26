@@ -9,11 +9,12 @@ It assumes that domestic aviation is reported at the model region level.
 from __future__ import annotations
 
 import sys
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from attrs import define
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.indexing import multi_index_match
 
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.index_manipulation import (
@@ -28,6 +29,9 @@ if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
     from backports.strenum import StrEnum
+
+if TYPE_CHECKING:
+    from gcages.typing import PINT_SCALAR
 
 COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
     "CO2",
@@ -102,6 +106,11 @@ class GriddingSectorComponentsReporting:
         )
 
 
+SECTOR_DOMESTIC_AVIATION = "Energy|Demand|Transportation|Domestic Aviation"
+"""
+Domestic aviation sector
+"""
+
 gridding_sectors = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
@@ -149,7 +158,7 @@ gridding_sectors = (
     GriddingSectorComponentsReporting(
         gridding_sector="Domestic aviation headache",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Energy|Demand|Transportation|Domestic Aviation",),
+        input_sectors=(SECTOR_DOMESTIC_AVIATION,),
         input_sectors_optional=(),
         input_species_optional=("CH4",),
     ),
@@ -343,7 +352,7 @@ def get_internal_consistency_checking_index(
         v
         for v in COMPLETE_MODEL_REGION_VARIABLES
         # Avoid double counting with "Energy|Demand|Transportation"
-        if "Energy|Demand|Transportation|Domestic Aviation" not in v
+        if SECTOR_DOMESTIC_AVIATION not in v
     ]
     model_region_consistency_checking = pd.MultiIndex.from_product(
         [model_region_consistency_checking_variables, model_regions],
@@ -368,71 +377,101 @@ def has_all_required_timeseries(
     )
 
 
-DEFAULT_INTERNAL_CONSISTENCY_TOLERANCES = {
-    "Emissions|BC": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|CH4": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|CO": dict(rtol=1e-3, atol=1e-6),
-    # Higher absolute tolerance because of reporting units
-    "Emissions|CO2": dict(rtol=1e-3, atol=1.0),
-    "Emissions|NH3": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|NOx": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|OC": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
-    "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
-}
-"""
-Default tolerances used when checking the internal consistency of data
-"""
+def get_default_internal_conistency_checking_tolerances() -> (
+    dict[str, dict[str, float]] | dict[str, dict[str, PINT_SCALAR]]
+):
+    """
+    Get default tolerances used when checking the internal consistency of data
+
+    Behaviour varies depending on whether [openscm_units][] is available or not.
+    """
+    try:
+        import openscm_units
+
+        Q = openscm_units.unit_registry.Quantity
+
+        default_tolerances = {
+            "Emissions|BC": dict(rtol=1e-3, atol=Q(1e-3, "Mt BC/yr")),
+            "Emissions|CH4": dict(rtol=1e-3, atol=Q(1e-2, "Mt CH4/yr")),
+            "Emissions|CO": dict(rtol=1e-3, atol=Q(1e-1, "Mt CO/yr")),
+            "Emissions|CO2": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            "Emissions|NH3": dict(rtol=1e-3, atol=Q(1e-2, "Mt NH3/yr")),
+            "Emissions|NOx": dict(rtol=1e-3, atol=Q(1e-2, "Mt NO2/yr")),
+            "Emissions|OC": dict(rtol=1e-3, atol=Q(1e-3, "Mt OC/yr")),
+            "Emissions|Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
+            "Emissions|VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
+            "Emissions|N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
+        }
+
+    except ImportError:
+        default_tolerances = {
+            "Emissions|BC": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|CH4": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|CO": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|CO2": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|NH3": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|NOx": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|OC": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
+            "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
+        }
+
+    return default_tolerances
 
 
 def is_internally_consistent(
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
+    tolerances: dict[str, dict[str, float | PINT_SCALAR]],
     world_region: str = "World",
     region_level: str = "region",
     variable_level: str = "variable",
-    tols: dict[str, dict[str, float]] | None = None,
+    unit_level: str = "unit",
 ) -> None:
-    if tols is None:
-        tols = DEFAULT_INTERNAL_CONSISTENCY_TOLERANCES
+    try:
+        import pint
+    except ImportError:
+        pint = None
 
     internal_consistency_checking_index = get_internal_consistency_checking_index(
         model_regions=model_regions
     )
 
-    df_internal_consistency_checking = multi_index_lookup(
-        df, internal_consistency_checking_index
-    )
-
     # Hard-code the logic here
     # because that's what is needed for consistency with the rest of the module.
-    # If you sum over the sectors and regions of the index which provides internal consistency,
+    # If you sum over the sectors
+    # and regions of the index which provides internal consistency,
     # you should get the reported totals.
     def get_aggregate_variable(v: str) -> str:
         return "|".join(v.split("|")[:2])
 
-    for (
-        variable,
-        df_internal_consistency_checking_variable,
-    ) in df_internal_consistency_checking.groupby(
-        df_internal_consistency_checking.index.get_level_values(variable_level).map(
-            get_aggregate_variable
-        )
+    for variable, df_variable in df.groupby(
+        df.index.get_level_values(variable_level).map(get_aggregate_variable)
     ):
-        df_variable = df.loc[
-            (df.index.get_level_values(variable_level) == variable)
-            & (df.index.get_level_values(region_level) == world_region)
+        df_variable_reported_total = df_variable.loc[
+            (df_variable.index.get_level_values(variable_level) == variable)
+            & (df_variable.index.get_level_values(region_level) == world_region)
         ]
-        if df_variable.empty:
+        if df_variable_reported_total.empty:
             # Nothing reported so can move on
             continue
 
+        internal_consistency_checking_locator = multi_index_match(
+            df_variable.index, internal_consistency_checking_index
+        )
+
+        # TODO: split out a function like
+        # assert_reported_matches_sum_of_components
+        # This will have to be extremely specific to this setup
+        # to be able to handle the fact that "World"
+        # isn't really a region but we have to report it this way
+        # within the ScenarioMIP context.
         df_variable_aggregate = set_new_single_value_levels(
             combine_species(
                 groupby_except(
                     split_sectors(
-                        df_internal_consistency_checking_variable,
+                        df_variable.loc[internal_consistency_checking_locator],
                         bottom_level="sectors",
                     ),
                     ["sectors", "region"],
@@ -441,16 +480,47 @@ def is_internally_consistent(
             {region_level: world_region},
         ).reorder_levels(df_variable.index.names)
 
+        tolerances_variable = {}
+        for k, v in tolerances[variable].items():
+            if pint is not None and isinstance(v, pint.Quantity):
+                if k == "atol":
+                    variable_units = df_variable.index.get_level_values(
+                        unit_level
+                    ).unique()
+                    if len(variable_units) > 1:
+                        msg = (
+                            "Cannot use pint conversion "
+                            "if your data contains different units. "
+                            f"For {variable=}, we have {variable_units=}"
+                        )
+                        raise ValueError(msg)
+
+                    tolerances_variable[k] = v.to(variable_units[0]).m
+
+                elif k == "rtol":
+                    tolerances_variable[k] = v.to("dimensionless").m
+
+                else:
+                    raise NotImplementedError(k)
+
+            else:
+                tolerances_variable[k] = v
+
         comparison_variable = compare_close(
-            left=df_variable,
+            left=df_variable_reported_total,
             right=df_variable_aggregate,
             left_name="reported_total",
             right_name="derived_from_input",
-            **tols[variable],
+            **tolerances_variable,
         )
 
         if not comparison_variable.empty:
+            # df_variable_not_used = df_variable.loc[
+            #     ~internal_consistency_checking_locator
+            # ]
             raise InternalConsistencyError(
                 differences=comparison_variable,
-                data_that_was_summed=df_internal_consistency_checking_variable,
+                data_that_was_summed=df_variable,
+                # data_that_was_not_summed=df_variable_not_used,
+                tolerances=tolerances_variable,
             )

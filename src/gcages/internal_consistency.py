@@ -4,7 +4,12 @@ Internal consistency checking helpers
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
+
+if TYPE_CHECKING:
+    from gcages.typing import PINT_SCALAR
 
 
 class InternalConsistencyError(ValueError):
@@ -18,6 +23,7 @@ class InternalConsistencyError(ValueError):
         self,
         differences: pd.DataFrame,
         data_that_was_summed: pd.DataFrame,
+        tolerances: dict[str, float | PINT_SCALAR],
     ) -> None:
         differences_variables = differences.index.get_level_values("variable").unique()
         data_that_was_summed_relevant_for_differences = data_that_was_summed[
@@ -27,7 +33,8 @@ class InternalConsistencyError(ValueError):
         ].index.to_frame(index=False)
 
         error_msg = (
-            "Summing the components does not equal the total. "
+            "Summing the components does not equal the total "
+            f"when using the following tolerances: {tolerances}. "
             f"Differences:\n{differences}\n"
             "This is the data we used in the sum:\n"
             f"{data_that_was_summed_relevant_for_differences}"
