@@ -20,6 +20,7 @@ import pandas as pd
 import pytest
 from attrs import define
 from pandas_openscm.grouping import groupby_except
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
@@ -32,6 +33,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
 from gcages.completeness import NotCompleteError
 from gcages.index_manipulation import (
     combine_sectors,
+    combine_species,
     create_levels_based_on_existing,
     set_new_single_value_levels,
     split_sectors,
@@ -1067,13 +1069,47 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
 
 @pytest.fixture
 def complete_to_gridding_res():
-    input = COMPLETE_DF
+    variables = tuple(
+        f"Emissions|{species}|Energy|Demand|Transportation"
+        for species in COMPLETE_GRIDDING_SPECIES
+    )
+    regions = MODEL_REGIONS
+    transport_index = pd.MultiIndex.from_product(
+        [variables, regions], names=["variable", "region"]
+    )
+
+    unaggregated = get_df(COMPLETE_INDEX.difference(transport_index), model=MODEL)
+
+    internally_consistent = get_aggregate_df(unaggregated, world_region=WORLD_REGION)
+    # Add in the |Transportation level too
+    transport = internally_consistent.loc[
+        (
+            internally_consistent.index.get_level_values("variable").str.contains(
+                "Transportation"
+            )
+        )
+        & (internally_consistent.index.get_level_values("region") != "World")
+    ]
+    transport = update_index_levels_func(
+        transport, {"variable": lambda x: x.replace("|Domestic Aviation", "")}
+    )
+
+    internally_consistent = pd.concat(
+        [
+            internally_consistent,
+            transport.reorder_levels(internally_consistent.index.names),
+        ]
+    )
+
+    tcr = to_complete(internally_consistent, model_regions=MODEL_REGIONS)
+    assert tcr.assumed_zero is None
+    input = tcr.complete
 
     res = to_gridding_sectors(input)
 
-    input_stacked = split_sectors(input).stack().unstack("sectors")
+    input_stacked = split_sectors(input).stack(future_stack=True).unstack("sectors")
 
-    return input_stacked, res
+    return internally_consistent, input_stacked, res
 
 
 @pytest.mark.parametrize(
@@ -1088,7 +1124,7 @@ def complete_to_gridding_res():
 def test_complete_to_gridding_sectors_straightforward_sector(
     complete_to_gridding_res, gridding_sector_definition
 ):
-    input_stacked, res = complete_to_gridding_res
+    _, input_stacked, res = complete_to_gridding_res
 
     if gridding_sector_definition.spatial_resolution == "model region":
         region_locator = input_stacked.index.get_level_values("region") != WORLD_REGION
@@ -1102,20 +1138,57 @@ def test_complete_to_gridding_sectors_straightforward_sector(
     ]
     tmp[gridding_sector_definition.gridding_sector] = tmp.sum(axis="columns")
     exp = combine_sectors(
-        tmp[[gridding_sector_definition.gridding_sector]].unstack().stack("sectors")
+        tmp[[gridding_sector_definition.gridding_sector]]
+        .unstack()
+        .stack("sectors", future_stack=True)
     ).reorder_levels(res.index.names)
 
     assert_frame_equal(multi_index_lookup(res, exp.index), exp)
 
 
 def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_gridding_res):
-    input, res = complete_to_gridding_res
-    assert False
+    _, input_stacked, res = complete_to_gridding_res
+
+    region_locator = input_stacked.index.get_level_values("region") != WORLD_REGION
+
+    domestic_aviation_sum = groupby_except(
+        input_stacked.loc[region_locator][
+            "Energy|Demand|Transportation|Domestic Aviation"
+        ],
+        "region",
+    ).sum()
+    tmp = input_stacked.loc[~region_locator].copy()
+    tmp["Aircraft"] = (
+        tmp["Energy|Demand|Bunkers|International Aviation"] + domestic_aviation_sum
+    )
+    exp_aircraft = combine_sectors(
+        tmp[["Aircraft"]].unstack().stack("sectors", future_stack=True)
+    ).reorder_levels(res.index.names)
+    assert_frame_equal(multi_index_lookup(res, exp_aircraft.index), exp_aircraft)
+
+    tmp = input_stacked.loc[region_locator].copy()
+    tmp["Transportation Sector"] = (
+        tmp["Energy|Demand|Transportation"]
+        - tmp["Energy|Demand|Transportation|Domestic Aviation"]
+    )
+    exp_transport = combine_sectors(
+        tmp[["Transportation Sector"]].unstack().stack("sectors", future_stack=True)
+    ).reorder_levels(res.index.names)
+    assert_frame_equal(multi_index_lookup(res, exp_transport.index), exp_transport)
 
 
 def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
-    input, res = complete_to_gridding_res
-    assert False
+    internally_consistent, _, res = complete_to_gridding_res
+
+    res_totals = set_new_single_value_levels(
+        combine_species(
+            groupby_except(split_sectors(res), ["region", "sectors"]).sum()
+        ),
+        {"region": "World"},
+    ).reorder_levels(internally_consistent.index.names)
+    exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
+
+    assert_frame_equal(res_totals, exp_totals)
 
 
 # Test of gridding sectors to global workflow go elsewhere

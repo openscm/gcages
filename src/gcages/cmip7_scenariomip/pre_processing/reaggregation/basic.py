@@ -664,8 +664,9 @@ def to_gridding_sectors(
     )
 
     # Get the region-sector gridding df started
+    # (including the renaming for transport)
     region_sector_df_gridding = region_sector_df.rename(
-        {"Energy|Demand|Bunkers|International Aviation": "Transportation Sector"},
+        {"Energy|Demand|Transportation": "Transportation Sector"},
         axis="columns",
     )
     # Do other compilations.
@@ -715,12 +716,13 @@ def to_gridding_sectors(
 
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
-            sector_df_gridding.unstack().stack("sectors"), {region_level: world_region}
+            sector_df_gridding.unstack().stack("sectors", future_stack=True),
+            {region_level: world_region},
         ),
         bottom_level="sectors",
     )
     region_sector_df_gridding_like_input = combine_sectors(
-        region_sector_df_gridding.unstack().stack("sectors"),
+        region_sector_df_gridding.unstack().stack("sectors", future_stack=True),
         bottom_level="sectors",
     )
 
