@@ -7,56 +7,35 @@ from __future__ import annotations
 import multiprocessing
 from collections import defaultdict
 from functools import partial
+from typing import Protocol
 
 import pandas as pd
-from attrs import asdict, define, field
-from pandas_openscm.grouping import groupby_except
+from attrs import asdict, define
 from pandas_openscm.index_manipulation import update_index_levels_func
-from pandas_openscm.indexing import multi_index_lookup, multi_index_match
+from pandas_openscm.indexing import multi_index_lookup
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
+from gcages.aggregation import get_region_sector_sum
 from gcages.assertions import (
     assert_data_is_all_numeric,
     assert_has_index_levels,
     assert_index_is_multiindex,
     assert_only_working_on_variable_unit_region_variations,
 )
-from gcages.cmip7_scenariomip.pre_processing.assertions import (
-    assert_column_type_unchanged_in_res_ms,
-    assert_data_has_required_internal_consistency,
-    assert_data_is_compatible_with_pre_processing,
-    assert_no_nans_in_res_ms,
-)
-from gcages.cmip7_scenariomip.pre_processing.completeness import (
-    get_all_model_region_index_input,
-    get_all_world_index_input,
-    get_required_model_region_index_gridding,
-    get_required_world_index_gridding,
+from gcages.cmip7_scenariomip.gridding_emissions import (
+    get_complete_gridding_index,
+    to_global_workflow_emissions,
 )
 from gcages.cmip7_scenariomip.pre_processing.constants import (
-    AGRICULTURE_SECTOR_REAGGREGATED,
     CO2_BIOSPHERE_SECTORS_GRIDDING,
     CO2_FOSSIL_SECTORS_GRIDDING,
-    INDUSTRIAL_SECTOR_REAGGREGATED,
-    OPTIONAL_AGRICULTURE_SECTOR_GRIDDING_COMPONENTS_INPUT,
-    OPTIONAL_INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT,
-    REAGGREGATED_TO_GRIDDING_SECTOR_MAP_MODEL_REGION,
-    REAGGREGATED_TO_GRIDDING_SECTOR_MAP_WORLD,
-    REQUIRED_AGRICULTURE_SECTOR_GRIDDING_COMPONENTS_INPUT,
-    REQUIRED_INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT,
 )
-from gcages.cmip7_scenariomip.pre_processing.sector_cols import (
-    aggregate_sector,
-    convert_to_global_workflow_emissions,
-    reclassify_aviation_emissions,
+from gcages.cmip7_scenariomip.pre_processing.reaggregation import (
+    ReaggregatorBasic,
+    ToCompleteResult,
 )
-from gcages.completeness import assert_all_groups_are_complete
-from gcages.index_manipulation import (
-    combine_sectors,
-    combine_species,
-    set_new_single_value_levels,
-    split_sectors,
-)
+from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
+from gcages.index_manipulation import split_sectors
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import assert_frame_equal
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
@@ -70,6 +49,11 @@ class CMIP7ScenarioMIPPreProcessingResult:
     This has more components than normal,
     because we need to support both the 'normal' global path
     and harmonising at the region-sector level.
+    """
+
+    assumed_zero_emissions: pd.DataFrame | None
+    """
+    Emissions that were asssumed to be zero during the processing
     """
 
     gridding_workflow_emissions: pd.DataFrame
@@ -93,158 +77,191 @@ class CMIP7ScenarioMIPPreProcessingResult:
     """
 
 
-def do_pre_processing(  # noqa: PLR0913
+def guess_reaggregator(
     indf: pd.DataFrame,
-    world_region: str,
-    model_regions: tuple[str, ...],
-    time_name: str,
     region_level: str,
-    variable_level: str,
-    unit_level: str,
-    level_separator: str,
+) -> ReaggregatorLike:
+    assumed_model_regions = [
+        r for r in indf.index.get_level_values(region_level).unique() if r != "World"
+    ]
+    for guess_cls in (ReaggregatorBasic,):
+        guess = guess_cls(
+            model_regions=assumed_model_regions, region_level=region_level
+        )
+
+        try:
+            guess.assert_has_all_required_timeseries(indf)
+
+        except NotCompleteError:
+            # Not a match
+            continue
+
+        else:
+            return guess
+
+    msg = f"Could not guess the reaggregator for the given input:\n{indf}"
+    raise ValueError(msg)
+
+
+def do_pre_processing(
+    indf: pd.DataFrame,
+    reaggregator: ReaggregatorLike | None,
+    time_name: str,
+    run_checks: bool,
+    world_gridding_sectors: tuple[str, ...] = ("Aircraft", "International Shipping"),
+    table: str = "Emissions",
+    level_separator: str = "|",
+    co2_fossil_sectors: tuple[str, ...] = CO2_FOSSIL_SECTORS_GRIDDING,
+    co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING,
+    co2_name: str = "CO2",
 ) -> CMIP7ScenarioMIPPreProcessingResult:
     assert_only_working_on_variable_unit_region_variations(indf)
 
+    if reaggregator is None:
+        # Levels we will guess
+        region_level = "region"
+        unit_level = "unit"
+        variable_level = "variable"
+
+    else:
+        region_level = reaggregator.region_level
+        unit_level = reaggregator.unit_level
+        variable_level = reaggregator.variable_level
+
+    if run_checks:
+        assert_has_index_levels(
+            indf,
+            ["model", "scenario", region_level, unit_level, variable_level],
+        )
+
+    if reaggregator is None:
+        reaggregator = guess_reaggregator(indf, region_level=region_level)
+
+    assumed_model_regions = [
+        r
+        for r in indf.index.get_level_values(reaggregator.region_level).unique()
+        if r != reaggregator.world_region
+    ]
+
     indf_reported_times = indf.dropna(how="all", axis="columns")
+    if run_checks:
+        indf_reported_times_nan = indf_reported_times.isnull().any(axis="columns")
+        if indf_reported_times_nan.any():
+            issue_rows = indf.loc[indf_reported_times_nan, :]
+            msg = f"NaNs after dropping unreported times:\n{issue_rows}"
+            raise AssertionError(msg)
+
     indf_clean_units = strip_pint_incompatible_characters_from_units(
         indf_reported_times,
-        units_index_level="unit",
+        units_index_level=reaggregator.unit_level,
     )
 
-    used_in_gridding_index = get_all_world_index_input(
-        world_region=world_region,
-        region_level=region_level,
-        variable_level=variable_level,
-    ).append(
-        get_all_model_region_index_input(
-            model_regions,
-            region_level=region_level,
-            variable_level=variable_level,
-        )
-    )
-    used_in_gridding_locator = multi_index_match(
-        indf_clean_units.index, used_in_gridding_index
-    )
-    indf_used_in_gridding = indf_clean_units.loc[used_in_gridding_locator]
+    if run_checks:
+        reaggregator.assert_has_all_required_timeseries(indf_clean_units)
+        reaggregator.assert_is_internally_consistent(indf_clean_units)
 
-    world_locator = (
-        indf_used_in_gridding.index.get_level_values(region_level) == world_region
+    to_complete_result = reaggregator.to_complete(indf_clean_units)
+    gridding_workflow_emissions = reaggregator.to_gridding_sectors(
+        to_complete_result.complete
     )
-    # DataFrames are named by whether they have
-    # region and sector dimensions or just sector
-    # and whether their columns are sector or time.
-    region_sector_df_sector_col = (
-        split_sectors(
-            indf_used_in_gridding.loc[~world_locator],
-            middle_level="species",
-            bottom_level="sectors",
+
+    if run_checks:
+        if gridding_workflow_emissions.isnull().any().any():
+            msg = "NaN in `gridding_workflow_emissions`"
+            raise AssertionError(msg)
+
+        if gridding_workflow_emissions.columns.dtype != indf.columns.dtype:
+            msg = "Column type does not match input"
+            raise AssertionError(msg)
+
+        complete_index_gridding = get_complete_gridding_index(
+            model_regions=reaggregator.model_regions,
+            world_gridding_sectors=world_gridding_sectors,
+            world_region=reaggregator.world_region,
+            region_level=reaggregator.region_level,
+            variable_level=reaggregator.variable_level,
+            table=table,
             level_separator=level_separator,
         )
-        .stack()
-        .unstack("sectors")
-    )
-    sector_df_sector_col = (
-        split_sectors(
-            indf_used_in_gridding.loc[world_locator].reset_index("region", drop=True),
-            middle_level="species",
-            bottom_level="sectors",
-            level_separator=level_separator,
+        assert_all_groups_are_complete(
+            gridding_workflow_emissions, complete_index=complete_index_gridding
         )
-        .stack()
-        .unstack("sectors")
-    )
 
-    region_sector_df_sector_col, sector_df_sector_col = reclassify_aviation_emissions(
-        region_sector_df=region_sector_df_sector_col,
-        sector_df=sector_df_sector_col,
-        region_level=region_level,
-        copy=False,
-    )
+        # Check we didn't lose any mass
+        grss = partial(
+            get_region_sector_sum,
+            region_level=reaggregator.region_level,
+            world_region=reaggregator.world_region,
+        )
+        gridded_emisssions_sectoral_regional_sum = grss(gridding_workflow_emissions)
+        in_emissions_totals_to_compare_to = grss(
+            # Make sure we only sum across the levels
+            # that are useful for getting the total
+            multi_index_lookup(
+                indf, reaggregator.get_internal_consistency_checking_index()
+            )
+        )
+        # No tolerance as this should be exact
+        assert_frame_equal(
+            gridded_emisssions_sectoral_regional_sum,
+            in_emissions_totals_to_compare_to,
+        )
 
-    region_sector_df_sector_col = aggregate_sector(
-        region_sector_df_sector_col,
-        sector_out=INDUSTRIAL_SECTOR_REAGGREGATED,
-        sector_components=[
-            *REQUIRED_INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT,
-            *OPTIONAL_INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT,
-        ],
+    # Figure out the global workflow emissions
+    global_workflow_emissions_from_gridding_emissions = to_global_workflow_emissions(
+        gridding_workflow_emissions,
         time_name=time_name,
-        allow_missing=list(OPTIONAL_INDUSTRIAL_SECTOR_GRIDDING_COMPONENTS_INPUT),
+        region_level=reaggregator.region_level,
+        world_region=reaggregator.world_region,
+        # These have to be hard-coded to the IAM naming convention
+        global_workflow_co2_fossil_sector="Energy and Industrial Processes",
+        global_workflow_co2_biosphere_sector="AFOLU",
+        co2_fossil_sectors=co2_fossil_sectors,
+        co2_biosphere_sectors=co2_biosphere_sectors,
+        co2_name=co2_name,
     )
 
-    region_sector_df_sector_col = aggregate_sector(
-        region_sector_df_sector_col,
-        sector_out=AGRICULTURE_SECTOR_REAGGREGATED,
-        sector_components=[
-            *REQUIRED_AGRICULTURE_SECTOR_GRIDDING_COMPONENTS_INPUT,
-            *OPTIONAL_AGRICULTURE_SECTOR_GRIDDING_COMPONENTS_INPUT,
-        ],
-        allow_missing=list(OPTIONAL_AGRICULTURE_SECTOR_GRIDDING_COMPONENTS_INPUT),
-        time_name=time_name,
-    )
-    region_sector_gridding_df_sector_col = region_sector_df_sector_col.rename(
-        REAGGREGATED_TO_GRIDDING_SECTOR_MAP_MODEL_REGION, axis="columns", errors="raise"
-    )
-    sector_gridding_df_sector_col = sector_df_sector_col.rename(
-        REAGGREGATED_TO_GRIDDING_SECTOR_MAP_WORLD, axis="columns", errors="raise"
+    # This mucking around is another nice illustration
+    # of why the format is so painful.
+    # You can't just do split_sectors
+    # because some variables have 'sectors' (e.g. HFCs)
+    # and others don't.
+    gwe_split = split_sectors(gridding_workflow_emissions, middle_level="species")
+    species_from_gridding = tuple(gwe_split.index.get_level_values("species").unique())
+
+    indf_variables = indf_clean_units.index.get_level_values(
+        reaggregator.variable_level
     )
 
-    cs = partial(
-        combine_sectors,
-        middle_level="species",
-        bottom_level="sectors",
-        level_separator=level_separator,
+    species_from_gridding_indicators_endswith = tuple(
+        f"{level_separator}{s}" for s in species_from_gridding
     )
-    gridding_workflow_emissions_region_sector = cs(
-        region_sector_gridding_df_sector_col.stack().unstack(time_name),
+    from_gridding_emissions_locator_endswith = indf_variables.str.endswith(
+        species_from_gridding_indicators_endswith
     )
-    gridding_workflow_emissions_sector = set_new_single_value_levels(
-        cs(
-            sector_gridding_df_sector_col.stack().unstack(time_name),
-            level_separator=level_separator,
-        ),
-        {region_level: world_region},
+    species_from_gridding_indicators_contains = tuple(
+        f"{level_separator}{s}{level_separator}" for s in species_from_gridding
     )
-
-    gridding_workflow_emissions = pd.concat(
-        [
-            gridding_workflow_emissions_region_sector,
-            gridding_workflow_emissions_sector.reorder_levels(
-                gridding_workflow_emissions_region_sector.index.names
-            ),
-        ]
+    from_gridding_emissions_locator_contains = pd.Series(
+        [False] * indf_variables.size, index=indf_variables
     )
-
-    global_workflow_emissions_from_gridding_emissions = (
-        convert_to_global_workflow_emissions(
-            region_sector_df=region_sector_gridding_df_sector_col,
-            sector_df=sector_gridding_df_sector_col,
-            time_name=time_name,
-            region_level=region_level,
-            world_region=world_region,
-            global_workflow_co2_fossil_sector="Energy and Industrial Processes",
-            global_workflow_co2_biosphere_sector="AFOLU",
-            co2_fossil_sectors=CO2_FOSSIL_SECTORS_GRIDDING,
-            co2_biosphere_sectors=CO2_BIOSPHERE_SECTORS_GRIDDING,
-            species_level="species",
-            co2_name="CO2",
+    for sic in species_from_gridding_indicators_contains:
+        from_gridding_emissions_locator_contains |= indf_variables.str.contains(
+            sic, regex=False
         )
-    )
 
-    species_in_gridding = region_sector_gridding_df_sector_col.index.get_level_values(
-        "species"
-    ).unique()
-    variable_starts_in_gridding = tuple(f"Emissions|{s}" for s in species_in_gridding)
+    from_gridding_emissions_locator = (
+        from_gridding_emissions_locator_endswith
+        | from_gridding_emissions_locator_contains
+    )
     global_workflow_emissions_not_from_gridding_emissions = indf_clean_units.loc[
-        ~indf_clean_units.index.get_level_values("variable").str.startswith(
-            variable_starts_in_gridding
-        )
+        ~from_gridding_emissions_locator.values
     ]
     # Can't use these yet
     # TODO: implement support for baskets
     global_workflow_emissions_not_from_gridding_emissions = global_workflow_emissions_not_from_gridding_emissions.loc[  # noqa: E501
         ~global_workflow_emissions_not_from_gridding_emissions.index.get_level_values(
-            "unit"
+            unit_level
         ).str.contains("equiv")
     ]
 
@@ -256,6 +273,15 @@ def do_pre_processing(  # noqa: PLR0913
             ),
         ]
     )
+
+    if run_checks:
+        if global_workflow_emissions_raw_names.isnull().any().any():
+            msg = "NaN in `global_workflow_emissions_raw_names`"
+            raise AssertionError(msg)
+
+        if global_workflow_emissions_raw_names.columns.dtype != indf.columns.dtype:
+            msg = "Column type does not match input"
+            raise AssertionError(msg)
 
     global_workflow_emissions = update_index_levels_func(
         global_workflow_emissions_raw_names,
@@ -269,12 +295,34 @@ def do_pre_processing(  # noqa: PLR0913
     )
 
     res = CMIP7ScenarioMIPPreProcessingResult(
+        assumed_zero_emissions=to_complete_result.assumed_zero,
         gridding_workflow_emissions=gridding_workflow_emissions,
         global_workflow_emissions=global_workflow_emissions,
         global_workflow_emissions_raw_names=global_workflow_emissions_raw_names,
     )
 
     return res
+
+
+class ReaggregatorLike(Protocol):
+    """
+    Interface that can be used for re-aggregation
+    """
+
+    def to_complete(self, raw: pd.DataFrame) -> ToCompleteResult:
+        """
+        Convert the raw data to complete data
+
+        Parameters
+        ----------
+        raw
+            Raw data
+
+        Returns
+        -------
+        :
+            To complete result
+        """
 
 
 @define
@@ -285,17 +333,11 @@ class CMIP7ScenarioMIPPreProcessor:
     For more details of the logic, see [gcages.cmip7_scenariomip.pre_processing][].
     """
 
-    tols_internal_consistency: dict[str, dict[str, float]] = field()
+    reaggregator: ReaggregatorLike | None = None
     """
-    Tolerances to apply when checking the internal consistency of the data
+    Re-aggregator to use when converting raw data to gridding sectors
 
-    For example, when making sure that the sum of regional and sectoral information
-    matches repoted totals.
-    """
-
-    world_region: str = "World"
-    """
-    String that identifies the world (i.e. global total) region
+    If not supplied, we guess the re-aggregator during processing
     """
 
     run_checks: bool = True
@@ -306,6 +348,36 @@ class CMIP7ScenarioMIPPreProcessor:
     you can disable the checks to speed things up
     (but we don't recommend this unless you really
     are confident about what you're doing).
+    """
+
+    world_gridding_sectors: tuple[str, ...] = ("Aircraft", "International Shipping")
+    """
+    Sectors that are only used for gridding at the world (i.e. regional sum) level
+    """
+
+    co2_fossil_sectors: tuple[str, ...] = CO2_FOSSIL_SECTORS_GRIDDING
+    """
+    Gridding sectors that are assumed to come from the fossil CO2 reservoir
+    """
+
+    co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING
+    """
+    Gridding sectors that are assumed to come from the biosphere (i.e. land) CO2 reservoir
+    """
+
+    co2_name: str = "CO2"
+    """
+    Name used for CO2 in variable names
+    """
+
+    table: str = "Emissions"
+    """
+    The value used for the top level of variable names
+    """
+
+    level_separator: str = "|"
+    """
+    The separator between levels in variable names
     """
 
     progress: bool = True
@@ -319,25 +391,6 @@ class CMIP7ScenarioMIPPreProcessor:
 
     Set to `None` to process in serial.
     """
-
-    @tols_internal_consistency.default
-    def default_tols_internal_consistency(self) -> dict[str, dict[str, float]]:
-        """
-        Get default tolerances for internal consistency checks
-        """
-        return {
-            "Emissions|BC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|CH4": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|CO": dict(rtol=1e-3, atol=1e-6),
-            # Higher absolute tolerance because of reporting units
-            "Emissions|CO2": dict(rtol=1e-3, atol=1.0),
-            "Emissions|NH3": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|NOx": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|OC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
-        }
 
     def __call__(
         self, in_emissions: pd.DataFrame
@@ -358,52 +411,22 @@ class CMIP7ScenarioMIPPreProcessor:
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
-            assert_has_index_levels(
-                in_emissions, ["variable", "unit", "model", "scenario", "region"]
-            )
 
-        assumed_model_regions = [
-            r
-            for r in in_emissions.index.get_level_values("region").unique()
-            if r != self.world_region
-        ]
-        if self.run_checks:
             if in_emissions.columns.name != "year":
                 msg = "The input emissions' column name should be 'year'"
                 raise AssertionError(msg)
 
-            for _, msdf in in_emissions.groupby(["model", "scenario"]):
-                msdf_drop_all_nan_times = msdf.dropna(how="all", axis="columns")
-
-                assert_data_is_compatible_with_pre_processing(
-                    msdf_drop_all_nan_times,
-                    world_region=self.world_region,
-                    region_level="region",
-                    variable_level="variable",
-                    model_regions=assumed_model_regions,
-                )
-
-                assert_data_has_required_internal_consistency(
-                    msdf_drop_all_nan_times,
-                    model_regions=assumed_model_regions,
-                    world_region=self.world_region,
-                    region_level="region",
-                    variable_level="variable",
-                    tols=self.tols_internal_consistency,
-                    # TODO: consider making these passable
-                    level_separator="|",
-                    n_levels_for_total=1,
-                )
-
         res_g = apply_op_parallel_progress(
             func_to_call=do_pre_processing,
-            world_region=self.world_region,
-            model_regions=assumed_model_regions,
+            reaggregator=self.reaggregator,
             time_name="year",
-            region_level="region",
-            variable_level="variable",
-            unit_level="unit",
-            level_separator="|",
+            run_checks=self.run_checks,
+            world_gridding_sectors=self.world_gridding_sectors,
+            table=self.table,
+            level_separator=self.level_separator,
+            co2_fossil_sectors=self.co2_fossil_sectors,
+            co2_biosphere_sectors=self.co2_biosphere_sectors,
+            co2_name=self.co2_name,
             iterable_input=(
                 gdf for _, gdf in in_emissions.groupby(["model", "scenario"])
             ),
@@ -414,68 +437,14 @@ class CMIP7ScenarioMIPPreProcessor:
         )
         res_d = defaultdict(list)
         for res_ms in res_g:
-            if self.run_checks:
-                assert_no_nans_in_res_ms(res_ms)
-                assert_column_type_unchanged_in_res_ms(
-                    res_ms, in_column_type=in_emissions.columns.dtype
-                )
-
             for k, v in asdict(res_ms).items():
-                res_d[k].append(v)
+                if v is not None:
+                    res_d[k].append(v)
 
-            complete_index_ms = get_required_world_index_gridding(
-                world_region=self.world_region,
-                region_level="region",
-                variable_level="variable",
-            ).append(
-                get_required_model_region_index_gridding(
-                    model_regions=assumed_model_regions,
-                    region_level="region",
-                    variable_level="variable",
-                )
-            )
-            assert_all_groups_are_complete(
-                res_ms.gridding_workflow_emissions, complete_index=complete_index_ms
-            )
+        result_initialiser = {k: pd.concat(v) for k, v in res_d.items()}
+        if "assumed_zero_emissions" not in result_initialiser:
+            result_initialiser["assumed_zero_emissions"] = None
 
-        res = CMIP7ScenarioMIPPreProcessingResult(
-            **{k: pd.concat(v) for k, v in res_d.items()}
-        )
-        if self.run_checks:
-            # Check internal consistency
-            assert_data_has_required_internal_consistency(
-                res.gridding_workflow_emissions,
-                model_regions=assumed_model_regions,
-                world_region=self.world_region,
-                region_level="region",
-                variable_level="variable",
-                tols=self.tols_internal_consistency,
-                # TODO: consider making these passable
-                level_separator="|",
-                n_levels_for_total=1,
-            )
-
-            # Check we didn't lose any mass on the way
-            gridded_emisssions_sectoral_regional_sum = set_new_single_value_levels(
-                combine_species(
-                    groupby_except(
-                        split_sectors(
-                            res.gridding_workflow_emissions, bottom_level="sectors"
-                        ),
-                        ["region", "sectors"],
-                    ).sum()
-                ),
-                {"region": self.world_region},
-            )
-
-            in_emissions_totals_to_compare_to = multi_index_lookup(
-                in_emissions,
-                gridded_emisssions_sectoral_regional_sum.index,
-            )
-            assert_frame_equal(
-                in_emissions_totals_to_compare_to,
-                gridded_emisssions_sectoral_regional_sum,
-                # No tolerance as this should be exact
-            )
+        res = CMIP7ScenarioMIPPreProcessingResult(**result_initialiser)
 
         return res

@@ -4,6 +4,9 @@ Handling of gridding emissions
 
 from __future__ import annotations
 
+import itertools
+import sys
+
 import pandas as pd
 from pandas_openscm.grouping import groupby_except
 
@@ -13,6 +16,98 @@ from gcages.index_manipulation import (
     set_new_single_value_levels,
     split_sectors,
 )
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from backports.strenum import StrEnum
+
+COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
+    "CO2",
+    "CH4",
+    "N2O",
+    "BC",
+    "CO",
+    "NH3",
+    "OC",
+    "NOx",
+    "Sulfur",
+    "VOC",
+)
+"""
+Complete set of species for gridding
+"""
+
+COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
+    "Agricultural Waste Burning",
+    "Agriculture",
+    "Aircraft",
+    "Energy Sector",
+    "Forest Burning",
+    "Grassland Burning",
+    "Industrial Sector",
+    "International Shipping",
+    "Peat Burning",
+    "Residential Commercial Other",
+    "Solvents Production and Application",
+    "Transportation Sector",
+    "Waste",
+)
+"""
+Complete set of sectors for gridding
+"""
+
+
+def get_complete_gridding_index(
+    model_regions: tuple[str, ...],
+    world_gridding_sectors: tuple[str, ...] = (
+        "Aircraft",
+        "International Shipping",
+    ),
+    world_region: str = "World",
+    region_level: str = "region",
+    variable_level: str = "variable",
+    table: str = "Emissions",
+    level_separator: str = "|",
+) -> pd.MultiIndex:
+    complete_world_variables = [
+        level_separator.join([table, species, sectors])
+        for species, sectors in itertools.product(
+            COMPLETE_GRIDDING_SPECIES, world_gridding_sectors
+        )
+    ]
+    world_required = pd.MultiIndex.from_product(
+        [complete_world_variables, [world_region]], names=[variable_level, region_level]
+    )
+
+    model_region_sectors = sorted(
+        set(COMPLETE_GRIDDING_SECTORS) - set(world_gridding_sectors)
+    )
+    complete_model_region_variables = [
+        level_separator.join([table, species, sectors])
+        for species, sectors in itertools.product(
+            COMPLETE_GRIDDING_SPECIES, model_region_sectors
+        )
+    ]
+    model_region_required = pd.MultiIndex.from_product(
+        [complete_model_region_variables, model_regions],
+        names=[variable_level, region_level],
+    )
+
+    res = world_required.append(model_region_required)
+
+    return res
+
+
+class SpatialResolutionOption(StrEnum):
+    """Spatial resolution option"""
+
+    WORLD = "world"
+    """Data reported at the world (i.e. global) level"""
+
+    MODEL_REGION = "model_region"
+    """Data reported at the (IAM) model region level"""
+
 
 CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "Aircraft",

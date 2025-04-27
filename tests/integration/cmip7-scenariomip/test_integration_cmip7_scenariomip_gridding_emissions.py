@@ -13,9 +13,7 @@ import pandas as pd
 import pytest
 from pandas_openscm.grouping import groupby_except
 
-from gcages.cmip7_scenariomip.gridding_emissions import (
-    to_global_workflow_emissions,
-)
+from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emissions
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
@@ -23,7 +21,7 @@ from gcages.index_manipulation import (
     set_new_single_value_levels,
     split_sectors,
 )
-from gcages.testing import assert_frame_equal
+from gcages.testing import assert_frame_equal, get_variable_unit_default
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 RNG = np.random.default_rng()
@@ -68,23 +66,6 @@ MODEL = "model_a"
 MODEL_REGIONS = [f"{MODEL}|{r}" for r in ["Pacific OECD", "China"]]
 
 
-def guess_unit_default(v: str) -> str:
-    species = v.split("|")[1]
-    unit_map = {
-        "BC": "Mt BC/yr",
-        "CH4": "Mt CH4/yr",
-        "CO": "Mt CO/yr",
-        "CO2": "Gt C/yr",
-        "N2O": "kt N2O/yr",
-        "NH3": "Mt NH3/yr",
-        "NOx": "Mt NO2/yr",
-        "OC": "Mt OC/yr",
-        "Sulfur": "Mt SO2/yr",
-        "VOC": "Mt VOC/yr",
-    }
-    return unit_map[species]
-
-
 def get_gridding_emissions(  # noqa: PLR0913
     world_region: str = WORLD_REGION,
     model_regions: list[str] = MODEL_REGIONS,
@@ -94,7 +75,7 @@ def get_gridding_emissions(  # noqa: PLR0913
     scenario: str = "scenario_a",
     model_level: str = "model",
     scenario_level: str = "scenario",
-    guess_unit: Callable[[str], str] = guess_unit_default,
+    get_variable_unit: Callable[[str], str] = get_variable_unit_default,
 ):
     variables_world = [
         f"Emissions|{species}|{sector}"
@@ -117,7 +98,9 @@ def get_gridding_emissions(  # noqa: PLR0913
     )
 
     index = index_world.append(index_model_region)
-    index = create_levels_based_on_existing(index, {"unit": ("variable", guess_unit)})
+    index = create_levels_based_on_existing(
+        index, {"unit": ("variable", get_variable_unit)}
+    )
 
     res = set_new_single_value_levels(
         pd.DataFrame(

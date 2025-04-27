@@ -8,60 +8,36 @@ It assumes that domestic aviation is reported at the model region level.
 
 from __future__ import annotations
 
-import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 import pandas as pd
-from attrs import define
+from attrs import define, field
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.indexing import multi_index_lookup, multi_index_match
+from pandas_openscm.indexing import multi_index_lookup
 
+from gcages.aggregation import aggregate_df_level, get_region_sector_sum
 from gcages.assertions import assert_only_working_on_variable_unit_region_variations
+from gcages.cmip7_scenariomip.gridding_emissions import (
+    COMPLETE_GRIDDING_SPECIES,
+    SpatialResolutionOption,
+)
+from gcages.cmip7_scenariomip.pre_processing.reaggregation.common import (
+    ToCompleteResult,
+)
 from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
 from gcages.index_manipulation import (
     combine_sectors,
-    combine_species,
     create_levels_based_on_existing,
     set_new_single_value_levels,
     split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
-from gcages.testing import compare_close
-
-if sys.version_info >= (3, 11):
-    from enum import StrEnum
-else:
-    from backports.strenum import StrEnum
+from gcages.testing import compare_close, get_variable_unit_default
+from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 if TYPE_CHECKING:
     from gcages.typing import PINT_SCALAR
-
-COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
-    "CO2",
-    "CH4",
-    "N2O",
-    "BC",
-    "CO",
-    "NH3",
-    "OC",
-    "NOx",
-    "Sulfur",
-    "VOC",
-)
-"""
-Complete set of species for gridding
-"""
-
-
-class SpatialResolutionOption(StrEnum):
-    """Spatial resolution option"""
-
-    WORLD = "world"
-    """Data reported at the world (i.e. global) level"""
-
-    MODEL_REGION = "model_region"
-    """Data reported at the (IAM) model region level"""
 
 
 @define
@@ -368,15 +344,123 @@ def get_internal_consistency_checking_index(
     return res
 
 
-def has_all_required_timeseries(
+def get_example_input(
+    model_regions: tuple[str, ...],
+    global_only_variables: tuple[tuple[str, str], ...] = (
+        ("Emissions|HFC|HFC23", "kt HFC23/yr"),
+        ("Emissions|HFC", "kt HFC134a-equiv/yr"),
+        ("Emissions|HFC|HFC134a", "kt HFC134a/yr"),
+        ("Emissions|HFC|HFC43-10", "kt HFC43-10/yr"),
+        ("Emissions|PFC", "kt CF4-equiv/yr"),
+        ("Emissions|F-Gases", "Mt CO2-equiv/yr"),
+        ("Emissions|SF6", "kt SF6/yr"),
+        ("Emissions|CF4", "kt CF4/yr"),
+        ("Emissions|C2F6", "kt C2F6/yr"),
+        ("Emissions|C6F14", "kt C6F14/yr"),
+    ),
+    timepoints: NP_ARRAY_OF_FLOAT_OR_INT = np.arange(2010, 2100 + 1, 10.0),
+    get_variable_unit: Callable[[str], str] = get_variable_unit_default,
+    rng: np.random.Generator = np.random.default_rng(),
+    world_region: str = "World",
+    model: str = "model",
+    scenario: str = "scenario",
+    region_level: str = "region",
+    variable_level: str = "variable",
+    model_level: str = "model",
+    scenario_level: str = "scenario",
+    unit_level: str = "unit",
+    columns_name: str = "year",
+) -> pd.DataFrame:
+    # Hard-coded because the example input
+    # is tightly coupled to the idea of completeness
+    starting_variables = (*COMPLETE_MODEL_REGION_VARIABLES, *COMPLETE_WORLD_VARIABLES)
+
+    # Get our starting point
+    start_index = pd.MultiIndex.from_product(
+        [starting_variables, model_regions, [model], [scenario]],
+        names=[variable_level, region_level, model_level, scenario_level],
+    )
+    start = pd.DataFrame(
+        rng.random((start_index.shape[0], timepoints.size)),
+        columns=pd.Index(timepoints, name=columns_name),
+        index=start_index,
+    )
+
+    # Aggregate up the sectors
+    start_sector_full = aggregate_df_level(
+        start, level="variable", on_clash="overwrite"
+    )
+    # Aggregate up the regions
+    start_sector_full_region_sum = set_new_single_value_levels(
+        groupby_except(start_sector_full, region_level).sum(),
+        {region_level: world_region},
+    )
+
+    # Put it altogether
+    all_info = pd.concat(
+        [
+            start_sector_full,
+            start_sector_full_region_sum.reorder_levels(start_sector_full.index.names),
+        ]
+    )
+
+    # Keep only the bits required for completeness
+    complete_index = get_complete_timeseries_index(
+        model_regions=model_regions,
+        world_region=world_region,
+        region_level=region_level,
+        variable_level=variable_level,
+    )
+    res_gridding = multi_index_lookup(all_info, complete_index)
+
+    # Add unit info
+    res_gridding.index = create_levels_based_on_existing(
+        res_gridding.index, {unit_level: (variable_level, get_variable_unit)}
+    )
+
+    if global_only_variables:
+        global_only = pd.DataFrame(
+            rng.random((len(global_only_variables), timepoints.size)),
+            columns=res_gridding.columns,
+            index=pd.MultiIndex.from_tuples(
+                [
+                    (variable, unit, world_region, model, scenario)
+                    for (variable, unit) in global_only_variables
+                ],
+                names=[
+                    variable_level,
+                    unit_level,
+                    region_level,
+                    model_level,
+                    scenario_level,
+                ],
+            ),
+        )
+
+        res = pd.concat(
+            [res_gridding, global_only.reorder_levels(res_gridding.index.names)]
+        )
+
+    else:
+        res = res_gridding
+
+    return res
+
+
+def assert_has_all_required_timeseries(
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
+    world_region: str = "World",
+    region_level: str = "region",
+    variable_level: str = "variable",
 ) -> None:
-    # Don't bother with kwargs etc. because this is a facade
     assert_all_groups_are_complete(
         df,
-        get_required_timeseries_index(
+        complete_index=get_required_timeseries_index(
             model_regions=model_regions,
+            world_region=world_region,
+            region_level=region_level,
+            variable_level=variable_level,
         ),
     )
 
@@ -424,14 +508,14 @@ def get_default_internal_conistency_checking_tolerances() -> (
     return default_tolerances
 
 
-def is_internally_consistent(
+def assert_is_internally_consistent(
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
     tolerances: dict[str, dict[str, float | PINT_SCALAR]],
     world_region: str = "World",
     region_level: str = "region",
-    variable_level: str = "variable",
     unit_level: str = "unit",
+    variable_level: str = "variable",
 ) -> None:
     try:
         import pint
@@ -439,63 +523,78 @@ def is_internally_consistent(
         pint = None
 
     internal_consistency_checking_index = get_internal_consistency_checking_index(
-        model_regions=model_regions
+        model_regions=model_regions,
+        world_region=world_region,
+        region_level=region_level,
+        variable_level=variable_level,
+    )
+
+    # TODO: explicit test that this function doesn't fail if there are extras
+    df_internal_consistency_checking_relevant = multi_index_lookup(
+        df, internal_consistency_checking_index
     )
 
     # Hard-code the logic here
     # because that's what is needed for consistency with the rest of the module.
-    # If you sum over the sectors
-    # and regions of the index which provides internal consistency,
-    # you should get the reported totals.
-    def get_aggregate_variable(v: str) -> str:
+    # This is one of the issues with the data model used by ScmRun, pyam etc.:
+    # the convention is that the first two levels are the species total
+    # but this is only implied and not explicit at all
+    # (and not even followed in all cases e.g. Emissions|HFC|HFC23).
+    def get_species_total_variable(v: str) -> str:
         return "|".join(v.split("|")[:2])
 
-    for variable, df_variable in df.groupby(
-        df.index.get_level_values(variable_level).map(get_aggregate_variable)
+    for (
+        species_total_variable,
+        df_species,
+    ) in df_internal_consistency_checking_relevant.groupby(
+        df_internal_consistency_checking_relevant.index.get_level_values(
+            variable_level
+        ).map(get_species_total_variable)
     ):
-        df_variable_reported_total = df_variable.loc[
-            (df_variable.index.get_level_values(variable_level) == variable)
-            & (df_variable.index.get_level_values(region_level) == world_region)
+        df_species_total_reported = df_species.loc[
+            (
+                df_species.index.get_level_values(variable_level)
+                == species_total_variable
+            )
+            & (df_species.index.get_level_values(region_level) == world_region)
         ]
-        if df_variable_reported_total.empty:
+        if df_species_total_reported.empty:
             # Nothing reported so can move on
             continue
 
-        internal_consistency_checking_locator = multi_index_match(
-            df_variable.index, internal_consistency_checking_index
-        )
+        # Note: what we're checking here is that if you sum over the sectors
+        # and regions using the index which provides internal consistency,
+        # you should get the reported totals.
+        # This is different to checking that the implied hierarchy
+        # from the variable names
+        # (i.e. that levels are separated by "|"
+        # and each level should be the sum of its components)
+        # is not what we're checking.
 
         # TODO: split out a function like
         # assert_reported_matches_sum_of_components
-        # This will have to be extremely specific to this setup
-        # to be able to handle the fact that "World"
-        # isn't really a region but we have to report it this way
-        # within the ScenarioMIP context.
-        df_variable_aggregate = set_new_single_value_levels(
-            combine_species(
-                groupby_except(
-                    split_sectors(
-                        df_variable.loc[internal_consistency_checking_locator],
-                        bottom_level="sectors",
-                    ),
-                    ["sectors", "region"],
-                ).sum()
-            ),
-            {region_level: world_region},
-        ).reorder_levels(df_variable.index.names)
+        # Would have to be very specific to this setup
+        # because of how many different ways it can go wrong
+        # e.g. you can have extra components that aren't used,
+        # incorrect aggregation
+        df_variable_aggregate = get_region_sector_sum(
+            df_species,
+            region_level=region_level,
+            world_region=world_region,
+        ).reorder_levels(df_species.index.names)
 
         tolerances_variable = {}
-        for k, v in tolerances[variable].items():
+        for k, v in tolerances[species_total_variable].items():
             if pint is not None and isinstance(v, pint.Quantity):
                 if k == "atol":
-                    variable_units = df_variable.index.get_level_values(
+                    variable_units = df_species.index.get_level_values(
                         unit_level
                     ).unique()
                     if len(variable_units) > 1:
                         msg = (
                             "Cannot use pint conversion "
                             "if your data contains different units. "
-                            f"For {variable=}, we have {variable_units=}"
+                            f"For {species_total_variable=}, we have {variable_units=}"
                         )
                         raise ValueError(msg)
 
@@ -511,7 +610,7 @@ def is_internally_consistent(
                 tolerances_variable[k] = v
 
         comparison_variable = compare_close(
-            left=df_variable_reported_total,
+            left=df_species_total_reported,
             right=df_variable_aggregate,
             left_name="reported_total",
             right_name="derived_from_input",
@@ -519,32 +618,13 @@ def is_internally_consistent(
         )
 
         if not comparison_variable.empty:
-            # df_variable_not_used = df_variable.loc[
-            #     ~internal_consistency_checking_locator
-            # ]
             raise InternalConsistencyError(
                 differences=comparison_variable,
-                data_that_was_summed=df_variable,
-                # data_that_was_not_summed=df_variable_not_used,
+                data_that_was_summed=df_species,
+                # Would need something like this to give full details
+                # data_that_was_not_summed=data_that_was_not_summed,
                 tolerances=tolerances_variable,
             )
-
-
-@define
-class ToCompleteResult:
-    """
-    Result of calling `to_complete`
-    """
-
-    complete: pd.DataFrame
-    """Complete [pd.DataFrame][pandas.DataFrame]"""
-
-    assumed_zero: pd.DataFrame | None
-    """
-    The timeseries that were assumed to be zero to make `self.complete`
-
-    If `None`, no timeseries were assumed to be zero.
-    """
 
 
 def to_complete(
@@ -737,3 +817,88 @@ def to_gridding_sectors(
     )
 
     return res
+
+
+@define
+class ReaggregatorBasic:
+    """
+    Reaggregator that follows this module's logic
+    """
+
+    model_regions: tuple[str, ...]
+    """Model regions to use while reaggregating"""
+
+    region_level: str = "region"
+    """Region level in the data index"""
+
+    unit_level: str = "unit"
+    """Unit level in the data index"""
+
+    variable_level: str = "variable"
+    """Variable level in the data index"""
+
+    world_region: str = "World"
+    """
+    The value used when the data represents the sum over all regions
+
+    (Having a value for this is odd,
+    there should really just be no region level when data is the sum,
+    but this is the data format used so we have to follow this convention.)
+    """
+
+    internal_consistency_tolerances: dict[str, dict[str, float | PINT_SCALAR]] = field()
+    """
+    Tolerances to apply when checking the internal consistency of the data
+    """
+
+    @internal_consistency_tolerances.default
+    def default_tols_internal_consistency(
+        self,
+    ) -> dict[str, dict[str, float | PINT_SCALAR]]:
+        """
+        Get default tolerances for internal consistency checks
+        """
+        return get_default_internal_conistency_checking_tolerances()
+
+    def assert_has_all_required_timeseries(self, indf: pd.DataFrame) -> None:
+        assert_has_all_required_timeseries(
+            indf,
+            model_regions=self.model_regions,
+            world_region=self.world_region,
+            region_level=self.region_level,
+            variable_level=self.variable_level,
+        )
+
+    def assert_is_internally_consistent(self, indf: pd.DataFrame) -> None:
+        assert_is_internally_consistent(
+            indf,
+            model_regions=self.model_regions,
+            tolerances=self.internal_consistency_tolerances,
+            world_region=self.world_region,
+            region_level=self.region_level,
+            unit_level=self.unit_level,
+            variable_level=self.variable_level,
+        )
+
+    def get_internal_consistency_checking_index(self) -> pd.MultiIndex:
+        return get_internal_consistency_checking_index(
+            model_regions=self.model_regions,
+            world_region=self.world_region,
+            region_level=self.region_level,
+            variable_level=self.variable_level,
+        )
+
+    def to_complete(self, indf: pd.DataFrame) -> ToCompleteResult:
+        return to_complete(
+            indf=indf,
+            model_regions=self.model_regions,
+            unit_level=self.unit_level,
+            variable_level=self.variable_level,
+            region_level=self.region_level,
+            world_region=self.world_region,
+        )
+
+    def to_gridding_sectors(self, indf: pd.DataFrame) -> pd.DataFrame:
+        return to_gridding_sectors(
+            indf=indf, region_level=self.region_level, world_region=self.world_region
+        )

@@ -10,7 +10,6 @@ hence why this is given a specific name.
 from __future__ import annotations
 
 import itertools
-import string
 from collections.abc import Iterable
 from contextlib import nullcontext as does_not_raise
 from functools import partial
@@ -23,14 +22,16 @@ from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
+from gcages.aggregation import aggregate_df_level
+from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
+    assert_has_all_required_timeseries,
+    assert_is_internally_consistent,
     get_default_internal_conistency_checking_tolerances,
-    has_all_required_timeseries,
-    is_internally_consistent,
     to_complete,
     to_gridding_sectors,
 )
-from gcages.completeness import NotCompleteError
+from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
@@ -39,7 +40,7 @@ from gcages.index_manipulation import (
     split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
-from gcages.testing import assert_frame_equal, compare_close
+from gcages.testing import assert_frame_equal
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 try:
@@ -458,9 +459,9 @@ tuples_to_multi_index_vr = partial(
         ),
     ),
 )
-def test_has_all_required_timeseries(to_remove, to_add, exp):
+def test_assert_has_all_required_timeseries(to_remove, to_add, exp):
     """
-    Tests of `has_all_required_timeseries`
+    Tests of `assert_has_all_required_timeseries`
 
     The combinatorics of this are difficult
     (you can't test all possible combinations of missing things).
@@ -494,118 +495,7 @@ def test_has_all_required_timeseries(to_remove, to_add, exp):
         to_check = pd.concat([to_check, to_add_df.reorder_levels(to_check.index.names)])
 
     with exp:
-        has_all_required_timeseries(to_check, model_regions=model_regions)
-
-
-def aggregate_df_level(indf: pd.DataFrame, on_clash: str = "raise") -> pd.DataFrame:
-    # TODO: move this into pandas-openscm
-    pytest.importorskip("pandas_indexing")
-
-    level_separator = "|"
-    level_to_aggregate = "variable"
-    min_levels_output = 1
-
-    level_groups = {
-        n_levels: df
-        for n_levels, df in indf.groupby(
-            indf.index.get_level_values(level_to_aggregate).str.count(
-                rf"\{level_separator}"
-            )
-        )
-    }
-    levels_r = range(min_levels_output, max(level_groups) + 1)[::-1]
-    # Start by storing the bottom level
-    res_d = {levels_r[0]: level_groups[levels_r[0]]}
-    for n_levels in levels_r[1:]:
-        # Get everything we have already handled
-        # at the level below the level of interest
-        to_aggregate = res_d[n_levels + 1]
-
-        # Aggregate
-        to_aggregate.index = to_aggregate.index.remove_unused_levels()
-
-        level_splits = [
-            f"{level_to_aggregate}_{string.ascii_lowercase[i]}"
-            for i in range(n_levels + 1 + 1)
-        ]
-        extract_str = level_separator.join(["{" + ls + "}" for ls in level_splits])
-        to_aggregate_split = to_aggregate.pix.extract(
-            **{level_to_aggregate: extract_str}
-        )
-
-        to_aggregate_sum = groupby_except(to_aggregate_split, level_splits[-1]).sum()
-
-        to_aggregate_sum_combined = to_aggregate_sum.pix.format(
-            **{
-                level_to_aggregate: level_separator.join(
-                    ["{" + ls + "}" for ls in level_splits[:-1]]
-                )
-            },
-            drop=True,
-        )
-
-        keep_at_level = [to_aggregate_sum_combined]
-        if n_levels in level_groups:
-            # Check if any of the aggregations clash with the input
-            indf_at_aggregated_level = level_groups[n_levels]
-            clash_locator = multi_index_match(
-                indf_at_aggregated_level.index, to_aggregate_sum_combined.index
-            )
-            if not clash_locator.any():
-                # No clashing data so simply keep all of `indf_at_aggregated_level`
-                keep_at_level.append(indf_at_aggregated_level)
-
-            elif on_clash == "raise":
-                clash = indf_at_aggregated_level[clash_locator]
-                msg = f"Reaggregated levels are in the input. Clashing levels: {clash}"
-                # TODO: switch to custom error
-                raise ValueError(msg)
-
-            elif on_clash == "verify":
-                indf_compare = indf_at_aggregated_level[clash_locator]
-                to_aggregate_sum_combined_compare = multi_index_lookup(
-                    to_aggregate_sum_combined, indf_compare.index.remove_unused_levels()
-                )
-                comparison = compare_close(
-                    left=indf_compare,
-                    right=to_aggregate_sum_combined_compare,
-                    left_name="indf",
-                    right_name="aggregated_sum",
-                    # **tolerances,
-                )
-                if not comparison.empty:
-                    raise NotImplementedError
-
-            elif on_clash == "overwrite":
-                not_clashing = indf_at_aggregated_level[~clash_locator]
-                if not_clashing.empty:
-                    # (Nothing to keep from input so do nothing here)
-                    pass
-
-                else:
-                    # Only keep what doesn't clash, effectively overwriting the rest
-                    # by using to_aggregate_sum_combined
-                    # instead
-                    keep_at_level.append(not_clashing)
-
-            else:
-                raise NotImplementedError(on_clash)
-
-        res_d[n_levels] = pd.concat(
-            [
-                df.reorder_levels(to_aggregate_sum_combined.index.names)
-                for df in keep_at_level
-            ]
-        )
-
-    res = pd.concat(
-        [
-            df.reorder_levels(res_d[min_levels_output].index.names)
-            for df in res_d.values()
-        ]
-    )
-
-    return res
+        assert_has_all_required_timeseries(to_check, model_regions=model_regions)
 
 
 def get_aggregate_df(
@@ -627,7 +517,7 @@ def get_aggregate_df(
 
 
 """
-The next few tests are of `is_internally_consistent`
+The next few tests are of `assert_is_internally_consistent`
 
 The combinatorics of this are difficult
 (you can't test all possible combinations of passing and missing things).
@@ -689,9 +579,9 @@ SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF = get_aggregate_df(
         ),
     ),
 )
-def test_is_internally_consistent_passes(df):
+def test_assert_is_internally_consistent_passes(df):
     assert (
-        is_internally_consistent(
+        assert_is_internally_consistent(
             df,
             model_regions=MODEL_REGIONS,
             tolerances=get_default_internal_conistency_checking_tolerances(),
@@ -807,7 +697,9 @@ def get_remove_modify_permutations(
         ),
     ),
 )
-def test_is_internally_consistent_modifications(to_remove, to_modify, to_add, exp):
+def test_assert_is_internally_consistent_modifications(
+    to_remove, to_modify, to_add, exp
+):
     """
     Tests of modifications to an internally consistent dataset
 
@@ -851,14 +743,14 @@ def test_is_internally_consistent_modifications(to_remove, to_modify, to_add, ex
         to_check = pd.concat([to_check, to_add_df.reorder_levels(to_check.index.names)])
 
     with exp:
-        is_internally_consistent(
+        assert_is_internally_consistent(
             to_check,
             model_regions=model_regions,
             tolerances=get_default_internal_conistency_checking_tolerances(),
         )
 
 
-def test_is_internally_consistent_hierarchy_consistent():
+def test_assert_is_internally_consistent_hierarchy_consistent():
     """
     Test that a dataset that is internally consistent from a hierarchy point of view,
     but not in the way we care about raises
@@ -878,7 +770,7 @@ def test_is_internally_consistent_hierarchy_consistent():
     start_df = get_df(base_index=base_index, model=MODEL)
     df = get_aggregate_df(start_df, world_region=WORLD_REGION)
     with pytest.raises(InternalConsistencyError):
-        is_internally_consistent(
+        assert_is_internally_consistent(
             df,
             model_regions=MODEL_REGIONS,
             tolerances=get_default_internal_conistency_checking_tolerances(),
@@ -940,7 +832,7 @@ def test_is_internally_consistent_hierarchy_consistent():
         ),
     ),
 )
-def test_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
+def test_assert_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
     start = get_df(INTERNAL_CONSISTENCY_INDEX, model=MODEL)
     # Set all values to one
     start.loc[:, :] = 1.0
@@ -958,7 +850,9 @@ def test_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
         "Emissions|CO2": tol_kwargs
     }
     with exp:
-        is_internally_consistent(to_check, model_regions=MODEL_REGIONS, tolerances=tols)
+        assert_is_internally_consistent(
+            to_check, model_regions=MODEL_REGIONS, tolerances=tols
+        )
 
 
 def test_to_complete_from_full_dataset():
@@ -1110,6 +1004,15 @@ def complete_to_gridding_res():
     input_stacked = split_sectors(input).stack(future_stack=True).unstack("sectors")
 
     return internally_consistent, input_stacked, res
+
+
+def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
+    _, _, res = complete_to_gridding_res
+
+    complete_gridding_index = get_complete_gridding_index(model_regions=MODEL_REGIONS)
+    assert_all_groups_are_complete(res, complete_gridding_index)
+    # Make sure there are no extras
+    assert res.shape[0] == complete_gridding_index.shape[0]
 
 
 @pytest.mark.parametrize(
