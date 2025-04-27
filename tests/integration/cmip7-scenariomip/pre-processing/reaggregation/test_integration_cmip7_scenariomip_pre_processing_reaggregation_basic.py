@@ -1189,6 +1189,3 @@ def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res)
     exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
 
     assert_frame_equal(res_totals, exp_totals)
-
-
-# Test of gridding sectors to global workflow go elsewhere
