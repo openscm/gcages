@@ -2,6 +2,7 @@
 Internal consistency checking helpers
 """
 
+# TODO: move this to pandas-openscm
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

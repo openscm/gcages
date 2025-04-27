@@ -38,9 +38,9 @@ def example_input_output(request):
     """
     Get example input and output
 
-    Only need a basic test here,
-    the tests of variations between minimum and complete reporting
-    should go in the tests of the different reaggregation options
+    Only need basic tests here,
+    the tests of all the variations between minimum and complete reporting
+    should go in the tests of the different reaggregation options.
     """
     if request.param == "basic":
         model_regions_raw = ("China", "Pacific OECD")

@@ -419,6 +419,7 @@ def assert_frame_equal(
     )
 
 
+# TODO: move into pandas_openscm
 def compare_close(
     left: pd.DataFrame,
     right: pd.DataFrame,

@@ -2,7 +2,7 @@
 #    uv export -o requirements-docs-locked.txt --no-hashes --no-dev --no-emit-project --all-extras --group docs
 alembic==1.15.2 ; python_full_version >= '3.10'
 aneris-iamc==0.4.2 ; python_full_version >= '3.10'
-annotated-types==0.7.0
+annotated-types==0.7.0 ; python_full_version >= '3.10'
 anyio==4.8.0
 appnope==0.1.4 ; sys_platform == 'darwin'
 argon2-cffi==23.1.0
@@ -40,8 +40,6 @@ flexparser==0.4
 fonttools==4.56.0
 fqdn==1.5.1
 ghp-import==2.1.0
-gitdb==4.0.12 ; python_full_version >= '3.10'
-gitpython==3.1.44 ; python_full_version >= '3.10'
 globalwarmingpotentials==0.11.1
 greenlet==3.1.1 ; (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'AMD64') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'WIN32') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'aarch64') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'amd64') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'ppc64le') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'win32') or (python_full_version >= '3.10' and python_full_version < '3.14' and platform_machine == 'x86_64')
 griffe==1.5.4
@@ -107,8 +105,6 @@ nbclient==0.10.2
 nbconvert==7.16.4
 nbformat==5.10.4
 nest-asyncio==1.6.0
-nomenclature-iamc==0.7 ; python_full_version < '3.10'
-nomenclature-iamc==0.23.0 ; python_full_version >= '3.10'
 notebook-shim==0.2.4
 numpy==2.0.2 ; python_full_version < '3.10'
 numpy==2.2.2 ; python_full_version >= '3.10'
@@ -143,8 +139,8 @@ pyam-iamc==1.6.0 ; python_full_version < '3.10'
 pyam-iamc==3.0.0 ; python_full_version >= '3.10'
 pycountry==23.12.11 ; python_full_version >= '3.10'
 pycparser==2.22
-pydantic==2.11.3
-pydantic-core==2.33.1
+pydantic==2.11.3 ; python_full_version >= '3.10'
+pydantic-core==2.33.1 ; python_full_version >= '3.10'
 pydantic-settings==2.8.1 ; python_full_version >= '3.10'
 pygments==2.19.1
 pyjwt==2.10.1
@@ -152,7 +148,6 @@ pymagicc==2.1.5
 pymdown-extensions==10.13
 pyomo==6.9.1 ; python_full_version >= '3.10'
 pyparsing==3.2.3
-pysquirrel==1.1 ; python_full_version >= '3.10'
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-json-logger==3.2.1
@@ -180,7 +175,6 @@ setuptools-scm==8.2.0 ; python_full_version < '3.10'
 shellingham==1.5.4 ; python_full_version >= '3.10'
 silicone==1.3.0
 six==1.17.0
-smmap==5.0.2 ; python_full_version >= '3.10'
 sniffio==1.3.1
 soupsieve==2.6
 sqlalchemy==2.0.40 ; python_full_version >= '3.10'
@@ -199,7 +193,7 @@ typer==0.15.2 ; python_full_version >= '3.10'
 types-python-dateutil==2.9.0.20241206
 typing-extensions==4.12.2
 typing-inspect==0.9.0 ; python_full_version >= '3.10'
-typing-inspection==0.4.0
+typing-inspection==0.4.0 ; python_full_version >= '3.10'
 tzdata==2025.1
 uri-template==1.3.0
 urllib3==2.3.0

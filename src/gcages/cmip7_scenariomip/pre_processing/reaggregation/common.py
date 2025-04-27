@@ -11,7 +11,7 @@ from attrs import define
 @define
 class ToCompleteResult:
     """
-    Result of calling `to_complete`
+    Result of calling `to_complete` on a reaggregator
     """
 
     complete: pd.DataFrame

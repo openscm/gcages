@@ -5,6 +5,17 @@ Tests of basic reaggregation
 is reported at the model region level.
 There may be other reaggregation methods we need to support,
 hence why this is given a specific name.
+
+There is lots of code in here,
+because just generating example test cases
+is too complex to be done by hand.
+We deliberately don't use the code in `src`
+for this so we can more easily ensure
+that existing tests break as we make updates to our logic.
+Yes, that means we have to change things in two places
+when we make such updates,
+but that's the point:
+we get a clear indication that the change we made had the intended effect.
 """
 
 from __future__ import annotations
@@ -366,6 +377,11 @@ tuples_to_multi_index_vr = partial(
 )
 
 
+# =================
+# Tests of `assert_has_all_required_timeseries`
+# =================
+
+
 @pytest.mark.parametrize(
     "to_remove, to_add, exp",
     (
@@ -517,6 +533,10 @@ def get_aggregate_df(
 
     return res
 
+
+# =================
+# Tests of `assert_is_internally_consistent`
+# =================
 
 """
 The next few tests are of `assert_is_internally_consistent`
@@ -875,6 +895,11 @@ def test_assert_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
         )
 
 
+# =================
+# Tests of `to_complete`
+# =================
+
+
 def test_to_complete_from_full_dataset():
     res = to_complete(COMPLETE_DF, model_regions=MODEL_REGIONS)
 
@@ -979,6 +1004,11 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
     exp = pd.concat([df_after_removal, exp_zeros.reorder_levels(df.index.names)])
     assert_frame_equal(res.complete, exp)
     assert_frame_equal(res.assumed_zero, exp_zeros)
+
+
+# =================
+# Tests of `to_gridding_sectors`
+# =================
 
 
 @pytest.fixture

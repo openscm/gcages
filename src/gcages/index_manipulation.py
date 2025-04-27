@@ -2,7 +2,7 @@
 Manipulation of the index of [pd.DataFrame][pandas.DataFrame]'s
 """
 
-# TOOD: consider putting this in pandas-openscm
+# TOOD: put all of this in pandas-openscm
 from __future__ import annotations
 
 from typing import Any, Callable, TypeVar

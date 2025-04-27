@@ -12,7 +12,7 @@ from typing import Protocol
 import pandas as pd
 from attrs import asdict, define
 from pandas_openscm.index_manipulation import update_index_levels_func
-from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 from gcages.aggregation import get_region_sector_sum
@@ -23,12 +23,10 @@ from gcages.assertions import (
     assert_only_working_on_variable_unit_region_variations,
 )
 from gcages.cmip7_scenariomip.gridding_emissions import (
-    get_complete_gridding_index,
-    to_global_workflow_emissions,
-)
-from gcages.cmip7_scenariomip.pre_processing.constants import (
     CO2_BIOSPHERE_SECTORS_GRIDDING,
     CO2_FOSSIL_SECTORS_GRIDDING,
+    get_complete_gridding_index,
+    to_global_workflow_emissions,
 )
 from gcages.cmip7_scenariomip.pre_processing.reaggregation import (
     ReaggregatorBasic,
@@ -137,12 +135,6 @@ def do_pre_processing(
     if reaggregator is None:
         reaggregator = guess_reaggregator(indf, region_level=region_level)
 
-    assumed_model_regions = [
-        r
-        for r in indf.index.get_level_values(reaggregator.region_level).unique()
-        if r != reaggregator.world_region
-    ]
-
     indf_reported_times = indf.dropna(how="all", axis="columns")
     if run_checks:
         indf_reported_times_nan = indf_reported_times.isnull().any(axis="columns")
@@ -221,41 +213,42 @@ def do_pre_processing(
         co2_name=co2_name,
     )
 
-    # This mucking around is another nice illustration
-    # of why the format is so painful.
-    # You can't just do split_sectors
-    # because some variables have 'sectors' (e.g. HFCs)
-    # and others don't.
     gwe_split = split_sectors(gridding_workflow_emissions, middle_level="species")
     species_from_gridding = tuple(gwe_split.index.get_level_values("species").unique())
 
-    indf_variables = indf_clean_units.index.get_level_values(
-        reaggregator.variable_level
-    )
+    # Firstly drop out everything which was used for gridding
+    indf_obviously_not_used_in_gridding = indf_clean_units.loc[
+        ~multi_index_match(indf_clean_units.index, to_complete_result.complete.index)
+    ]
 
-    species_from_gridding_indicators_endswith = tuple(
-        f"{level_separator}{s}" for s in species_from_gridding
-    )
-    from_gridding_emissions_locator_endswith = indf_variables.str.endswith(
-        species_from_gridding_indicators_endswith
-    )
-    species_from_gridding_indicators_contains = tuple(
-        f"{level_separator}{s}{level_separator}" for s in species_from_gridding
-    )
-    from_gridding_emissions_locator_contains = pd.Series(
-        [False] * indf_variables.size, index=indf_variables
-    )
-    for sic in species_from_gridding_indicators_contains:
-        from_gridding_emissions_locator_contains |= indf_variables.str.contains(
-            sic, regex=False
+    # Now do the brute for check on whatever is leftover
+    def species_in_variable(variable: str, species: str, ls: str) -> bool:
+        # ls: level separator
+        # This mucking around is another illustration of the
+        # issue with the data reporting format
+        # (you need to check endswith and surrounded by the separator
+        # to avoid accidental matches like VOC and OC)
+        return variable.endswith(species) or (f"{ls}{species}{ls}" in variable)
+
+    not_from_region_sector = [
+        variable
+        for variable in indf_obviously_not_used_in_gridding.index.get_level_values(
+            variable_level
+        ).unique()
+        if not any(
+            species_in_variable(variable, species=sg, ls=level_separator)
+            for sg in species_from_gridding
         )
-
-    from_gridding_emissions_locator = (
-        from_gridding_emissions_locator_endswith
-        | from_gridding_emissions_locator_contains
-    )
+    ]
     global_workflow_emissions_not_from_gridding_emissions = indf_clean_units.loc[
-        ~from_gridding_emissions_locator.values
+        indf_clean_units.index.get_level_values(variable_level).isin(
+            not_from_region_sector
+        )
+        # By definition, only want global emissions
+        & (
+            indf_clean_units.index.get_level_values(region_level)
+            == reaggregator.world_region
+        )
     ]
     # Can't use these yet
     # TODO: implement support for baskets
@@ -267,10 +260,13 @@ def do_pre_processing(
 
     global_workflow_emissions_raw_names = pd.concat(
         [
-            global_workflow_emissions_from_gridding_emissions,
-            global_workflow_emissions_not_from_gridding_emissions.reorder_levels(
+            df.reorder_levels(
                 global_workflow_emissions_from_gridding_emissions.index.names
-            ),
+            )
+            for df in [
+                global_workflow_emissions_from_gridding_emissions,
+                global_workflow_emissions_not_from_gridding_emissions,
+            ]
         ]
     )
 
@@ -362,7 +358,7 @@ class CMIP7ScenarioMIPPreProcessor:
 
     co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING
     """
-    Gridding sectors that are assumed to come from the biosphere (i.e. land) CO2 reservoir
+    Gridding sectors that are assumed to come from the biosphere CO2 reservoir
     """
 
     co2_name: str = "CO2"

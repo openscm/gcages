@@ -2,55 +2,45 @@
 Pre-processing part of the workflow
 
 This is extremely fiddly
-because of the way the data is reported
-(some is reported at the regional level,
-other bits only at the global level,
-the pipe means different things for different variables
-(for most variables, after the pipe you get sectors,
-for HFCs you get the actual gas)
-and we need to be able to move between all these conventions).
+because of the way the data is reported,
+which is frankly, a mess
+because of how it blends data
+that is a regional-sum with data that has regional detail
+and how the variable name is a blend of different bits of information
+(species, sectoral information etc.)
+with no easy way to decode what is what using a machine
+(you have to hardcode lots of edge cases
+e.g. Emissions|CO2|Energy is "Emissions", then the species then the sector
+but Emissions|HFC|HFC245 is "Emissions" then the "HFC" string then the species,
+i.e. completely different information is provided after each "|").
 
 This module implements the logic for this processing.
-There are a number of definitions in [constants][(m).constants].
-It is likely possible to change these.
-However, it would be extremely difficult to test
-that the constants can be altered
-and the whole module stays consistent.
-As a result, we have written it like this to make clearer
-that this entire module is more or less coupled,
-If you alter any of the constants,
-we don't guarantee correct behaviour.
-
-The underlying logic is this:
-
-- we're doing region-sector harmonisation
-- hence we need regions and sectors lined up very specifically with CEDS
-- we also need to keep information that will be used only at the global level
-  (e.g. CFCs, HFCs)
-- we process with sane tables that are easy to sum,
-  but have to report with the same format we got in
+The complexity comes in the re-aggregation
+([gcages.cmip7_scenariomip.pre_processing.reaggregation][]),
+which has to handle converting from whatever is reported
+(and a huge amount of different possibilities have to be supported)
+to the sectors used for gridding.
+From there, the workflow can be standardised
+(as is done in
+[gcages.cmip7_scenariomip.pre_processor.do_pre_processing][]).
 """
 
 from __future__ import annotations
 
-from gcages.cmip7_scenariomip.pre_processing.completeness import (
-    get_all_model_region_index_input,
-    get_all_world_index_input,
-    get_independent_index_input,
-    get_required_model_region_index_input,
-    get_required_world_index_input,
+from gcages.cmip7_scenariomip.pre_processing.pre_processor import (
+    CMIP7ScenarioMIPPreProcessingResult,
+    CMIP7ScenarioMIPPreProcessor,
+    ReaggregatorLike,
 )
-from gcages.cmip7_scenariomip.pre_processing.constants import (
-    REQUIRED_MODEL_REGION_VARIABLES_INPUT,
-    REQUIRED_WORLD_VARIABLES_INPUT,
+from gcages.cmip7_scenariomip.pre_processing.reaggregation import (
+    ReaggregatorBasic,
+    ToCompleteResult,
 )
 
 __all__ = [
-    "REQUIRED_MODEL_REGION_VARIABLES_INPUT",
-    "REQUIRED_WORLD_VARIABLES_INPUT",
-    "get_all_model_region_index_input",
-    "get_all_world_index_input",
-    "get_independent_index_input",
-    "get_required_model_region_index_input",
-    "get_required_world_index_input",
+    "CMIP7ScenarioMIPPreProcessingResult",
+    "CMIP7ScenarioMIPPreProcessor",
+    "ReaggregatorBasic",
+    "ReaggregatorLike",
+    "ToCompleteResult",
 ]

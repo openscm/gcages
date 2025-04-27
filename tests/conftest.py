@@ -4,12 +4,8 @@ Re-useable fixtures etc. for tests
 See https://docs.pytest.org/en/7.1.x/reference/fixtures.html#conftest-py-sharing-fixtures-across-multiple-files
 """
 
-from pathlib import Path
-
 import pandas as pd
 import pytest
-
-REPO_ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope="session", autouse=True)

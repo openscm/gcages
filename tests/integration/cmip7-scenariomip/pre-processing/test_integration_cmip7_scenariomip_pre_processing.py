@@ -57,10 +57,11 @@ def test_output_consistency_with_input_for_non_region_sector(example_input_outpu
     assert_frame_equal(not_from_region_sector_res, not_from_region_sector_compare)
 
 
-def test_output_internal_consistency(example_input_output):
+def test_output_gridding_global_workflow_emissions_internal_consistency(
+    example_input_output,
+):
     """
-    Test consistency between the output that is not at the region-sector level
-    and the output that is at the world level
+    Test consistency between the gridding and global workflow emissions in the output
     """
     global_workflow_emissions_derived = to_global_workflow_emissions(
         example_input_output.output.gridding_workflow_emissions,
