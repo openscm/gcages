@@ -28,6 +28,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     assert_has_all_required_timeseries,
     assert_is_internally_consistent,
     get_default_internal_conistency_checking_tolerances,
+    get_example_input,
     to_complete,
     to_gridding_sectors,
 )
@@ -506,7 +507,7 @@ def get_aggregate_df(
     df_region_sum = groupby_except(indf, "region").sum()
 
     df_region_sum_aggregated = set_new_single_value_levels(
-        aggregate_df_level(df_region_sum, on_clash=on_clash_variable),
+        aggregate_df_level(df_region_sum, level="variable", on_clash=on_clash_variable),
         {"region": world_region},
     )
     res = pd.concat(
@@ -576,6 +577,24 @@ SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF = get_aggregate_df(
         pytest.param(
             SOMEWHAT_COMPLETE_INTERNALLY_CONSISTENT_DF,
             id="in-between",
+        ),
+        pytest.param(
+            get_example_input(
+                model_regions=[
+                    f"model_abba|{r}" for r in ("India", "Europe", "Australia")
+                ],
+                model="model_abba",
+                global_only_variables=(
+                    ("Emissions|HFC|HFC23", "kt HFC23/yr"),
+                    ("Emissions|HFC", "kt HFC134a-equiv/yr"),
+                    ("Emissions|HFC|HFC43-10", "kt HFC43-10/yr"),
+                    ("Emissions|PFC", "kt CF4-equiv/yr"),
+                    ("Emissions|F-Gases", "Mt CO2-equiv/yr"),
+                    ("Emissions|SF6", "kt SF6/yr"),
+                    ("Emissions|CF4", "kt CF4/yr"),
+                ),
+            ),
+            id="complete-plus-global-only",
         ),
     ),
 )

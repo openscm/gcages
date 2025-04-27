@@ -529,11 +529,6 @@ def assert_is_internally_consistent(
         variable_level=variable_level,
     )
 
-    # TODO: explicit test that this function doesn't fail if there are extras
-    df_internal_consistency_checking_relevant = multi_index_lookup(
-        df, internal_consistency_checking_index
-    )
-
     # Hard-code the logic here
     # because that's what is needed for consistency with the rest of the module.
     # This is one of the issues with the data model used by ScmRun, pyam etc.:
@@ -543,13 +538,8 @@ def assert_is_internally_consistent(
     def get_species_total_variable(v: str) -> str:
         return "|".join(v.split("|")[:2])
 
-    for (
-        species_total_variable,
-        df_species,
-    ) in df_internal_consistency_checking_relevant.groupby(
-        df_internal_consistency_checking_relevant.index.get_level_values(
-            variable_level
-        ).map(get_species_total_variable)
+    for species_total_variable, df_species in df.groupby(
+        df.index.get_level_values(variable_level).map(get_species_total_variable)
     ):
         df_species_total_reported = df_species.loc[
             (
@@ -560,6 +550,13 @@ def assert_is_internally_consistent(
         ]
         if df_species_total_reported.empty:
             # Nothing reported so can move on
+            continue
+
+        df_species_internal_consistency_checking_relevant = multi_index_lookup(
+            df_species, internal_consistency_checking_index
+        )
+        if df_species_internal_consistency_checking_relevant.empty:
+            # Nothing relevant for checking internal consistency
             continue
 
         # Note: what we're checking here is that if you sum over the sectors
@@ -577,53 +574,53 @@ def assert_is_internally_consistent(
         # because of how many different ways it can go wrong
         # e.g. you can have extra components that aren't used,
         # incorrect aggregation
-        df_variable_aggregate = get_region_sector_sum(
-            df_species,
+        df_species_aggregate = get_region_sector_sum(
+            df_species_internal_consistency_checking_relevant,
             region_level=region_level,
             world_region=world_region,
         ).reorder_levels(df_species.index.names)
 
-        tolerances_variable = {}
-        for k, v in tolerances[species_total_variable].items():
-            if pint is not None and isinstance(v, pint.Quantity):
-                if k == "atol":
-                    variable_units = df_species.index.get_level_values(
+        tolerances_species = {}
+        for kwarg, value in tolerances[species_total_variable].items():
+            if pint is not None and isinstance(value, pint.Quantity):
+                if kwarg == "atol":
+                    species_units = df_species.index.get_level_values(
                         unit_level
                     ).unique()
-                    if len(variable_units) > 1:
+                    if len(species_units) > 1:
                         msg = (
                             "Cannot use pint conversion "
                             "if your data contains different units. "
-                            f"For {species_total_variable=}, we have {variable_units=}"
+                            f"For {species_total_variable=}, we have {species_units=}"
                         )
                         raise ValueError(msg)
 
-                    tolerances_variable[k] = v.to(variable_units[0]).m
+                    tolerances_species[kwarg] = value.to(species_units[0]).m
 
-                elif k == "rtol":
-                    tolerances_variable[k] = v.to("dimensionless").m
+                elif kwarg == "rtol":
+                    tolerances_species[kwarg] = value.to("dimensionless").m
 
                 else:
-                    raise NotImplementedError(k)
+                    raise NotImplementedError(kwarg)
 
             else:
-                tolerances_variable[k] = v
+                tolerances_species[kwarg] = value
 
-        comparison_variable = compare_close(
+        comparison_species = compare_close(
             left=df_species_total_reported,
-            right=df_variable_aggregate,
+            right=df_species_aggregate,
             left_name="reported_total",
             right_name="derived_from_input",
-            **tolerances_variable,
+            **tolerances_species,
         )
 
-        if not comparison_variable.empty:
+        if not comparison_species.empty:
             raise InternalConsistencyError(
-                differences=comparison_variable,
+                differences=comparison_species,
                 data_that_was_summed=df_species,
                 # Would need something like this to give full details
                 # data_that_was_not_summed=data_that_was_not_summed,
-                tolerances=tolerances_variable,
+                tolerances=tolerances_species,
             )
 
 
