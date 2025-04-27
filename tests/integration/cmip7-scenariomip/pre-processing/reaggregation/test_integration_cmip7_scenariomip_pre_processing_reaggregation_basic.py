@@ -51,6 +51,7 @@ try:
 except ImportError:
     Q = None
 
+pytestmark = pytest.mark.slow
 RNG = np.random.default_rng()
 
 
