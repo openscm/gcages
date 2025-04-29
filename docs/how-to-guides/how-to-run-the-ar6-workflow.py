@@ -22,8 +22,6 @@
 # [climate-assessment](https://github.com/iiasa/climate-assessment) package,
 # which is a [facade](https://refactoring.guru/design-patterns/facade)
 # around gcages.
-#
-# Note: this is not yet complete, we will add further steps in future.
 
 # %% [markdown]
 # ## Imports
@@ -176,7 +174,7 @@ start = pd.DataFrame(
 start = start.T.interpolate("index").T
 start
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 relplot_in_emms = partial(
     sns.relplot,
     kind="line",
@@ -228,7 +226,7 @@ pre_processor.emissions_out
 pre_processed = pre_processor(start)
 pre_processed
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 fg = relplot_in_emms(
     data=pre_processed.melt(ignore_index=False, var_name="year").reset_index(),
     hue="scenario",
@@ -251,7 +249,7 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # Under the hood, the AR6 harmonisation uses the
 # [aneris](https://github.com/iiasa/aneris) package.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 AR6_HISTORICAL_EMISSIONS_FILE = Path(
     "tests/regression/ar6/ar6-workflow-inputs/history_ar6.csv"
 )
