@@ -39,6 +39,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         reaggregator=reaggregator,
         n_processes=None,  # run serially
+        progress=False,
     )
     res = pre_processor(input_df)
 
