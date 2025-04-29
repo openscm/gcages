@@ -62,7 +62,7 @@ Complete set of sectors for gridding
 """
 
 
-def get_complete_gridding_index(
+def get_complete_gridding_index(  # noqa: PLR0913
     model_regions: tuple[str, ...],
     world_gridding_sectors: tuple[str, ...] = (
         "Aircraft",
@@ -74,6 +74,39 @@ def get_complete_gridding_index(
     table: str = "Emissions",
     level_separator: str = "|",
 ) -> pd.MultiIndex:
+    """
+    Get the index of complete gridding data
+
+    Parameters
+    ----------
+    model_regions
+        Model regions to use while reaggregating
+
+    world_gridding_sectors
+        Sectors that should only be gridded at the world level
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    table
+        Name of the 'table' for emissions
+
+        Used to process and create variable names
+
+    level_separator
+        Separator between levels in the variable names
+
+    Returns
+    -------
+    :
+        Index of complete gridding data
+    """
     complete_world_variables = [
         level_separator.join([table, species, sectors])
         for species, sectors in itertools.product(
@@ -160,6 +193,49 @@ def to_global_workflow_emissions(  # noqa: PLR0913
     species_level: str = "species",
     co2_name: str = "CO2",
 ) -> pd.DataFrame:
+    """
+    Convert gridding emissions to global workflow emissions
+
+    Parameters
+    ----------
+    gridding_emissions
+        Gridding emissions
+
+    time_name
+        Name of the time axis in `gridding_emissions`
+
+    region_level
+        Region level in the data index
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    global_workflow_co2_fossil_sector
+        Name of the CO2 'sector' with fossil origins to use in the output
+
+    global_workflow_co2_biosphere_sector
+        Name of the CO2 'sector' with biospheric origins to use in the output
+
+    co2_fossil_sectors
+        Sectors to assume have an origin in fossil CO2 reservoirs
+
+    co2_biosphere_sectors
+        Sectors to assume have an origin in biospheric CO2 reservoirs
+
+    sectors_level
+        Sectors level in the data index
+
+    species_level
+        Species level in the data index
+
+    co2_name
+        String that indicates emissions of CO2 in variable names
+
+    Returns
+    -------
+    :
+        Global workflow emissions
+    """
     stacked: pd.DataFrame = (
         split_sectors(  # type: ignore
             gridding_emissions,
@@ -224,6 +300,55 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
     species_level: str,
     co2_name: str,
 ) -> tuple[pd.Series[NP_FLOAT_OR_INT], pd.Series[NP_FLOAT_OR_INT]]:  # type: ignore # pandas-stubs out of date
+    """
+    Convert pre-stacked gridding emissions to global workflow emissions
+
+    Parameters
+    ----------
+    region_sector_df
+        Data with region and sector levels
+
+    sector_df
+        Data with sector levels only
+
+    time_name
+        Name of the time axis in `gridding_emissions`
+
+    region_level
+        Region level in the data index
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    global_workflow_co2_fossil_sector
+        Name of the CO2 'sector' with fossil origins to use in the output
+
+    global_workflow_co2_biosphere_sector
+        Name of the CO2 'sector' with biospheric origins to use in the output
+
+    co2_fossil_sectors
+        Sectors to assume have an origin in fossil CO2 reservoirs
+
+    co2_biosphere_sectors
+        Sectors to assume have an origin in biospheric CO2 reservoirs
+
+    sectors_level
+        Sectors level in the data index
+
+    species_level
+        Species level in the data index
+
+    co2_name
+        String that indicates emissions of CO2 in variable names
+
+    Returns
+    -------
+    sectors
+        Global workflow emissions with a sector level
+
+    totals
+        Global workflow emissions only with totals (no region or sector level)
+    """
     region_sector_df_region_sum = groupby_except(region_sector_df, region_level).sum()
 
     sector_df_full = pd.concat([sector_df, region_sector_df_region_sum], axis="columns")

@@ -22,9 +22,54 @@ def aggregate_df_level(
     indf: pd.DataFrame,
     level: str,
     on_clash: str = "raise",
-    level_separator: str = "|",
-    min_levels_output: int = 1,
+    component_separator: str = "|",
+    min_components_output: int = 1,
 ) -> pd.DataFrame:
+    """
+    Aggregate a level in a [pd.DataFrame][pandas.DataFrame]
+
+    Here, aggregate means 'walk up the components in the level values'
+    and create their totals.
+    For example, if `indf` has a metadata value like
+    "Emission|CO2|Energy|Demand"
+    then this could walk up the tree to create
+    "Emission|CO2|Energy" and "Emissions|CO2"
+    metadata values too.
+
+    Parameters
+    ----------
+    indf
+        Data to process
+
+    level
+        Level to aggregate
+
+    on_clash
+        What to do if there is a clash while aggregating.
+
+        Options:
+
+        - "raise": raise an error
+        - "verify": verify that the aggregated data
+                    is consistent with the existing data,
+                    raise an error if not
+        - "overwrite": overwrite the existing data with the aggregated data
+
+    component_separator
+        Separator between components within the values of `level`
+
+    min_components_output
+        Minimum number of components to include in the output
+
+        This helps avoid creating aggregates for components you don't care about
+        (e.g. you might not care about a "Emissions" aggregate
+        if you have metadata values like "Emissions|CO2" and "Emissions|CH4").
+
+    Returns
+    -------
+    :
+        Aggregated data (i.e. both the input and the newly aggregated timeseries)
+    """
     # TODO: move this into pandas-openscm
     # will require writing our own extract and format functions
     # will require moving compare_close too
@@ -37,10 +82,10 @@ def aggregate_df_level(
     level_groups = {
         n_levels: df
         for n_levels, df in indf.groupby(
-            indf.index.get_level_values(level).str.count(rf"\{level_separator}")
+            indf.index.get_level_values(level).str.count(rf"\{component_separator}")
         )
     }
-    levels_r = range(min_levels_output, max(level_groups) + 1)[::-1]
+    levels_r = range(min_components_output, max(level_groups) + 1)[::-1]
     # Start by storing the bottom level
     res_d = {levels_r[0]: level_groups[levels_r[0]]}
     for n_levels in levels_r[1:]:
@@ -54,7 +99,7 @@ def aggregate_df_level(
         level_splits = [
             f"{level}_{string.ascii_lowercase[i]}" for i in range(n_levels + 1 + 1)
         ]
-        extract_str = level_separator.join(["{" + ls + "}" for ls in level_splits])
+        extract_str = component_separator.join(["{" + ls + "}" for ls in level_splits])
         to_aggregate_split = extractlevel(to_aggregate, **{level: extract_str})
 
         to_aggregate_sum = groupby_except(to_aggregate_split, level_splits[-1]).sum()
@@ -62,7 +107,7 @@ def aggregate_df_level(
         to_aggregate_sum_combined = formatlevel(
             to_aggregate_sum,
             **{
-                level: level_separator.join(
+                level: component_separator.join(
                     ["{" + ls + "}" for ls in level_splits[:-1]]
                 )
             },
@@ -127,7 +172,7 @@ def aggregate_df_level(
 
     res = pd.concat(
         [
-            df.reorder_levels(res_d[min_levels_output].index.names)
+            df.reorder_levels(res_d[min_components_output].index.names)
             for df in res_d.values()
         ]
     )
@@ -144,6 +189,36 @@ def get_region_sector_sum(
     ),
     sectors_level: str = "sectors",
 ) -> pd.DataFrame:
+    """
+    Get the sum over regions and sectors
+
+    Parameters
+    ----------
+    indf
+        Input data to sum
+
+    region_level
+        Region level in the data index
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    split_sectors
+        Callable to use to split sectors from other levels in `indf`'s index
+
+    sectors_level
+        Name of the sectors level once the data is split
+
+        (Should be consistent with `split_sectors`)
+
+    Returns
+    -------
+    :
+        Region-sector sum of `indf`
+
+        To meet other conventions, the output has a region level
+        with value `world_region` (even though this is a super weird convention).
+    """
     # Blind sum so double counting is possible if you're not careful
     # Can't avoid double counting as that is defined by data model,
     # not by "|" separation rules

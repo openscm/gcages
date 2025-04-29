@@ -46,6 +46,8 @@ class GriddingSectorComponentsReporting:
     """
     Definition of the components of a gridding sector for reporting
 
+    This is meant for internal use only.
+
     OR logic is applied to the exclusions
     i.e. a variable will not be required
     if the sector is in `input_sectors_optional`
@@ -69,6 +71,9 @@ class GriddingSectorComponentsReporting:
     """The input species that are optional"""
 
     def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
+        """
+        Convert to the complete set of variables for this gridding sector
+        """
         return tuple(
             f"Emissions|{species}|{sector}"
             for species in all_species
@@ -76,6 +81,9 @@ class GriddingSectorComponentsReporting:
         )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
+        """
+        Convert to the required set of variables for this gridding sector
+        """
         return tuple(
             f"Emissions|{species}|{sector}"
             for species in all_species
@@ -286,6 +294,28 @@ def get_complete_timeseries_index(
     region_level: str = "region",
     variable_level: str = "variable",
 ) -> pd.MultiIndex:
+    """
+    Get the index of complete data
+
+    Parameters
+    ----------
+    model_regions
+        Model regions to use while reaggregating
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    Returns
+    -------
+    :
+        Index of complete data
+    """
     world_required = pd.MultiIndex.from_product(
         [COMPLETE_WORLD_VARIABLES, [world_region]], names=[variable_level, region_level]
     )
@@ -306,6 +336,28 @@ def get_required_timeseries_index(
     region_level: str = "region",
     variable_level: str = "variable",
 ) -> pd.MultiIndex:
+    """
+    Get the index of required data
+
+    Parameters
+    ----------
+    model_regions
+        Model regions to use while reaggregating
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    Returns
+    -------
+    :
+        Index for required data
+    """
     world_required = pd.MultiIndex.from_product(
         [REQUIRED_WORLD_VARIABLES, [world_region]], names=[variable_level, region_level]
     )
@@ -326,6 +378,28 @@ def get_internal_consistency_checking_index(
     region_level: str = "region",
     variable_level: str = "variable",
 ) -> pd.MultiIndex:
+    """
+    Get the index which selects only data relevant for checking internal consistency
+
+    Parameters
+    ----------
+    model_regions
+        Model regions to use while reaggregating
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    Returns
+    -------
+    :
+        Internal consistency checking index
+    """
     world_internal_consistency_checking = pd.MultiIndex.from_product(
         [COMPLETE_WORLD_VARIABLES, [world_region]], names=[variable_level, region_level]
     )
@@ -347,7 +421,7 @@ def get_internal_consistency_checking_index(
     return res
 
 
-def get_example_input(
+def get_example_input(  # noqa: PLR0913
     model_regions: tuple[str, ...],
     global_only_variables: tuple[tuple[str, str], ...] = (
         ("Emissions|HFC|HFC23", "kt HFC23/yr"),
@@ -374,6 +448,58 @@ def get_example_input(
     unit_level: str = "unit",
     columns_name: str = "year",
 ) -> pd.DataFrame:
+    """
+    Get example input data
+
+    Parameters
+    ----------
+    model_regions
+        Model regions to use in the example data
+
+    global_only_variables
+        Variables to include only at the global total level
+
+    timepoints
+        Timepoints to use in the example
+
+    get_variable_unit
+        Function to use to get the unit for each variable
+
+    rng
+        Random number generator
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    model
+        Model metadata value
+
+    scenario
+        Scenario metadata value
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    model_level
+        Model level in the data index
+
+    scenario_level
+        Scenario level in the data index
+
+    unit_level
+        Unit level in the data index
+
+    columns_name
+        Name of the columns in the output
+
+    Returns
+    -------
+    :
+        Example input expected by the re-aggregator
+    """
     # Hard-coded because the example input
     # is tightly coupled to the idea of completeness
     starting_variables = (*COMPLETE_MODEL_REGION_VARIABLES, *COMPLETE_WORLD_VARIABLES)
@@ -458,6 +584,31 @@ def assert_has_all_required_timeseries(
     region_level: str = "region",
     variable_level: str = "variable",
 ) -> None:
+    """
+    Assert that the data has all the required timeseries
+
+    Parameters
+    ----------
+    df
+        Data to check
+
+    model_regions
+        Model regions to use while reaggregating
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    Raises
+    ------
+    NotCompleteError
+        `indf` is not complete
+    """
     assert_all_groups_are_complete(
         df,
         complete_index=get_required_timeseries_index(
@@ -522,7 +673,7 @@ def get_default_internal_conistency_checking_tolerances() -> (
     return default_tolerances
 
 
-def assert_is_internally_consistent(
+def assert_is_internally_consistent(  # noqa: PLR0913
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
     tolerances: Mapping[str, Mapping[str, float]]
@@ -532,6 +683,45 @@ def assert_is_internally_consistent(
     unit_level: str = "unit",
     variable_level: str = "variable",
 ) -> None:
+    """
+    Assert that the data is internally consistent
+
+    Parameters
+    ----------
+    df
+        Data to check
+
+    model_regions
+        Model regions to use while reaggregating
+
+    tolerances
+        Tolerances to apply while checking internal consistency
+
+        Each key should be a variable up to species info
+        e.g. "Emission|CH4"
+        and each value should be the tolerance arguments to pass
+        to [np.isclose][numpy.isclose].
+        These tolerance arguments can be pint quantities,
+        in which case they are converted to the data's units
+        before passing to [np.isclose][numpy.isclose].
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    region_level
+        Region level in the data index
+
+    unit_level
+        Unit level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    Raises
+    ------
+    InternalConsistencyError
+        The data is not internally consistent at the given tolerances
+    """
     try:
         import pint
     except ModuleNotFoundError:
@@ -639,7 +829,7 @@ def assert_is_internally_consistent(
             )
 
 
-def to_complete(
+def to_complete(  # noqa: PLR0913
     indf: pd.DataFrame,
     model_regions: tuple[str, ...],
     unit_level: str = "unit",
@@ -647,6 +837,34 @@ def to_complete(
     region_level: str = "region",
     world_region: str = "World",
 ) -> ToCompleteResult:
+    """
+    Convert the raw data to complete data
+
+    Parameters
+    ----------
+    indf
+        Data to process
+
+    model_regions
+        Model regions to use while reaggregating
+
+    unit_level
+        Unit level in the data index
+
+    variable_level
+        Variable level in the data index
+
+    region_level
+        Region level in the data index
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    Returns
+    -------
+    :
+        To complete result
+    """
     assert_only_working_on_variable_unit_region_variations(indf)
 
     complete_index = get_complete_timeseries_index(
@@ -713,6 +931,25 @@ def to_complete(
 def to_gridding_sectors(
     indf: pd.DataFrame, region_level: str = "region", world_region: str = "World"
 ) -> pd.DataFrame:
+    """
+    Re-aggregate data to the sectors used for gridding
+
+    Parameters
+    ----------
+    indf
+        Data to re-aggregate
+
+    region_level
+        Region level in the data index
+
+    world_region
+        The value used when the data represents the sum over all regions
+
+    Returns
+    -------
+    :
+        Data re-aggregated to the gridding sectors
+    """
     # Processing is way easier if we split into two DataFrame's
     # and stack the sectors
     world_locator = indf.index.get_level_values(region_level) == world_region
@@ -881,6 +1118,19 @@ class ReaggregatorBasic:
         return get_default_internal_conistency_checking_tolerances()
 
     def assert_has_all_required_timeseries(self, indf: pd.DataFrame) -> None:
+        """
+        Assert that the data has all the required timeseries
+
+        Parameters
+        ----------
+        indf
+            Data to check
+
+        Raises
+        ------
+        NotCompleteError
+            `indf` is not complete
+        """
         assert_has_all_required_timeseries(
             indf,
             model_regions=self.model_regions,
@@ -890,6 +1140,19 @@ class ReaggregatorBasic:
         )
 
     def assert_is_internally_consistent(self, indf: pd.DataFrame) -> None:
+        """
+        Assert that the data is internally consistent
+
+        Parameters
+        ----------
+        indf
+            Data to check
+
+        Raises
+        ------
+        InternalConsistencyError
+            The data is not internally consistent
+        """
         assert_is_internally_consistent(
             indf,
             model_regions=self.model_regions,
@@ -901,6 +1164,14 @@ class ReaggregatorBasic:
         )
 
     def get_internal_consistency_checking_index(self) -> pd.MultiIndex:
+        """
+        Get the index which selects only data relevant for checking internal consistency
+
+        Returns
+        -------
+        :
+            Internal consistency checking index
+        """
         return get_internal_consistency_checking_index(
             model_regions=self.model_regions,
             world_region=self.world_region,
@@ -909,6 +1180,19 @@ class ReaggregatorBasic:
         )
 
     def to_complete(self, indf: pd.DataFrame) -> ToCompleteResult:
+        """
+        Convert the raw data to complete data
+
+        Parameters
+        ----------
+        raw
+            Raw data
+
+        Returns
+        -------
+        :
+            To complete result
+        """
         return to_complete(
             indf=indf,
             model_regions=self.model_regions,
@@ -919,6 +1203,19 @@ class ReaggregatorBasic:
         )
 
     def to_gridding_sectors(self, indf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Re-aggregate data to the sectors used for gridding
+
+        Parameters
+        ----------
+        indf
+            Data to re-aggregate
+
+        Returns
+        -------
+        :
+            Data re-aggregated to the gridding sectors
+        """
         return to_gridding_sectors(
             indf=indf, region_level=self.region_level, world_region=self.world_region
         )

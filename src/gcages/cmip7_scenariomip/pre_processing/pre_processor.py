@@ -79,9 +79,31 @@ def guess_reaggregator(
     indf: pd.DataFrame,
     region_level: str,
 ) -> ReaggregatorLike:
+    """
+    Guess the re-aggregator to use with a given dataset
+
+    Parameters
+    ----------
+    indf
+        Data for which to guess the re-aggregator
+
+    region_level
+        Region level in the data index
+
+    Returns
+    -------
+    :
+        Guessed re-aggregator
+
+    Raises
+    ------
+    ValueError
+        Re-aggregator could not be guessed for `indf`
+    """
     assumed_model_regions = tuple(
         r for r in indf.index.get_level_values(region_level).unique() if r != "World"
     )
+    errors_l = []
     for guess_cls in (ReaggregatorBasic,):
         guess = guess_cls(
             model_regions=assumed_model_regions, region_level=region_level
@@ -90,14 +112,20 @@ def guess_reaggregator(
         try:
             guess.assert_has_all_required_timeseries(indf)
 
-        except NotCompleteError:
+        except NotCompleteError as exc:
             # Not a match
+            errors_l.append(f"For {guess_cls}, error was:\n{exc}")
             continue
 
         else:
             return guess
 
-    msg = f"Could not guess the reaggregator for the given input:\n{indf}"
+    errors = "\n".join(errors_l)
+    msg = (
+        "Could not guess the reaggregator for the given input:\n"
+        f"{indf}.\n"
+        f"Errors:\n{errors}"
+    )
     raise ValueError(msg)
 
 
