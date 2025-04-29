@@ -41,7 +41,7 @@ jobs:
           uv-dependency-install-flags: "--all-extras --group docs"
       - name: docs
         run: |
-          uv run mkdocs build --strict
+          READTHEDOCS=True uv run mkdocs build --strict
       - uses: ./.github/actions/setup
         with:
           python-version: "3.11"
@@ -50,7 +50,7 @@ jobs:
         run: |
           # Check CHANGELOG will build too
           uv run towncrier build --yes
-          uv run mkdocs build --strict
+          READTHEDOCS=True uv run mkdocs build --strict
           # Just in case, undo the staged changes
           git restore --staged . && git restore .
 
