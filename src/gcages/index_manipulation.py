@@ -5,13 +5,14 @@ Manipulation of the index of [pd.DataFrame][pandas.DataFrame]'s
 # TOOD: put all of this in pandas-openscm
 from __future__ import annotations
 
-from typing import Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, TypeVar
 
 import pandas as pd
 
 from gcages.exceptions import MissingOptionalDependencyError
 
-P = TypeVar("P", pd.DataFrame, pd.Series[Any])
+if TYPE_CHECKING:
+    P = TypeVar("P", pd.DataFrame, pd.Series[Any])
 
 
 def set_new_single_value_levels(  # noqa: D103
