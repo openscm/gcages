@@ -79,9 +79,9 @@ def guess_reaggregator(
     indf: pd.DataFrame,
     region_level: str,
 ) -> ReaggregatorLike:
-    assumed_model_regions = [
+    assumed_model_regions = tuple(
         r for r in indf.index.get_level_values(region_level).unique() if r != "World"
-    ]
+    )
     for guess_cls in (ReaggregatorBasic,):
         guess = guess_cls(
             model_regions=assumed_model_regions, region_level=region_level
@@ -218,7 +218,7 @@ def do_pre_processing(
 
     # Firstly drop out everything which was used for gridding
     indf_obviously_not_used_in_gridding = indf_clean_units.loc[
-        ~multi_index_match(indf_clean_units.index, to_complete_result.complete.index)
+        ~multi_index_match(indf_clean_units.index, to_complete_result.complete.index)  # type: ignore
     ]
 
     # Now do the brute for check on whatever is leftover
@@ -305,6 +305,67 @@ class ReaggregatorLike(Protocol):
     Interface that can be used for re-aggregation
     """
 
+    model_regions: tuple[str, ...]
+    """Model regions to use while reaggregating"""
+
+    region_level: str
+    """Region level in the data index"""
+
+    unit_level: str
+    """Unit level in the data index"""
+
+    variable_level: str
+    """Variable level in the data index"""
+
+    world_region: str
+    """
+    The value used when the data represents the sum over all regions
+
+    (Having a value for this is odd,
+    there should really just be no region level when data is the sum,
+    but this is the data format used so we have to follow this convention.)
+    """
+
+    def assert_has_all_required_timeseries(self, indf: pd.DataFrame) -> None:
+        """
+        Assert that the data has all the required timeseries
+
+        Parameters
+        ----------
+        indf
+            Data to check
+
+        Raises
+        ------
+        NotCompleteError
+            `indf` is not complete
+        """
+
+    def assert_is_internally_consistent(self, indf: pd.DataFrame) -> None:
+        """
+        Assert that the data is internally consistent
+
+        Parameters
+        ----------
+        indf
+            Data to check
+
+        Raises
+        ------
+        InternalConsistencyError
+            The data is not internally consistent
+        """
+
+    def get_internal_consistency_checking_index(self) -> pd.MultiIndex:
+        """
+        Get the index which selects only data relevant for checking internal consistency
+
+        Returns
+        -------
+        :
+            Internal consistency checking index
+        """
+
     def to_complete(self, raw: pd.DataFrame) -> ToCompleteResult:
         """
         Convert the raw data to complete data
@@ -318,6 +379,21 @@ class ReaggregatorLike(Protocol):
         -------
         :
             To complete result
+        """
+
+    def to_gridding_sectors(self, indf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Re-aggregate data to the sectors used for gridding
+
+        Parameters
+        ----------
+        indf
+            Data to re-aggregate
+
+        Returns
+        -------
+        :
+            Data re-aggregated to the gridding sectors
         """
 
 

@@ -8,6 +8,7 @@ It assumes that domestic aviation is reported at the model region level.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Callable
 
 import numpy as np
@@ -466,7 +467,7 @@ def assert_has_all_required_timeseries(
 
 
 def get_default_internal_conistency_checking_tolerances() -> (
-    dict[str, dict[str, float]] | dict[str, dict[str, PINT_SCALAR]]
+    Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
 ):
     """
     Get default tolerances used when checking the internal consistency of data
@@ -518,7 +519,8 @@ def get_default_internal_conistency_checking_tolerances() -> (
 def assert_is_internally_consistent(
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
-    tolerances: dict[str, dict[str, float | PINT_SCALAR]],
+    tolerances: Mapping[str, Mapping[str, float]]
+    | Mapping[str, Mapping[str, PINT_SCALAR]],
     world_region: str = "World",
     region_level: str = "region",
     unit_level: str = "unit",
@@ -850,7 +852,9 @@ class ReaggregatorBasic:
     but this is the data format used so we have to follow this convention.)
     """
 
-    internal_consistency_tolerances: dict[str, dict[str, float | PINT_SCALAR]] = field()
+    internal_consistency_tolerances: (
+        Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
+    ) = field()
     """
     Tolerances to apply when checking the internal consistency of the data
     """
@@ -858,7 +862,7 @@ class ReaggregatorBasic:
     @internal_consistency_tolerances.default
     def default_tols_internal_consistency(
         self,
-    ) -> dict[str, dict[str, float | PINT_SCALAR]]:
+    ) -> Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]:
         """
         Get default tolerances for internal consistency checks
         """
