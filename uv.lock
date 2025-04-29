@@ -1212,6 +1212,7 @@ tests = [
 ]
 tests-full = [
     { name = "pandas-indexing" },
+    { name = "pyarrow" },
     { name = "pytest-cov" },
 ]
 tests-min = [
@@ -1220,6 +1221,7 @@ tests-min = [
     { name = "packaging" },
     { name = "pluggy" },
     { name = "pytest" },
+    { name = "pytest-regressions" },
 ]
 
 [package.metadata]
@@ -1533,6 +1535,7 @@ tests = [
 ]
 tests-full = [
     { name = "pandas-indexing", specifier = ">=0.6.3" },
+    { name = "pyarrow", specifier = ">=19.0.1" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
 ]
 tests-min = [
@@ -1541,6 +1544,7 @@ tests-min = [
     { name = "packaging", specifier = "==24.2" },
     { name = "pluggy", specifier = "==1.5.0" },
     { name = "pytest", specifier = "==8.3.4" },
+    { name = "pytest-regressions", specifier = ">=2.7.0" },
 ]
 
 [[package]]
