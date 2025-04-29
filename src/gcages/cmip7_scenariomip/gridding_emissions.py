@@ -317,9 +317,6 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
     region_level
         Region level in the data index
 
-    world_region
-        The value used when the data represents the sum over all regions
-
     global_workflow_co2_fossil_sector
         Name of the CO2 'sector' with fossil origins to use in the output
 

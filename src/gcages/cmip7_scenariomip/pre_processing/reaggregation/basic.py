@@ -1179,7 +1179,7 @@ class ReaggregatorBasic:
             variable_level=self.variable_level,
         )
 
-    def to_complete(self, indf: pd.DataFrame) -> ToCompleteResult:
+    def to_complete(self, raw: pd.DataFrame) -> ToCompleteResult:
         """
         Convert the raw data to complete data
 
@@ -1194,7 +1194,7 @@ class ReaggregatorBasic:
             To complete result
         """
         return to_complete(
-            indf=indf,
+            indf=raw,
             model_regions=self.model_regions,
             unit_level=self.unit_level,
             variable_level=self.variable_level,
