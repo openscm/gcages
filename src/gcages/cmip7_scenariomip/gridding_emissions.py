@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import itertools
 import sys
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from pandas_openscm.grouping import groupby_except
@@ -21,6 +22,9 @@ if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
     from backports.strenum import StrEnum
+
+if TYPE_CHECKING:
+    from gcages.typing import NP_FLOAT_OR_INT
 
 COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
     "CO2",
@@ -94,7 +98,7 @@ def get_complete_gridding_index(
         names=[variable_level, region_level],
     )
 
-    res = world_required.append(model_region_required)
+    res: pd.MultiIndex = world_required.append(model_region_required)  # type: ignore # pandas-stubs out of date
 
     return res
 
@@ -156,8 +160,8 @@ def to_global_workflow_emissions(  # noqa: PLR0913
     species_level: str = "species",
     co2_name: str = "CO2",
 ) -> pd.DataFrame:
-    stacked = (
-        split_sectors(
+    stacked: pd.DataFrame = (
+        split_sectors(  # type: ignore
             gridding_emissions,
             middle_level=species_level,
             bottom_level=sectors_level,
@@ -186,12 +190,14 @@ def to_global_workflow_emissions(  # noqa: PLR0913
 
     gw_sector_df_input_like = set_new_single_value_levels(
         combine_sectors(
-            gw_sector_df, middle_level=species_level, bottom_level=sectors_level
+            gw_sector_df,  # type: ignore # fix when moving to pandas-openscm
+            middle_level=species_level,
+            bottom_level=sectors_level,
         ),
         {region_level: world_region},
     ).unstack(time_name)
     gw_total_df_input_like = set_new_single_value_levels(
-        combine_species(gw_total_df, bottom_level=species_level),
+        combine_species(gw_total_df, bottom_level=species_level),  # type: ignore # fix when moving to pandas-openscm
         {region_level: world_region},
     ).unstack(time_name)
 
@@ -217,14 +223,16 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
     sectors_level: str,
     species_level: str,
     co2_name: str,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> tuple[pd.Series[NP_FLOAT_OR_INT], pd.Series[NP_FLOAT_OR_INT]]:  # type: ignore # pandas-stubs out of date
     region_sector_df_region_sum = groupby_except(region_sector_df, region_level).sum()
 
     sector_df_full = pd.concat([sector_df, region_sector_df_region_sum], axis="columns")
 
     co2_locator = sector_df_full.index.get_level_values(species_level) == co2_name
 
-    non_co2 = sector_df_full[~co2_locator].sum(axis="columns")
+    non_co2: pd.Series[NP_FLOAT_OR_INT] = sector_df_full[~co2_locator].sum(  # type: ignore # pandas-stubs out of date
+        axis="columns"
+    )
 
     not_used_cols = sorted(
         set(sector_df_full.columns)
@@ -254,7 +262,7 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
     )
 
     totals = non_co2
-    sectors = pd.concat(
+    sectors: pd.Series[NP_FLOAT_OR_INT] = pd.concat(  # type: ignore # pandas-stubs out of date
         [
             df.reorder_levels(co2_fossil.index.names)
             for df in [co2_fossil, co2_biosphere]

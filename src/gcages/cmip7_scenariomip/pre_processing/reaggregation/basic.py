@@ -295,7 +295,7 @@ def get_complete_timeseries_index(
         names=[variable_level, region_level],
     )
 
-    res = world_required.append(model_region_required)
+    res: pd.MultiIndex = world_required.append(model_region_required)  # type: ignore
 
     return res
 
@@ -315,7 +315,7 @@ def get_required_timeseries_index(
         names=[variable_level, region_level],
     )
 
-    res = world_required.append(model_region_required)
+    res: pd.MultiIndex = world_required.append(model_region_required)  # type: ignore
 
     return res
 
@@ -340,7 +340,9 @@ def get_internal_consistency_checking_index(
         names=[variable_level, region_level],
     )
 
-    res = world_internal_consistency_checking.append(model_region_consistency_checking)
+    res: pd.MultiIndex = world_internal_consistency_checking.append(  # type: ignore
+        model_region_consistency_checking
+    )
 
     return res
 
@@ -416,7 +418,8 @@ def get_example_input(
 
     # Add unit info
     res_gridding.index = create_levels_based_on_existing(
-        res_gridding.index, {unit_level: (variable_level, get_variable_unit)}
+        res_gridding.index,  # type: ignore # fix when moving to pandas-openscm
+        {unit_level: (variable_level, get_variable_unit)},
     )
 
     if global_only_variables:
@@ -486,7 +489,9 @@ def get_default_internal_conistency_checking_tolerances() -> (
 
         Q = openscm_units.unit_registry.Quantity
 
-        default_tolerances = {
+        default_tolerances: (
+            Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
+        ) = {  # type: ignore # some issue with openscm-units type hints
             "Emissions|BC": dict(rtol=1e-3, atol=Q(1e-3, "Mt BC/yr")),
             "Emissions|CH4": dict(rtol=1e-3, atol=Q(1e-2, "Mt CH4/yr")),
             "Emissions|CO": dict(rtol=1e-3, atol=Q(1e-1, "Mt CO/yr")),
@@ -528,8 +533,8 @@ def assert_is_internally_consistent(
 ) -> None:
     try:
         import pint
-    except ImportError:
-        pint = None
+    except ModuleNotFoundError:
+        pint = None  # type: ignore
 
     internal_consistency_checking_index = get_internal_consistency_checking_index(
         model_regions=model_regions,
@@ -652,7 +657,9 @@ def to_complete(
 
     keep = multi_index_lookup(indf, complete_index)
     missing_indexes = get_missing_levels(
-        keep.index, complete_index=complete_index, unit_col=unit_level
+        keep.index,  # type: ignore # pandas-stubs confused
+        complete_index=complete_index,
+        unit_col=unit_level,
     )
     if missing_indexes.empty:
         res = ToCompleteResult(complete=keep, assumed_zero=None)
@@ -662,17 +669,20 @@ def to_complete(
         species_unit_map = {
             species: unit
             for species, unit in keep_split.index.droplevel(
-                keep_split.index.names.difference(["species", unit_level])
+                keep_split.index.names.difference(["species", unit_level])  # type: ignore #pandas-stubs confused
             )
             .drop_duplicates()
             .reorder_levels(["species", unit_level])
         }
-        missing_indexes_split = split_sectors(missing_indexes)
+        missing_indexes_split = split_sectors(missing_indexes)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
         zeros_index_split = create_levels_based_on_existing(
-            missing_indexes_split, {unit_level: ("species", species_unit_map)}
+            missing_indexes_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+            {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
         )
-        zeros_index = combine_sectors(zeros_index_split, middle_level="species")
-
+        zeros_index: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
+            zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
+            middle_level="species",
+        )
         other_levels_deduped = indf.index.droplevel(
             [variable_level, unit_level, region_level]
         ).drop_duplicates()
@@ -724,7 +734,8 @@ def to_gridding_sectors(
 
     # Move domestic aviation to the global level
     domestic_aviation_sum = groupby_except(
-        region_sector_df[SECTOR_DOMESTIC_AVIATION], region_level
+        region_sector_df[SECTOR_DOMESTIC_AVIATION],  # type: ignore # issue in pandas-openscm
+        region_level,
     ).sum()
     sector_df["Aircraft"] = (
         sector_df["Energy|Demand|Bunkers|International Aviation"]
@@ -795,20 +806,20 @@ def to_gridding_sectors(
     ):
         region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
             components
-        ].sum(axis="columns")
+        ].sum(axis="columns")  # type: ignore # pandas-stubs confused
         region_sector_df_gridding = region_sector_df_gridding.drop(
             list(set(components) - {gridding_sector}), axis="columns"
         )
 
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
-            sector_df_gridding.unstack().stack("sectors", future_stack=True),
+            sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
             {region_level: world_region},
         ),
         bottom_level="sectors",
     )
     region_sector_df_gridding_like_input = combine_sectors(
-        region_sector_df_gridding.unstack().stack("sectors", future_stack=True),
+        region_sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
         bottom_level="sectors",
     )
 

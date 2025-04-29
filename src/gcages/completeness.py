@@ -125,14 +125,14 @@ def get_missing_levels(
             {*index.names.difference(complete_index.names), unit_col}  # type: ignore # pandas-stubs confused
         )
 
-    index_to_check = index.droplevel(levels_to_drop)
+    index_to_check = index.droplevel(levels_to_drop)  # type: ignore # something wrong with pandas-stubs
 
     if not isinstance(index_to_check, pd.MultiIndex):
         index_to_check = pd.MultiIndex.from_arrays(
             [index_to_check.values], names=[index_to_check.name]
         )
 
-    missing_levels = complete_index.difference(  # type: ignore # pandas-stubs out of date
+    missing_levels: pd.MultiIndex = complete_index.difference(  # type: ignore # pandas-stubs out of date
         index_to_check.reorder_levels(complete_index.names)
     )
 
@@ -259,7 +259,9 @@ def assert_all_groups_are_complete(
     )
     for group_values, gdf in to_check.groupby(group_keys):
         missing_levels = get_missing_levels(
-            gdf.index, complete_index, levels_to_drop=idx_to_check_drop_levels
+            gdf.index,  # type: ignore # fix when moving to pandas-openscm
+            complete_index,
+            levels_to_drop=idx_to_check_drop_levels,
         )
 
         if not missing_levels.empty:

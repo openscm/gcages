@@ -402,8 +402,8 @@ def assert_frame_equal(
         ) from exc
 
     for idx_name in res.index.names:
-        idx_diffs = uniquelevel(res, idx_name).symmetric_difference(  # type: ignore
-            uniquelevel(exp, idx_name)  # type: ignore
+        idx_diffs = uniquelevel(res, idx_name).symmetric_difference(
+            uniquelevel(exp, idx_name)
         )
         if not idx_diffs.empty:
             msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"

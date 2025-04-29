@@ -49,7 +49,7 @@ def aggregate_df_level(
         to_aggregate = res_d[n_levels + 1]
 
         # Aggregate
-        to_aggregate.index = to_aggregate.index.remove_unused_levels()
+        to_aggregate.index = to_aggregate.index.remove_unused_levels()  # type: ignore # pandas-stubs confused
 
         level_splits = [
             f"{level}_{string.ascii_lowercase[i]}" for i in range(n_levels + 1 + 1)
@@ -74,7 +74,8 @@ def aggregate_df_level(
             # Check if any of the aggregations clash with the input
             indf_at_aggregated_level = level_groups[n_levels]
             clash_locator = multi_index_match(
-                indf_at_aggregated_level.index, to_aggregate_sum_combined.index
+                indf_at_aggregated_level.index,  # type: ignore # pandas-stubs confused
+                to_aggregate_sum_combined.index,
             )
             if not clash_locator.any():
                 # No clashing data so simply keep all of `indf_at_aggregated_level`
@@ -89,7 +90,8 @@ def aggregate_df_level(
             elif on_clash == "verify":
                 indf_compare = indf_at_aggregated_level[clash_locator]
                 to_aggregate_sum_combined_compare = multi_index_lookup(
-                    to_aggregate_sum_combined, indf_compare.index.remove_unused_levels()
+                    to_aggregate_sum_combined,
+                    indf_compare.index.remove_unused_levels(),  # type: ignore # pandas-stubs confused
                 )
                 comparison = compare_close(
                     left=indf_compare,
