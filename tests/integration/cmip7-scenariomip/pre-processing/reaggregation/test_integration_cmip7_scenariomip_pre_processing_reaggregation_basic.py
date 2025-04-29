@@ -55,6 +55,9 @@ from gcages.internal_consistency import InternalConsistencyError
 from gcages.testing import assert_frame_equal
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
+# Required for assert_frame_equal
+pytest.importorskip("pandas_indexing")
+
 try:
     import openscm_units
 
