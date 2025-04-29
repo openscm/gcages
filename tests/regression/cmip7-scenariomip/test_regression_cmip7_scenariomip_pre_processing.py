@@ -12,6 +12,9 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation import ReaggregatorBa
 
 HERE = Path(__file__).parents[0]
 
+# Need to split the sectors etc.
+pytest.importorskip("pandas_indexing")
+
 
 @pytest.mark.parametrize(
     "input_file",
