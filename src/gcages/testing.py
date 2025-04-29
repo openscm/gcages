@@ -15,6 +15,7 @@ import platform
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import pandas as pd
 from pandas_openscm.io import load_timeseries_csv
 
@@ -22,6 +23,8 @@ from gcages.exceptions import MissingOptionalDependencyError
 
 if TYPE_CHECKING:
     import pytest
+
+RNG = np.random.default_rng()
 
 AR6_IPS = (
     ("AIM/CGE 2.2", "EN_NPi2020_900f"),
@@ -391,9 +394,16 @@ def assert_frame_equal(
     AssertionError
         The frames aren't equal
     """
+    try:
+        from pandas_indexing.core import uniquelevel
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "assert_frame_equal", requirement="pandas_indexing"
+        ) from exc
+
     for idx_name in res.index.names:
-        idx_diffs = res.pix.unique(idx_name).symmetric_difference(  # type: ignore
-            exp.pix.unique(idx_name)  # type: ignore
+        idx_diffs = uniquelevel(res, idx_name).symmetric_difference(
+            uniquelevel(exp, idx_name)
         )
         if not idx_diffs.empty:
             msg = f"Differences in the {idx_name} (res on the left): {idx_diffs=}"
@@ -407,3 +417,51 @@ def assert_frame_equal(
         rtol=rtol,
         **kwargs,
     )
+
+
+# TODO: move into pandas_openscm
+def compare_close(
+    left: pd.DataFrame,
+    right: pd.DataFrame,
+    left_name: str,
+    right_name: str,
+    rtol: float = 1e-8,
+    **kwargs: Any,
+) -> pd.DataFrame:
+    left_stacked = left.stack()
+    left_stacked.name = left_name
+
+    right_stacked = right.stack()
+    right_stacked.name = right_name
+
+    left_stacked_aligned, right_stacked_aligned = left_stacked.align(right_stacked)
+    differences_locator = ~np.isclose(
+        left_stacked_aligned, right_stacked_aligned, rtol=rtol, **kwargs
+    )
+
+    res = pd.concat(
+        [
+            left_stacked_aligned[differences_locator],
+            right_stacked_aligned[differences_locator],
+        ],
+        axis="columns",
+    )
+
+    return res
+
+
+def get_variable_unit_default(v: str) -> str:
+    species = v.split("|")[1]
+    unit_map = {
+        "BC": "Mt BC/yr",
+        "CH4": "Mt CH4/yr",
+        "CO": "Mt CO/yr",
+        "CO2": "Gt C/yr",
+        "N2O": "kt N2O/yr",
+        "NH3": "Mt NH3/yr",
+        "NOx": "Mt NO2/yr",
+        "OC": "Mt OC/yr",
+        "Sulfur": "Mt SO2/yr",
+        "VOC": "Mt VOC/yr",
+    }
+    return unit_map[species]

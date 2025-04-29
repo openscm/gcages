@@ -4,11 +4,16 @@ Unit tests of `gcages.units_helpers`
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+from gcages.units_helpers import (
+    assert_has_no_pint_incompatible_characters,
+    strip_pint_incompatible_characters_from_units,
+)
 
 
 @pytest.mark.parametrize(
@@ -49,3 +54,15 @@ def test_strip_pint_incompatible_characters_from_units(
         set(res.index.get_level_values(units_index_level_exp).unique().tolist())
         == exp_units
     )
+
+
+def test_assert_has_no_pint_incompatible_characters():
+    error_msg = re.escape(
+        "The following units contain pint incompatible characters: "
+        "unit_contains_pint_incompatible=['Mt HFC43-10/yr']. "
+        "pint_incompatible_characters={'-'}"
+    )
+    with pytest.raises(AssertionError, match=error_msg):
+        assert_has_no_pint_incompatible_characters(
+            ["Mt CO2/yr", "Mt CH4/yr", "Mt HFC43-10/yr", "Mt HFC23/yr"]
+        )

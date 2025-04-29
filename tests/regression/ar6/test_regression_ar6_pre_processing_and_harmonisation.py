@@ -109,6 +109,7 @@ def test_individual_scenario(model, scenario):
     assert_frame_equal(res_comparable, exp)
 
 
+@pytest.mark.slow
 def test_key_testing_scenarios_all_at_once_parallel():
     raw_l = []
     exp_l = []
