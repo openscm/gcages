@@ -24,6 +24,8 @@ from gcages.index_manipulation import (
 from gcages.testing import assert_frame_equal, get_variable_unit_default
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
+pytest.importorskip("pandas_indexing")
+
 RNG = np.random.default_rng()
 
 COMPLETE_GRIDDING_SPECIES: tuple[str, ...] = (
