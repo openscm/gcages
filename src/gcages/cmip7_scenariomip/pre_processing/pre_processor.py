@@ -101,7 +101,7 @@ def guess_reaggregator(
     raise ValueError(msg)
 
 
-def do_pre_processing(
+def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
     indf: pd.DataFrame,
     reaggregator: ReaggregatorLike | None,
     time_name: str,
@@ -113,6 +113,57 @@ def do_pre_processing(
     co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING,
     co2_name: str = "CO2",
 ) -> CMIP7ScenarioMIPPreProcessingResult:
+    """
+    Do the pre-processing for a given scenario
+
+    This only works on a single scenario at a time,
+    to make verification and processing simpler.
+
+    Parameters
+    ----------
+    indf
+        Input data to process
+
+    reaggregator
+        Re-aggregator to use during the processing
+
+    time_name
+        Name of the time axis in `indf`
+
+    run_checks
+        Should checks be run during the processing?
+
+        If you know what you're doing, you can turn these off for speed.
+
+    world_gridding_sectors
+        Sectors that should only be gridded at the world level
+
+    table
+        Name of the 'table' for emissions
+
+        Used to process and create variable names
+
+    level_separator
+        Separator between levels in the variable names
+
+    co2_fossil_sectors
+        Sectors to assume have an origin in fossil CO2 reservoirs
+
+        These should be provided in the gridding naming convention
+
+    co2_biosphere_sectors
+        Sectors to assume have an origin in biospheric CO2 reservoirs
+
+        These should be provided in the gridding naming convention
+
+    co2_name
+        String that indicates emissions of CO2 in variable names
+
+    Returns
+    -------
+    :
+        Results of the pre-processing
+    """
     assert_only_working_on_variable_unit_region_variations(indf)
 
     if reaggregator is None:
@@ -221,7 +272,7 @@ def do_pre_processing(
         ~multi_index_match(indf_clean_units.index, to_complete_result.complete.index)  # type: ignore
     ]
 
-    # Now do the brute for check on whatever is leftover
+    # Now do the brute check on whatever is leftover
     def species_in_variable(variable: str, species: str, ls: str) -> bool:
         # ls: level separator
         # This mucking around is another illustration of the

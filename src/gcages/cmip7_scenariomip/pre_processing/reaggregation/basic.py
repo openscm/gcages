@@ -476,7 +476,8 @@ def get_default_internal_conistency_checking_tolerances() -> (
     Get default tolerances used when checking the internal consistency of data
 
     If [openscm_units][] is available,
-    we use [pint][] quantities for the tolerances to add unit awareness.
+    we use [pint](https://pint.readthedocs.io)
+    quantities for the tolerances to add unit awareness.
     If not, we return plain floats.
 
     Returns

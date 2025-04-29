@@ -22,7 +22,7 @@ which has to handle converting from whatever is reported
 to the sectors used for gridding.
 From there, the workflow can be standardised
 (as is done in
-[gcages.cmip7_scenariomip.pre_processor.do_pre_processing][]).
+[pre_processor.do_pre_processing][(m).]).
 """
 
 from __future__ import annotations
