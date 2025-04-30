@@ -253,7 +253,8 @@ def harmonise_all(
     sidx = scenarios.index  # save in case we need to re-add extraneous indicies later
 
     dfs = []
-    for (model, scenario), msdf in scenarios.groupby(["model", "scenario"]):
+    group_levels = ["model", "scenario"]
+    for (model, scenario), msdf in scenarios.groupby(group_levels):
         hist_msdf = history.loc[
             isin(region=msdf.pix.unique("region"))  # type: ignore
             & isin(variable=msdf.pix.unique("variable"))  # type: ignore
@@ -272,19 +273,18 @@ def harmonise_all(
             model="history", scenario="scen"
         ).reorder_levels(level_order)
 
-        h = Harmonizer(msdf_aneris, hist_msdf_aneris, harm_idx=["variable", "region"])
+        harm_idx = ["variable", "region"]
+        # Drop out the group levels
+        msdf_aneris = msdf_aneris.reset_index(group_levels, drop=True)
+        hist_msdf_aneris = hist_msdf_aneris.reset_index(group_levels, drop=True)
+        harmoniser = Harmonizer(msdf_aneris, hist_msdf_aneris, harm_idx=harm_idx)
 
         # knead overrides
         _overrides = _knead_overrides(overrides, msdf, harm_idx=["variable", "region"])  # type: ignore
-        result: pd.DataFrame = h.harmonize(year=year, overrides=_overrides)
+        result: pd.DataFrame = harmoniser.harmonize(year=year, overrides=_overrides)
 
         # convert out of internal datastructure
-        dfs.append(
-            assignlevel(result, model=model, scenario=scenario)
-            # .set_index(
-            #     ["model", "scenario"], append=True
-            # )
-        )
+        dfs.append(assignlevel(result, model=model, scenario=scenario))
 
     # realign indicies as needed
     result = concat(dfs)
