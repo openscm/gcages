@@ -2,146 +2,26 @@
 
 from __future__ import annotations
 
+import importlib
+import multiprocessing
 from typing import Any
 
+import attr
 import pandas as pd
+from attrs import define, field
+from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
+from gcages.aneris_helpers import harmonise_all
+from gcages.assertions import (
+    assert_data_is_all_numeric,
+    assert_has_data_for_times,
+    assert_has_index_levels,
+    assert_index_is_multiindex,
+    assert_metadata_values_all_allowed,
+    assert_only_working_on_variable_unit_variations,
+)
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
-
-
-def add_historical_year_based_on_scaling(
-    year_to_add: int,
-    year_calc_scaling: int,
-    emissions: pd.DataFrame,
-    emissions_history: pd.DataFrame,
-    ms: tuple[str, ...] = ("model", "scenario"),
-) -> pd.DataFrame:
-    """
-    Add a historical emissions year based on scaling
-
-    Parameters
-    ----------
-    year_to_add
-        Year to add
-
-    year_calc_scaling
-        Year to use to calculate the scaling
-
-    emissions
-        Emissions to which to add data for `year_to_add`
-
-    emissions_history
-        Emissions history to use to calculate
-        the fill values based on scaling
-
-    ms
-        Name of the model and scenario columns.
-
-        These have to be dropped from `emissions_historical`
-        before everything will line up.
-
-    Returns
-    -------
-    :
-        `emissions` with data for `year_to_add`
-        based on the scaling between `emissions`
-        and `emissions_historical` in `year_calc_scaling`.
-    """
-    mod_scen_unique = emissions.index.droplevel(
-        emissions.index.names.difference(["model", "scenario"])  # type: ignore
-    ).unique()
-    if mod_scen_unique.shape[0] > 1:
-        # Processing is much trickier with multiple scenarios
-        raise NotImplementedError(mod_scen_unique)
-
-    emissions_historical_common_vars = emissions_history.loc[
-        emissions_history.index.get_level_values("variable").isin(
-            emissions.index.get_level_values("variable")
-        )
-    ]
-
-    emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
-        emissions_historical_common_vars.index.names.difference(  # type: ignore # pandas-stubs not up to date
-            ["region", "variable", "unit"]
-        ),
-        drop=True,
-    )
-
-    scale_factor = emissions[year_calc_scaling].divide(
-        emissions_historical_no_ms[year_calc_scaling]
-    )
-    fill_value = scale_factor.multiply(emissions_historical_no_ms[year_to_add])
-    fill_value.name = year_to_add
-
-    out = pd.concat([emissions, fill_value], axis="columns").sort_index(axis="columns")
-
-    return out
-
-
-# Add back in if needed
-# def add_harmonisation_year_if_needed(
-#     indf: pd.DataFrame,
-#     harmonisation_year: int,
-#     calc_scaling_year: int,
-#     emissions_history: pd.DataFrame,
-# ) -> pd.DataFrame:
-#     """
-#     Add data for the harmonisation year if needed
-#
-#     If the harmonisation year needs to be added,
-#     it is added based on [add_historical_year_based_on_scaling][]
-#     (this could be made more flexible of course).
-#
-#     Parameters
-#     ----------
-#     indf
-#         Input data to check and potentially add data to
-#
-#     harmonisation_year
-#         Year that is being used for harmonisation
-#
-#     calc_scaling_year
-#         Year to use for calculating a scaling factor from historical
-#
-#         Only used if `harmonisation_year` has missing data in `indf`.
-#
-#     emissions_history
-#         Emissions history to use to calculate
-#         the fill values based on scaling
-#
-#     Returns
-#     -------
-#     :
-#         `indf` with `harmonisation_year` data added where needed
-#     """
-#     if harmonisation_year not in indf:
-#         emissions_to_harmonise = add_historical_year_based_on_scaling(
-#             year_to_add=harmonisation_year,
-#             year_calc_scaling=calc_scaling_year,
-#             emissions=indf,
-#             emissions_history=emissions_history,
-#         )
-#
-#     elif indf[harmonisation_year].isnull().any():
-#         null_emms_in_harm_year = indf[harmonisation_year].isnull()
-#
-#         dont_change = indf[~null_emms_in_harm_year]
-#
-#         updated = add_historical_year_based_on_scaling(
-#             year_to_add=harmonisation_year,
-#             year_calc_scaling=calc_scaling_year,
-#             emissions=indf[null_emms_in_harm_year].drop(
-#                 harmonisation_year, axis="columns"
-#             ),
-#             emissions_history=emissions_history,
-#         )
-#
-#         emissions_to_harmonise = pd.concat([dont_change, updated])
-#
-#     else:
-#         emissions_to_harmonise = indf
-#
-#     return emissions_to_harmonise
 
 
 class NotHarmonisedError(ValueError):
@@ -285,3 +165,245 @@ def assert_harmonised(
         raise NotHarmonisedError(
             comparison=comparison, harmonisation_time=harmonisation_time
         )
+
+
+def harmonise_scenario(
+    indf: pd.DataFrame,
+    history: pd.DataFrame,
+    year: int,
+    overrides: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """
+    Harmonise a single scenario
+
+    Parameters
+    ----------
+    indf
+        Scenario to harmonise
+
+    history
+        History to harmonise to
+
+    year
+        Year to use for harmonisation
+
+    overrides
+        Overrides to pass to aneris
+
+    Returns
+    -------
+    :
+        Harmonised scenario
+    """
+    if importlib.util.find_spec("scipy") is None:
+        raise MissingOptionalDependencyError("harmonise_scenario", requirement="scipy")
+
+    assert_only_working_on_variable_unit_variations(indf)
+
+    harmonised = harmonise_all(
+        indf,
+        history=history,
+        year=year,
+        overrides=overrides,
+    )
+
+    return harmonised
+
+
+@define
+class AnerisHarmoniser:
+    """
+    Harmoniser that uses [aneris][]
+    """
+
+    historical_emissions: pd.DataFrame = field()
+    """
+    Historical emissions to use for harmonisation
+    """
+
+    harmonisation_year: int
+    """
+    Year in which to harmonise
+    """
+
+    aneris_overrides: pd.DataFrame | None = field(default=None)
+    """
+    Overrides to supply to `aneris.convenience.harmonise_all`
+
+    For source code and docs,
+    see e.g. [https://github.com/iiasa/aneris/blob/v0.4.2/src/aneris/convenience.py]().
+    """
+
+    run_checks: bool = True
+    """
+    If `True`, run checks on both input and output data
+
+    If you are sure about your workflow,
+    you can disable the checks to speed things up
+    (but we don't recommend this unless you really
+    are confident about what you're doing).
+    """
+
+    variable_level: str = "variable"
+    """
+    Level in data indexes that represents the variable of the timeseries
+    """
+
+    region_level: str = "region"
+    """
+    Level in data indexes that represents the region of the timeseries
+    """
+
+    unit_level: str = "unit"
+    """
+    Level in data indexes that represents the unit of the timeseries
+    """
+
+    scenario_group_levels: list[str] = field(factory=lambda: ["model", "scenario"])
+    """
+    Levels in data indexes to use to group data into scenarios
+
+    Here, 'scenarios' means groups of timeseries
+    that will be run through a climate model.
+    """
+
+    progress: bool = True
+    """
+    Should progress bars be shown for each operation?
+    """
+
+    n_processes: int | None = multiprocessing.cpu_count()
+    """
+    Number of processes to use for parallel processing.
+
+    Set to `None` to process in serial.
+    """
+
+    @aneris_overrides.validator
+    def validate_aneris_overrides(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame | None
+    ) -> None:
+        """
+        Validate the aneris overrides value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if value is None:
+            return
+
+        if not self.run_checks:
+            return
+
+        value_check = pd.DataFrame(
+            value["method"].values,
+            columns=["method"],
+            index=pd.MultiIndex.from_frame(
+                value[value.columns.difference(["method"]).tolist()]
+            ),
+        )
+        for index_level in self.historical_emissions.index.names:
+            assert_metadata_values_all_allowed(
+                value_check,
+                metadata_key=index_level,
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    index_level
+                ).unique(),
+            )
+
+    @historical_emissions.validator
+    def validate_historical_emissions(
+        self, attribute: attr.Attribute[Any], value: pd.DataFrame
+    ) -> None:
+        """
+        Validate the historical emissions value
+
+        If `self.run_checks` is `False`, then this is a no-op
+        """
+        if not self.run_checks:
+            return
+
+        assert_index_is_multiindex(value)
+        assert_data_is_all_numeric(value)
+        assert_has_index_levels(
+            value, [self.variable_level, self.region_level, self.unit_level]
+        )
+        assert_has_data_for_times(
+            value, times=[self.harmonisation_year], allow_nan=False
+        )
+
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
+        """
+        Harmonise
+
+        Parameters
+        ----------
+        in_emissions
+            Emissions to harmonise
+
+        Returns
+        -------
+        :
+            Harmonised emissions
+        """
+        if self.run_checks:
+            assert_index_is_multiindex(in_emissions)
+            assert_data_is_all_numeric(in_emissions)
+            assert_has_index_levels(
+                in_emissions,
+                [
+                    self.variable_level,
+                    self.region_level,
+                    self.unit_level,
+                    # Needed for parallelisation
+                    *self.scenario_group_levels,
+                ],
+            )
+            assert_has_data_for_times(
+                in_emissions, times=[self.harmonisation_year], allow_nan=False
+            )
+
+            assert_metadata_values_all_allowed(
+                in_emissions,
+                metadata_key=self.variable_level,
+                allowed_values=self.historical_emissions.index.get_level_values(
+                    self.variable_level
+                ).unique(),
+            )
+
+        harmonised_df = pd.concat(
+            apply_op_parallel_progress(
+                func_to_call=harmonise_scenario,
+                iterable_input=(
+                    gdf for _, gdf in in_emissions.groupby(self.scenario_group_levels)
+                ),
+                parallel_op_config=ParallelOpConfig.from_user_facing(
+                    progress=self.progress,
+                    max_workers=self.n_processes,
+                    progress_results_kwargs=dict(desc="Scenarios to harmonise"),
+                ),
+                history=self.historical_emissions,
+                year=self.harmonisation_year,
+                overrides=self.aneris_overrides,
+            )
+        )
+
+        if self.run_checks:
+            assert_harmonised(
+                harmonised_df,
+                history=self.historical_emissions,
+                harmonisation_time=self.harmonisation_year,
+            )
+
+            pd.testing.assert_index_equal(
+                harmonised_df.index,
+                in_emissions.index,
+                check_order=False,  # type: ignore # pandas-stubs out of date
+            )
+            if harmonised_df.columns.dtype != in_emissions.columns.dtype:
+                msg = (
+                    "Column type has changed: "
+                    f"{harmonised_df.columns.dtype=} {in_emissions.columns.dtype=}"
+                )
+                raise AssertionError(msg)
+
+        return harmonised_df

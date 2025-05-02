@@ -28,10 +28,79 @@ from gcages.assertions import (
     assert_only_working_on_variable_unit_variations,
 )
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.harmonisation import add_historical_year_based_on_scaling, assert_harmonised
+from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
+
+
+def add_historical_year_based_on_scaling(
+    year_to_add: int,
+    year_calc_scaling: int,
+    emissions: pd.DataFrame,
+    emissions_history: pd.DataFrame,
+    ms: tuple[str, ...] = ("model", "scenario"),
+) -> pd.DataFrame:
+    """
+    Add a historical emissions year based on scaling
+
+    Parameters
+    ----------
+    year_to_add
+        Year to add
+
+    year_calc_scaling
+        Year to use to calculate the scaling
+
+    emissions
+        Emissions to which to add data for `year_to_add`
+
+    emissions_history
+        Emissions history to use to calculate
+        the fill values based on scaling
+
+    ms
+        Name of the model and scenario columns.
+
+        These have to be dropped from `emissions_historical`
+        before everything will line up.
+
+    Returns
+    -------
+    :
+        `emissions` with data for `year_to_add`
+        based on the scaling between `emissions`
+        and `emissions_historical` in `year_calc_scaling`.
+    """
+    mod_scen_unique = emissions.index.droplevel(
+        emissions.index.names.difference(["model", "scenario"])  # type: ignore
+    ).unique()
+    if mod_scen_unique.shape[0] > 1:
+        # Processing is much trickier with multiple scenarios
+        raise NotImplementedError(mod_scen_unique)
+
+    emissions_historical_common_vars = emissions_history.loc[
+        emissions_history.index.get_level_values("variable").isin(
+            emissions.index.get_level_values("variable")
+        )
+    ]
+
+    emissions_historical_no_ms = emissions_historical_common_vars.reset_index(
+        emissions_historical_common_vars.index.names.difference(  # type: ignore # pandas-stubs not up to date
+            ["region", "variable", "unit"]
+        ),
+        drop=True,
+    )
+
+    scale_factor = emissions[year_calc_scaling].divide(
+        emissions_historical_no_ms[year_calc_scaling]
+    )
+    fill_value = scale_factor.multiply(emissions_historical_no_ms[year_to_add])
+    fill_value.name = year_to_add
+
+    out = pd.concat([emissions, fill_value], axis="columns").sort_index(axis="columns")
+
+    return out
 
 
 def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
