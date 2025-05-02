@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import importlib
 import multiprocessing
 from typing import Any
 
@@ -11,16 +10,14 @@ import pandas as pd
 from attrs import define, field
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
-from gcages.aneris_helpers import harmonise_all
+import gcages.aneris_helpers
 from gcages.assertions import (
     assert_data_is_all_numeric,
     assert_has_data_for_times,
     assert_has_index_levels,
     assert_index_is_multiindex,
     assert_metadata_values_all_allowed,
-    assert_only_working_on_variable_unit_variations,
 )
-from gcages.exceptions import MissingOptionalDependencyError
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
 
 
@@ -165,49 +162,6 @@ def assert_harmonised(
         raise NotHarmonisedError(
             comparison=comparison, harmonisation_time=harmonisation_time
         )
-
-
-def harmonise_scenario(
-    indf: pd.DataFrame,
-    history: pd.DataFrame,
-    year: int,
-    overrides: pd.DataFrame | None,
-) -> pd.DataFrame:
-    """
-    Harmonise a single scenario
-
-    Parameters
-    ----------
-    indf
-        Scenario to harmonise
-
-    history
-        History to harmonise to
-
-    year
-        Year to use for harmonisation
-
-    overrides
-        Overrides to pass to aneris
-
-    Returns
-    -------
-    :
-        Harmonised scenario
-    """
-    if importlib.util.find_spec("scipy") is None:
-        raise MissingOptionalDependencyError("harmonise_scenario", requirement="scipy")
-
-    assert_only_working_on_variable_unit_variations(indf)
-
-    harmonised = harmonise_all(
-        indf,
-        history=history,
-        year=year,
-        overrides=overrides,
-    )
-
-    return harmonised
 
 
 @define
@@ -372,7 +326,7 @@ class AnerisHarmoniser:
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
-                func_to_call=harmonise_scenario,
+                func_to_call=gcages.aneris_helpers.harmonise_scenario,
                 iterable_input=(
                     gdf for _, gdf in in_emissions.groupby(self.scenario_group_levels)
                 ),

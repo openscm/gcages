@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 from pandas_openscm.indexing import multi_index_lookup
 
+from gcages.assertions import assert_only_working_on_variable_unit_region_variations
 from gcages.exceptions import MissingOptionalDependencyError
 
 
@@ -295,3 +296,43 @@ def harmonise_all(
     result = semijoin(result, sidx, how="right").reorder_levels(sidx.names)
 
     return result
+
+
+def harmonise_scenario(
+    indf: pd.DataFrame,
+    history: pd.DataFrame,
+    year: int,
+    overrides: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """
+    Harmonise a single scenario
+
+    Parameters
+    ----------
+    indf
+        Scenario to harmonise
+
+    history
+        History to harmonise to
+
+    year
+        Year to use for harmonisation
+
+    overrides
+        Overrides to pass to aneris
+
+    Returns
+    -------
+    :
+        Harmonised scenario
+    """
+    assert_only_working_on_variable_unit_region_variations(indf)
+
+    harmonised = harmonise_all(
+        indf,
+        history=history,
+        year=year,
+        overrides=overrides,
+    )
+
+    return harmonised
