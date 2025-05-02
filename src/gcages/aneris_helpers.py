@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+from pandas_openscm.indexing import multi_index_lookup
 
 from gcages.exceptions import MissingOptionalDependencyError
 
@@ -86,7 +87,12 @@ def _convert_units_to_match(
         updated = []
         for variable, target_unit in differences:
             v_loc = isin(variable=variable)
-            updated.append(out.loc[v_loc].pix.convert_unit(target_unit))
+            updated_v = out.loc[v_loc].pix.convert_unit(target_unit)
+            if updated_v.empty:
+                msg = f"Can't make this match because {variable} is not in {start=}"
+                raise AssertionError(msg)
+
+            updated.append(updated_v)
             out = out.loc[~v_loc]
 
         out = concat([out, *updated])
@@ -113,13 +119,6 @@ def _knead_overrides(
     :
         Something, TBD what
     """
-    try:
-        from pandas_indexing.selectors import isin
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "harmonise_all", requirement="pandas_indexing"
-        ) from exc
-
     # TODO: push back upstream
     if overrides is None:
         return None
@@ -134,13 +133,18 @@ def _knead_overrides(
         )
     # if data is provided per model and scenario, get those explicitly
     elif set(["model", "scenario"]).issubset(set(overrides.index.names)):
-        _overrides = overrides.loc[
-            isin(model=scen.model, scenario=scen.scenario)
-        ].droplevel(["model", "scenario"])
+        _overrides = multi_index_lookup(
+            overrides,
+            scen.index.droplevel(
+                scen.index.names.difference(["model", "scenario"])
+            ).drop_duplicates(),
+        ).droplevel(["model", "scenario"])
+
     # some of expected idx in cols, make it a multiindex
     elif isinstance(overrides, pd.DataFrame) and set(harm_idx) & set(overrides.columns):
         idx = list(set(harm_idx) & set(overrides.columns))
         _overrides = overrides.set_index(idx)["method"]
+
     else:
         _overrides = overrides
 
