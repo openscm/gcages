@@ -1,5 +1,5 @@
 """
-Harmonisation using [aneris][]
+Harmonisation using [aneris](https://aneris.readthedocs.io/)
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ from gcages.harmonisation.common import assert_harmonised
 @define
 class AnerisHarmoniser:
     """
-    Harmoniser that uses [aneris][]
+    Harmoniser that uses [aneris](https://aneris.readthedocs.io/)
     """
 
     historical_emissions: pd.DataFrame = field()

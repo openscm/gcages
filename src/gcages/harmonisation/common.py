@@ -117,7 +117,7 @@ def assert_harmonised(
     rounding: int = 10,
 ) -> None:
     """
-    Assert that a given [TimeseriesDataFrame][(p).typing] is harmonised
+    Assert that the input is harmonised
 
     Note: currently, this does not support unit conversion
     (i.e. units have to match exactly, equivalent units e.g. "Mt CO2" and "MtCO2"
