@@ -138,7 +138,7 @@ def _knead_overrides(
         _overrides = mi_loc(
             overrides,
             scen.index.droplevel(
-                scen.index.names.difference(check_cols)
+                scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
             ).drop_duplicates(),
         ).droplevel(check_cols)
 
