@@ -348,7 +348,10 @@ class AR6Harmoniser:
         assert_data_is_all_numeric(value)
         assert_has_index_levels(value, ["variable", "unit"])
         assert_has_data_for_times(
-            value, times=[self.harmonisation_year], allow_nan=False
+            value,
+            name="historical_emissions",
+            times=[self.harmonisation_year],
+            allow_nan=False,
         )
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -374,12 +377,18 @@ class AR6Harmoniser:
             )
             try:
                 assert_has_data_for_times(
-                    in_emissions, times=[self.harmonisation_year], allow_nan=False
+                    in_emissions,
+                    name="in_emissions",
+                    times=[self.harmonisation_year],
+                    allow_nan=False,
                 )
             except MissingDataForTimesError as exc_hy:
                 try:
                     assert_has_data_for_times(
-                        in_emissions, times=[self.calc_scaling_year], allow_nan=False
+                        in_emissions,
+                        name="in_emissions",
+                        times=[self.calc_scaling_year],
+                        allow_nan=False,
                     )
                 except MissingDataForTimesError as exc_csy:
                     msg = (

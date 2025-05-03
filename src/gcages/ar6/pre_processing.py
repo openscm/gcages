@@ -570,7 +570,9 @@ class AR6PreProcessor:
             # AR6 required emissions for these years after pre-processing,
             # for some reason
             required_years = list(range(2020, 2100 + 1, 10))
-            assert_has_data_for_times(res, times=required_years, allow_nan=False)
+            assert_has_data_for_times(
+                res, name="res", times=required_years, allow_nan=False
+            )
 
         return res
 

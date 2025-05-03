@@ -5,6 +5,7 @@ Tests of `gcages.harmonisation.aneris`
 import pandas as pd
 import pytest
 
+from gcages.assertions import MissingDataForTimesError
 from gcages.harmonisation import assert_harmonised
 from gcages.harmonisation.aneris import AnerisHarmoniser
 
@@ -325,9 +326,162 @@ def test_overrides_multi_scenario_multi_unit():
         )
 
 
-# Tests to write:
-# - error if historical is missing a timeseries that's needed
-# - no error if historical has extra timeseries beyond what's needed
-# - error if historical or scenarios is missing harmonisation year
-# - validation of aneris overrides
-# - validation of historical emissions
+def test_historical_missing_timeseries():
+    historical_emissions = pd.DataFrame(
+        [
+            [1.0, 1.2, 1.5],
+        ],
+        columns=[2010.0, 2020.0, 2030.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("v1", "r1", "GtCO2 / yr"),
+            ],
+            names=["variable", "region", "unit"],
+        ),
+    )
+
+    harmoniser = AnerisHarmoniser(
+        historical_emissions=historical_emissions,
+        harmonisation_year=2030.0,
+        progress=False,
+        n_processes=None,
+    )
+
+    scenario_emissions = pd.DataFrame(
+        [
+            [1.3, 1.7, 1.0, 1.0],
+            [1.0, 0.6, 0.5, 0.3],
+        ],
+        columns=[2020.0, 2030.0, 2050.0, 2100.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("s1", "m1", "v1", "r1", "GtCO2 / yr"),
+                ("s1", "m1", "v2", "r1", "MtCH4 / yr"),
+            ],
+            names=["scenario", "model", "variable", "region", "unit"],
+        ),
+    )
+
+    with pytest.raises(
+        ValueError, match="The input emissions contains values that aren't in history"
+    ):
+        harmoniser(scenario_emissions)
+
+
+@pytest.mark.parametrize("harmonisation_year", (2020.0, 2030.0))
+def test_historical_extra_timeseries(harmonisation_year):
+    historical_emissions = pd.DataFrame(
+        [
+            [1.0, 1.2, 1.5],
+            [2.0, 1.2, 0.5],
+            [0.1, 0.2, 0.5],
+        ],
+        columns=[2010.0, 2020.0, 2030.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("v1", "r1", "GtCO2 / yr"),
+                ("v2", "r1", "MtCH4 / yr"),
+                ("v3", "r1", "MtCH4 / yr"),
+            ],
+            names=["variable", "region", "unit"],
+        ),
+    )
+
+    harmoniser = AnerisHarmoniser(
+        historical_emissions=historical_emissions,
+        harmonisation_year=harmonisation_year,
+        progress=False,
+        n_processes=None,
+    )
+
+    scenario_emissions = pd.DataFrame(
+        [
+            [1.3, 1.7, 1.0, 1.0],
+            [1.0, 0.6, 0.5, 0.3],
+        ],
+        columns=[2020.0, 2030.0, 2050.0, 2100.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("s1", "m1", "v1", "r1", "GtCO2 / yr"),
+                ("s1", "m1", "v2", "r1", "MtCH4 / yr"),
+            ],
+            names=["scenario", "model", "variable", "region", "unit"],
+        ),
+    )
+
+    harmonised = harmoniser(scenario_emissions)
+
+    assert_harmonised(
+        harmonised,
+        history=historical_emissions,
+        harmonisation_time=harmonisation_year,
+    )
+
+    # Only data from the harmonisation year onwards is returned
+    assert harmonised.columns[0] == harmonisation_year
+
+
+def test_historical_timeseries_missing_harmonisation_year_error():
+    historical_emissions = pd.DataFrame(
+        [
+            [1.0, 1.2],
+            [2.0, 1.2],
+        ],
+        columns=[2010.0, 2020.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("v1", "r1", "GtCO2 / yr"),
+                ("v2", "r1", "MtCH4 / yr"),
+            ],
+            names=["variable", "region", "unit"],
+        ),
+    )
+
+    with pytest.raises(MissingDataForTimesError):
+        AnerisHarmoniser(
+            historical_emissions=historical_emissions,
+            harmonisation_year=2030.0,
+            progress=False,
+            n_processes=None,
+        )
+
+
+def test_scenario_timeseries_missing_harmonisation_year_error():
+    historical_emissions = pd.DataFrame(
+        [
+            [1.0, 1.2, 1.5],
+            [2.0, 1.2, 0.5],
+        ],
+        columns=[2010.0, 2020.0, 2030.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("v1", "r1", "GtCO2 / yr"),
+                ("v2", "r1", "MtCH4 / yr"),
+            ],
+            names=["variable", "region", "unit"],
+        ),
+    )
+
+    harmoniser = AnerisHarmoniser(
+        historical_emissions=historical_emissions,
+        harmonisation_year=2010.0,
+        progress=False,
+        n_processes=None,
+    )
+    scenario_emissions = pd.DataFrame(
+        [
+            [1.3, 1.7, 1.0, 1.0],
+            [1.0, 0.6, 0.5, 0.3],
+        ],
+        columns=[2020.0, 2030.0, 2050.0, 2100.0],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("s1", "m1", "v1", "r1", "GtCO2 / yr"),
+                ("s1", "m1", "v2", "r1", "MtCH4 / yr"),
+            ],
+            names=["scenario", "model", "variable", "region", "unit"],
+        ),
+    )
+
+    with pytest.raises(MissingDataForTimesError):
+        harmoniser(scenario_emissions)

@@ -62,7 +62,11 @@ class MissingDataForTimesError(KeyError):
     """
 
     def __init__(
-        self, df: pd.DataFrame, missing_times: Collection[Any], allow_nan: bool
+        self,
+        df: pd.DataFrame,
+        name: str,
+        missing_times: Collection[Any],
+        allow_nan: bool,
     ) -> None:
         """
         Initialise the error
@@ -72,6 +76,9 @@ class MissingDataForTimesError(KeyError):
         df
             [pd.DataFrame][pandas.DataFrame] that is missing expected index levels
 
+        name
+            Name of `df` to display in the error message
+
         missing_times
             Times in `df` that are missing data
 
@@ -80,7 +87,7 @@ class MissingDataForTimesError(KeyError):
         """
         if allow_nan:
             error_msg = (
-                f"The DataFrame is missing data for the following times: "
+                f"{name} is missing data for the following times: "
                 f"{missing_times}. "
                 f"Available times: {df.columns}"
             )
@@ -97,7 +104,7 @@ class MissingDataForTimesError(KeyError):
 
 
 def assert_has_data_for_times(
-    df: pd.DataFrame, times: Iterable[Any], allow_nan: bool
+    df: pd.DataFrame, name: str, times: Iterable[Any], allow_nan: bool
 ) -> None:
     """
     Assert that a [pd.DataFrame][pandas.DataFrame] has data for the given times
@@ -106,6 +113,9 @@ def assert_has_data_for_times(
     ----------
     df
         [pd.DataFrame][pandas.DataFrame] to check
+
+    name
+        Name of `df` to display in the error message
 
     times
         Times (i.e. columns) that we expect to have data in `df`
@@ -125,6 +135,7 @@ def assert_has_data_for_times(
     if missing_times:
         raise MissingDataForTimesError(
             df=df,
+            name=name,
             missing_times=missing_times,
             # Failed before we even considered NaN
             allow_nan=True,
@@ -134,7 +145,7 @@ def assert_has_data_for_times(
         nan_times = [v for v in times if df[v].isnull().any()]
         if nan_times:
             raise MissingDataForTimesError(
-                df=df, missing_times=nan_times, allow_nan=allow_nan
+                df=df, name=name, missing_times=nan_times, allow_nan=allow_nan
             )
 
 

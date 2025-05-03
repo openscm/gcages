@@ -14,6 +14,7 @@ from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_p
 
 import gcages.aneris_helpers
 from gcages.assertions import (
+    NotAllowedMetadataValuesError,
     assert_data_is_all_numeric,
     assert_has_data_for_times,
     assert_has_index_levels,
@@ -107,18 +108,6 @@ class AnerisHarmoniser:
         if not self.run_checks:
             return
 
-        for index_level in self.historical_emissions.index.names:
-            if index_level not in value.index:
-                continue
-
-            assert_metadata_values_all_allowed(
-                value,
-                metadata_key=index_level,
-                allowed_values=self.historical_emissions.index.get_level_values(
-                    index_level
-                ).unique(),
-            )
-
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame
@@ -137,7 +126,10 @@ class AnerisHarmoniser:
             value, [self.variable_level, self.region_level, self.unit_level]
         )
         assert_has_data_for_times(
-            value, times=[self.harmonisation_year], allow_nan=False
+            value,
+            name="historical_emissions",
+            times=[self.harmonisation_year],
+            allow_nan=False,
         )
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -168,16 +160,23 @@ class AnerisHarmoniser:
                 ],
             )
             assert_has_data_for_times(
-                in_emissions, times=[self.harmonisation_year], allow_nan=False
+                in_emissions,
+                name="in_emissions",
+                times=[self.harmonisation_year],
+                allow_nan=False,
             )
 
-            assert_metadata_values_all_allowed(
-                in_emissions,
-                metadata_key=self.variable_level,
-                allowed_values=self.historical_emissions.index.get_level_values(
-                    self.variable_level
-                ).unique(),
-            )
+            try:
+                assert_metadata_values_all_allowed(
+                    in_emissions,
+                    metadata_key=self.variable_level,
+                    allowed_values=self.historical_emissions.index.get_level_values(
+                        self.variable_level
+                    ).unique(),
+                )
+            except NotAllowedMetadataValuesError as exc:
+                msg = "The input emissions contains values that aren't in history"
+                raise ValueError(msg) from exc
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
