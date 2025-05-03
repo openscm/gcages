@@ -21,6 +21,17 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.5.0 (2025-05-03)
+
+### ⚠️ Breaking Changes
+
+- Moved [align_history_to_data_at_time][gcages.harmonisation.common.align_history_to_data_at_time] from `gcages.harmonisation` to `gcages.harmonisation.common` ([#15](https://github.com/openscm/gcages/pull/15))
+
+### 🆕 Features
+
+- Added a generic harmoniser using [aneris](https://aneris.readthedocs.io/), [AnerisHarmoniser][gcages.harmonisation.AnerisHarmoniser] ([#15](https://github.com/openscm/gcages/pull/15))
+
+
 ## gcages v0.4.0 (2025-04-29)
 
 ### 🆕 Features
