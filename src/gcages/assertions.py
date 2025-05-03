@@ -96,7 +96,7 @@ class MissingDataForTimesError(KeyError):
             tmp = df[missing_times]
             nan_view = tmp[tmp.isnull().any(axis="columns")]
             error_msg = (
-                f"The DataFrame has NaNs for the following times: {missing_times}. "
+                f"{name} has NaNs for the following times: {missing_times}. "
                 f"Rows with Nans:\n{nan_view}"
             )
 

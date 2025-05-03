@@ -55,7 +55,7 @@ def get_df_with_times(times):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025, 2030]}. "
                     "Available times:"
                 ),
@@ -68,7 +68,7 @@ def get_df_with_times(times):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025]}. "
                     "Available times:"
                 ),
@@ -81,7 +81,7 @@ def get_df_with_times(times):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025, 2028]}. "
                     "Available times:"
                 ),
@@ -94,7 +94,7 @@ def get_df_with_times(times):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025., 2027.5, 2028.]}. "
                     "Available times:"
                 ),
@@ -105,7 +105,7 @@ def get_df_with_times(times):
 )
 def test_assert_has_data_for_times(inp, expected_times, exp):
     with exp:
-        assert_has_data_for_times(inp, times=expected_times, allow_nan=True)
+        assert_has_data_for_times(inp, name="inp", times=expected_times, allow_nan=True)
 
 
 @pytest.mark.parametrize(
@@ -157,8 +157,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 match=" ".join(
                     [
                         re.escape(
-                            "The DataFrame has NaNs for the following times: "
-                            f"{[2020]}."
+                            "inp has NaNs for the following times: " f"{[2020]}."
                         ),
                         r".*sb\s*vb\s*ub",
                     ]
@@ -190,8 +189,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 match=" ".join(
                     [
                         re.escape(
-                            "The DataFrame has NaNs for the following times: "
-                            f"{[2025]}."
+                            "inp has NaNs for the following times: " f"{[2025]}."
                         ),
                         r".*sa\s*va\s*ua",
                         r".*sb\s*vb\s*ub",
@@ -225,8 +223,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 match=" ".join(
                     [
                         re.escape(
-                            "The DataFrame has NaNs for the following times: "
-                            f"{[2020, 2025]}."
+                            "inp has NaNs for the following times: " f"{[2020, 2025]}."
                         ),
                         r".*sa\s*va\s*ua",
                         r".*sb\s*vb\s*ub",
@@ -279,7 +276,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025]}. "
                     "Available times:"
                 ),
@@ -308,7 +305,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
             pytest.raises(
                 MissingDataForTimesError,
                 match=re.escape(
-                    "The DataFrame is missing data for the following times: "
+                    "inp is missing data for the following times: "
                     f"{[2025]}. "
                     "Available times:"
                 ),
@@ -319,4 +316,6 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
 )
 def test_assert_has_data_for_times_nan_handling(inp, expected_times, allow_nan, exp):
     with exp:
-        assert_has_data_for_times(inp, times=expected_times, allow_nan=allow_nan)
+        assert_has_data_for_times(
+            inp, name="inp", times=expected_times, allow_nan=allow_nan
+        )

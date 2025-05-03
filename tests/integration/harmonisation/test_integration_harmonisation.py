@@ -11,7 +11,9 @@ from gcages.harmonisation.aneris import AnerisHarmoniser
 
 
 @pytest.mark.parametrize("harmonisation_year", (2020.0, 2030.0))
-def test_basic(harmonisation_year):
+def test_basic_aneris(harmonisation_year):
+    pytest.importorskip("aneris")
+
     # Make sure things run without exploding
     historical_emissions = pd.DataFrame(
         [
@@ -61,7 +63,9 @@ def test_basic(harmonisation_year):
     assert harmonised.columns[0] == harmonisation_year
 
 
-def test_overrides_basic():
+def test_overrides_basic_aneris():
+    pytest.importorskip("aneris")
+
     harmonisation_year = 2030.0
 
     historical_emissions = pd.DataFrame(
@@ -133,7 +137,9 @@ def test_overrides_basic():
         )
 
 
-def test_overrides_multi_scenario():
+def test_overrides_multi_scenario_aneris():
+    pytest.importorskip("aneris")
+
     harmonisation_year = 2020.0
 
     historical_emissions = pd.DataFrame(
@@ -230,7 +236,9 @@ def test_overrides_multi_scenario():
 
 
 @pytest.mark.xfail(reason="unit support not fully implemented")
-def test_overrides_multi_scenario_multi_unit():
+def test_overrides_multi_scenario_multi_unit_aneris():
+    pytest.importorskip("aneris")
+
     harmonisation_year = 2020.0
 
     historical_emissions = pd.DataFrame(
@@ -326,7 +334,9 @@ def test_overrides_multi_scenario_multi_unit():
         )
 
 
-def test_historical_missing_timeseries():
+def test_historical_missing_timeseries_aneris():
+    pytest.importorskip("aneris")
+
     historical_emissions = pd.DataFrame(
         [
             [1.0, 1.2, 1.5],
@@ -369,7 +379,9 @@ def test_historical_missing_timeseries():
 
 
 @pytest.mark.parametrize("harmonisation_year", (2020.0, 2030.0))
-def test_historical_extra_timeseries(harmonisation_year):
+def test_historical_extra_timeseries_aneris(harmonisation_year):
+    pytest.importorskip("aneris")
+
     historical_emissions = pd.DataFrame(
         [
             [1.0, 1.2, 1.5],
@@ -421,7 +433,9 @@ def test_historical_extra_timeseries(harmonisation_year):
     assert harmonised.columns[0] == harmonisation_year
 
 
-def test_historical_timeseries_missing_harmonisation_year_error():
+def test_historical_timeseries_missing_harmonisation_year_error_aneris():
+    pytest.importorskip("aneris")
+
     historical_emissions = pd.DataFrame(
         [
             [1.0, 1.2],
@@ -446,7 +460,9 @@ def test_historical_timeseries_missing_harmonisation_year_error():
         )
 
 
-def test_scenario_timeseries_missing_harmonisation_year_error():
+def test_scenario_timeseries_missing_harmonisation_year_error_aneris():
+    pytest.importorskip("aneris")
+
     historical_emissions = pd.DataFrame(
         [
             [1.0, 1.2, 1.5],
