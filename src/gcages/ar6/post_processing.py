@@ -346,7 +346,9 @@ class AR6PostProcessor:
                 in_df, ["variable", "unit", "model", "scenario", "climate_model"]
             )
             assert_data_is_all_numeric(in_df)
-            assert_has_data_for_times(in_df, times=[2100], allow_nan=False)
+            assert_has_data_for_times(
+                in_df, name="in_df", times=[2100], allow_nan=False
+            )
 
             if self.raw_gsat_variable_in not in in_df.index.get_level_values(
                 "variable"
