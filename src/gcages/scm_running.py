@@ -374,6 +374,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
 
         if scenarios_use is None:
             raise TypeError(scenarios_use)
+
         scenario_batches = batch_df(
             scenarios_use,
             batch_index=scens_to_run,

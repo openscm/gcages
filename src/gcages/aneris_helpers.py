@@ -103,8 +103,8 @@ def _convert_units_to_match(
 
 # Not bothering typing this function properly now, I have no idea how its meant to work
 def _knead_overrides(
-    overrides: Any, scen: pd.DataFrame, harm_idx: pd.MultiIndex
-) -> Any:
+    overrides: pd.Series[str] | None, scen: pd.DataFrame, harm_idx: pd.MultiIndex
+) -> pd.Series[str] | None:
     """
     Process overrides to get a form readable by aneris
 
@@ -141,6 +141,10 @@ def _knead_overrides(
                 scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
             ).drop_duplicates(),
         ).droplevel(check_cols)
+
+        # None of the overrides relevant for this scenario
+        if _overrides.empty:
+            return None
 
     # some of expected idx in cols, make it a multiindex
     elif isinstance(overrides, pd.DataFrame) and set(harm_idx) & set(overrides.columns):
