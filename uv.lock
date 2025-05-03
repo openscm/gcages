@@ -883,7 +883,7 @@ wheels = [
 
 [[package]]
 name = "gcages"
-version = "0.3.1a1"
+version = "0.4.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -1070,6 +1070,7 @@ dev = [
     { name = "pandas-indexing" },
     { name = "pandas-stubs", version = "2.2.2.240807", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "pandas-stubs", version = "2.2.3.250308", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pint" },
     { name = "pip" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -1394,6 +1395,7 @@ dev = [
     { name = "mypy", specifier = "==1.14.0" },
     { name = "pandas-indexing", specifier = ">=0.6.3" },
     { name = "pandas-stubs", specifier = ">=2.2.2.240807" },
+    { name = "pint", specifier = ">=0.24.4" },
     { name = "pip", specifier = "==24.3.1" },
     { name = "pre-commit", specifier = "==4.0.1" },
     { name = "pytest", specifier = ">=8.3.4" },

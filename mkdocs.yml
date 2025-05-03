@@ -72,6 +72,7 @@ plugins:
           paths: [src]
           import:
             # Cross-ref helpers (lots included here, remove what you don't want)
+            - https://aneris.readthedocs.io/en/stable/objects.inv
             - https://www.attrs.org/en/stable/objects.inv
             - https://unidata.github.io/cftime/objects.inv
             - https://ipython.readthedocs.io/en/stable/objects.inv

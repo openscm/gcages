@@ -271,7 +271,10 @@ class AR6SCMRunner:
                 raise AssertionError(msg)
 
             assert_has_data_for_times(
-                in_emissions, times=[self.harmonisation_year, 2100], allow_nan=False
+                in_emissions,
+                name="in_emissions",
+                times=[self.harmonisation_year, 2100],
+                allow_nan=False,
             )
 
             assert_harmonised(

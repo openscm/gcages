@@ -9,11 +9,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from gcages.harmonisation import (
-    NotHarmonisedError,
-    align_history_to_data_at_time,
-    assert_harmonised,
-)
+from gcages.harmonisation import NotHarmonisedError, assert_harmonised
+from gcages.harmonisation.common import align_history_to_data_at_time
 
 
 def get_df(index):

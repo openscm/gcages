@@ -9,7 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
+from pandas_openscm.indexing import mi_loc
 
+from gcages.assertions import assert_only_working_on_variable_unit_region_variations
 from gcages.exceptions import MissingOptionalDependencyError
 
 
@@ -86,7 +88,12 @@ def _convert_units_to_match(
         updated = []
         for variable, target_unit in differences:
             v_loc = isin(variable=variable)
-            updated.append(out.loc[v_loc].pix.convert_unit(target_unit))
+            updated_v = out.loc[v_loc].pix.convert_unit(target_unit)
+            if updated_v.empty:
+                msg = f"Can't make this match because {variable} is not in {start=}"
+                raise AssertionError(msg)
+
+            updated.append(updated_v)
             out = out.loc[~v_loc]
 
         out = concat([out, *updated])
@@ -113,13 +120,6 @@ def _knead_overrides(
     :
         Something, TBD what
     """
-    try:
-        from pandas_indexing.selectors import isin
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "harmonise_all", requirement="pandas_indexing"
-        ) from exc
-
     # TODO: push back upstream
     if overrides is None:
         return None
@@ -133,14 +133,20 @@ def _knead_overrides(
             name="method",
         )
     # if data is provided per model and scenario, get those explicitly
-    elif set(["model", "scenario"]).issubset(set(overrides.index.names)):
-        _overrides = overrides.loc[
-            isin(model=scen.model, scenario=scen.scenario)
-        ].droplevel(["model", "scenario"])
+    elif any(c in overrides.index.names for c in ["model", "scenario"]):
+        check_cols = [c for c in overrides.index.names if c in ["model", "scenario"]]
+        _overrides = mi_loc(
+            overrides,
+            scen.index.droplevel(
+                scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
+            ).drop_duplicates(),
+        ).droplevel(check_cols)
+
     # some of expected idx in cols, make it a multiindex
     elif isinstance(overrides, pd.DataFrame) and set(harm_idx) & set(overrides.columns):
         idx = list(set(harm_idx) & set(overrides.columns))
         _overrides = overrides.set_index(idx)["method"]
+
     else:
         _overrides = overrides
 
@@ -253,7 +259,9 @@ def harmonise_all(
     sidx = scenarios.index  # save in case we need to re-add extraneous indicies later
 
     dfs = []
-    for (model, scenario), msdf in scenarios.groupby(["model", "scenario"]):
+    group_levels = ["model", "scenario"]
+    harm_idx = ["variable", "region"]
+    for (model, scenario), msdf in scenarios.groupby(group_levels):
         hist_msdf = history.loc[
             isin(region=msdf.pix.unique("region"))  # type: ignore
             & isin(variable=msdf.pix.unique("variable"))  # type: ignore
@@ -272,22 +280,68 @@ def harmonise_all(
             model="history", scenario="scen"
         ).reorder_levels(level_order)
 
-        h = Harmonizer(msdf_aneris, hist_msdf_aneris, harm_idx=["variable", "region"])
+        # Drop out the group levels
+        msdf_aneris = msdf_aneris.reset_index(group_levels, drop=True)
+        hist_msdf_aneris = hist_msdf_aneris.reset_index(group_levels, drop=True)
+
+        harmoniser = Harmonizer(
+            msdf_aneris,
+            hist_msdf_aneris,
+            # have to copy harm index as aneris modifies it for some reason
+            harm_idx=harm_idx.copy(),
+        )
 
         # knead overrides
-        _overrides = _knead_overrides(overrides, msdf, harm_idx=["variable", "region"])  # type: ignore
-        result: pd.DataFrame = h.harmonize(year=year, overrides=_overrides)
+        overrides_kneaded = _knead_overrides(overrides, msdf, harm_idx=harm_idx)  # type: ignore
+        result: pd.DataFrame = harmoniser.harmonize(
+            year=year, overrides=overrides_kneaded
+        )
 
         # convert out of internal datastructure
-        dfs.append(
-            assignlevel(result, model=model, scenario=scenario)
-            # .set_index(
-            #     ["model", "scenario"], append=True
-            # )
-        )
+        dfs.append(assignlevel(result, model=model, scenario=scenario))
 
     # realign indicies as needed
     result = concat(dfs)
     result = semijoin(result, sidx, how="right").reorder_levels(sidx.names)
 
     return result
+
+
+def harmonise_scenario(
+    indf: pd.DataFrame,
+    history: pd.DataFrame,
+    year: int,
+    overrides: pd.DataFrame | None,
+) -> pd.DataFrame:
+    """
+    Harmonise a single scenario
+
+    Parameters
+    ----------
+    indf
+        Scenario to harmonise
+
+    history
+        History to harmonise to
+
+    year
+        Year to use for harmonisation
+
+    overrides
+        Overrides to pass to aneris
+
+    Returns
+    -------
+    :
+        Harmonised scenario
+    """
+    assert_only_working_on_variable_unit_region_variations(indf)
+
+    harmonised = harmonise_all(
+        indf,
+        history=history,
+        year=year,
+        overrides=overrides,
+    )
+
+    return harmonised
