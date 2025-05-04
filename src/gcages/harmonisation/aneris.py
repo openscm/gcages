@@ -40,7 +40,7 @@ class AnerisHarmoniser:
     Year in which to harmonise
     """
 
-    aneris_overrides: pd.DataFrame | None = field(default=None)
+    aneris_overrides: pd.Series[str] | None = field(default=None)
     """
     Overrides to supply to `aneris.convenience.harmonise_all`
 
