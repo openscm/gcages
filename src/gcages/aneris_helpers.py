@@ -127,8 +127,8 @@ def _knead_overrides(
     # check if no index and single value - this should be the override for everything
     if overrides.index.names == [None] and len(overrides["method"]) == 1:
         _overrides = pd.Series(
-            overrides["method"].iloc[0],
-            index=pd.Index(scen.region, name=harm_idx[-1]),  # only need to match 1 dim
+            overrides.iloc[0],
+            index=pd.Index(scen.variable, name="variable"),  # only need to match 1 dim
             name="method",
         )
     # if data is provided per model and scenario, get those explicitly
@@ -139,27 +139,22 @@ def _knead_overrides(
             scen.index.droplevel(
                 scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
             ).drop_duplicates(),
-        ).droplevel(check_cols)
+        ).droplevel(check_cols)  # type: ignore # pandas-stubs confused
 
         # None of the overrides relevant for this scenario
         if _overrides.empty:
             return None
 
-    # some of expected idx in cols, make it a multiindex
-    elif isinstance(overrides, pd.DataFrame) and set(harm_idx) & set(overrides.columns):
-        idx = list(set(harm_idx) & set(overrides.columns))
-        _overrides = overrides.set_index(idx)["method"]
-
     else:
         _overrides = overrides
 
     # do checks
-    if isinstance(_overrides, pd.DataFrame) and _overrides.isnull().any(axis=None):
-        missing = _overrides.loc[_overrides.isnull().any(axis=1)]
+    if _overrides.isnull().any():
+        missing: pd.Series[str] = _overrides.loc[_overrides.isnull().any(axis=1)]  # type: ignore # pandas-stubs wrong
         msg = f"Overrides are missing for provided data:\n" f"{missing}"
         raise AmbiguousHarmonisationMethod(msg)
 
-    if _overrides.index.to_frame().isnull().any(axis=None):
+    if _overrides.index.to_frame().isnull().any().any():
         missing = _overrides[_overrides.index.to_frame().isnull().any(axis=1)]
         msg = f"Defined overrides are missing data:\n" f"{missing}"
         raise AmbiguousHarmonisationMethod(msg)
