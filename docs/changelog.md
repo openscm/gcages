@@ -21,6 +21,17 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.6.0 (2025-05-04)
+
+### ⚠️ Breaking Changes
+
+- Clarified that aneris overrides should be supplied as a [pd.Series][pandas.Series], not [pd.DataFrame][pandas.DataFrame] ([#16](https://github.com/openscm/gcages/pull/16))
+
+### 🐛 Bug Fixes
+
+- Fixed processing of aneris-based harmonisation overrides in the case where they are specified for some but not all scenarios (previously, the overrides would be filtered to an empty [pd.Series][pandas.Series] and then an error would occur later in the workflow) ([#16](https://github.com/openscm/gcages/pull/16))
+
+
 ## gcages v0.5.0 (2025-05-03)
 
 ### ⚠️ Breaking Changes

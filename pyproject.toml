@@ -1,6 +1,6 @@
 [project]
 name = "gcages"
-version = "0.5.1a1"
+version = "0.6.0"
 description = "Global Climate Assessment of Global Emission Scenarios, typically (but not always) produced by Integrated Assessment Models (IAMs)."
 authors = [
     { name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com" },
