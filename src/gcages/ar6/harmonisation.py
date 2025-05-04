@@ -271,7 +271,7 @@ class AR6Harmoniser:
     This logic was perculiar to AR6, it may not be repeated.
     """
 
-    aneris_overrides: pd.DataFrame | None = field()
+    aneris_overrides: pd.Series[str] | None = field()
     """
     Overrides to supply to `aneris.convenience.harmonise_all`
 
