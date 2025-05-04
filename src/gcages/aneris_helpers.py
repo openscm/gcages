@@ -101,7 +101,6 @@ def _convert_units_to_match(
     return out
 
 
-# Not bothering typing this function properly now, I have no idea how its meant to work
 def _knead_overrides(
     overrides: pd.Series[str] | None, scen: pd.DataFrame, harm_idx: pd.MultiIndex
 ) -> pd.Series[str] | None:
