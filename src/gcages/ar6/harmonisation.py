@@ -316,22 +316,6 @@ class AR6Harmoniser:
         if not self.run_checks:
             return
 
-        value_check = pd.DataFrame(
-            value["method"].values,
-            columns=["method"],
-            index=pd.MultiIndex.from_frame(
-                value[value.columns.difference(["method"]).tolist()]
-            ),
-        )
-        for index_level in value_check.index.names:
-            assert_metadata_values_all_allowed(
-                value_check,
-                metadata_key=index_level,
-                allowed_values=self.historical_emissions.index.get_level_values(
-                    index_level
-                ).unique(),
-            )
-
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame
@@ -566,7 +550,7 @@ class AR6Harmoniser:
         historical_emissions = historical_emissions.loc[:, 1990:]
 
         # All variables not mentioned here use aneris' default decision tree
-        aneris_overrides_ar6 = pd.DataFrame(
+        aneris_overrides_ar6_df = pd.DataFrame(
             [
                 # Not used
                 # {
@@ -677,13 +661,14 @@ class AR6Harmoniser:
                 },
             ]
         )
-        aneris_overrides_ar6["variable"] = aneris_overrides_ar6["variable"].map(
+        aneris_overrides_ar6_df["variable"] = aneris_overrides_ar6_df["variable"].map(
             partial(
                 convert_variable_name,
                 from_convention=SupportedNamingConventions.IAMC,
                 to_convention=SupportedNamingConventions.GCAGES,
             )
         )
+        aneris_overrides_ar6 = aneris_overrides_ar6_df.set_index("variable")["method"]
 
         return cls(
             historical_emissions=historical_emissions,
