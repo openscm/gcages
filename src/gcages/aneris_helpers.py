@@ -173,7 +173,7 @@ def harmonise_all(
     scenarios: pd.DataFrame,
     history: pd.DataFrame,
     year: int,
-    overrides: pd.DataFrame | None = None,
+    overrides: pd.Series[str] | None = None,
 ) -> pd.DataFrame:
     """
     Harmonise all timeseries in `scenarios` to match `history`
@@ -309,7 +309,7 @@ def harmonise_scenario(
     indf: pd.DataFrame,
     history: pd.DataFrame,
     year: int,
-    overrides: pd.DataFrame | None,
+    overrides: pd.Series[str] | None,
 ) -> pd.DataFrame:
     """
     Harmonise a single scenario

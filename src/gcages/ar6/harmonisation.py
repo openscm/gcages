@@ -147,7 +147,7 @@ def harmonise_scenario(
     indf: pd.DataFrame,
     history: pd.DataFrame,
     year: int,
-    overrides: pd.DataFrame | None,
+    overrides: pd.Series[str] | None,
     calc_scaling_year: int,
 ) -> pd.DataFrame:
     """
