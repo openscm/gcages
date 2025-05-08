@@ -104,7 +104,9 @@ gridding_sectors_reporting = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("AFOLU|Agriculture",),
+        input_sectors=(
+            "AFOLU|Agriculture",
+        ),
         input_sectors_optional=(),
         input_species_optional=(),
     ),
@@ -113,6 +115,19 @@ gridding_sectors_reporting = (
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(
             "AFOLU|Agricultural Waste Burning",
+            # Including the below in agricultural waste burning
+            # is definitely wrong.
+            # However, we don't have a good gridding proxy
+            # for these (ESMs would simulate these emissions mostly).
+            # To handle this well, I think we need to talk to Louise.
+            # Then, maybe, we just don't include these emissions
+            # in gridding at all
+            # (instead they are only accounted for in land-use patterns).
+            # That will probably only make sense if emissions in these categories
+            # are ~ zero for everything other than CO2.
+            # A potentially helpful question:
+            # - how is wood harvest handled in the historical simulations?
+            #   Prescribed from LUH3?
             "AFOLU|Land|Harvested Wood Products",
             "AFOLU|Land|Land Use and Land-Use Change",
             "AFOLU|Land|Other",
@@ -187,6 +202,12 @@ gridding_sectors_reporting = (
             "Energy|Demand|Other Sector",
             "Industrial Processes",
             "Other",
+            # The key question for AIM:
+            # At the moment, we don't consider the
+            # "Carbon Removal|*" tree at all.
+            # So, the question is, where do these "Carbon Removal|*"
+            # variables get reported in the "Emissions|*" hierarchy?
+            # Is it here under "Other Capture and Removal"?
             "Other Capture and Removal",
         ),
         input_sectors_optional=(
