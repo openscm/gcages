@@ -208,6 +208,16 @@ gridding_sectors_reporting = (
             # So, the question is, where do these "Carbon Removal|*"
             # variables get reported in the "Emissions|*" hierarchy?
             # Is it here under "Other Capture and Removal"?
+            # Assuming the answer is yes,
+            # probably we should have this as a separate sector,
+            # which we don't harmonise.
+            # The question would then be:
+            # what grid do we use to grid these emissions
+            # (which don't have a historical grid)?
+            # (In practice, it probably doesn't matter
+            # because CO2 is well mixed so we could probably
+            # just use population and it would be fine,
+            # but worth asking the question).
             "Other Capture and Removal",
         ),
         input_sectors_optional=(
