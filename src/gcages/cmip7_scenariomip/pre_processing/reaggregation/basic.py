@@ -104,9 +104,7 @@ gridding_sectors_reporting = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=(
-            "AFOLU|Agriculture",
-        ),
+        input_sectors=("AFOLU|Agriculture",),
         input_sectors_optional=(),
         input_species_optional=(),
     ),
@@ -262,6 +260,16 @@ gridding_sectors_reporting = (
         input_sectors_optional=(),
         input_species_optional=(),
     ),
+    # My current guess:
+    # we will need to add an explicit
+    # CO2 removal sector or sectors
+    # to handle CO2 removals well.
+    # These sectors should be zero in 2025
+    # so would not be harmonised
+    # (or are harmonised to zero,
+    # depending on how you want to think about it)
+    # but would then need to be available
+    # for gridding and the global workflow.
 )
 
 COMPLETE_WORLD_VARIABLES: tuple[str, ...] = tuple(
