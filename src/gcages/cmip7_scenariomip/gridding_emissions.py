@@ -167,6 +167,9 @@ CO2_BIOSPHERE_SECTORS_GRIDDING: tuple[str, ...] = (
     # Agriculture in biosphere because most of its emissions
     # are land carbon cycle (but not all, probably, in reality)
     "Agriculture",
+    # To discuss: there is an argument
+    # that none of these should go to the global workflow
+    # because they don't match GCB.
     "Agricultural Waste Burning",
     "Forest Burning",
     "Grassland Burning",

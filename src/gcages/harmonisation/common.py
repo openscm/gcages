@@ -142,6 +142,7 @@ def assert_harmonised(
     NotHarmonisedError
         `df` is not harmonised to `history`
     """
+    # TODO: update this to use compare close
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
         df, history=history, time=harmonisation_time
     )
