@@ -104,15 +104,8 @@ gridding_sectors_reporting = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("AFOLU|Agriculture",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Agricultural Waste Burning",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(
-            "AFOLU|Agricultural Waste Burning",
+            "AFOLU|Agriculture",
             "AFOLU|Land|Harvested Wood Products",
             "AFOLU|Land|Land Use and Land-Use Change",
             "AFOLU|Land|Other",
@@ -124,6 +117,18 @@ gridding_sectors_reporting = (
             "AFOLU|Land|Other",
             "AFOLU|Land|Wetlands",
         ),
+        input_species_optional=(
+            "BC",
+            "CO",
+            "OC",
+            "Sulfur",
+        ),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="Agricultural Waste Burning",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("AFOLU|Agricultural Waste Burning",),
+        input_sectors_optional=(),
         input_species_optional=(
             "BC",
             "CO",
