@@ -128,14 +128,12 @@ GRIDDING_SECTORS = {
                 "AFOLU|Land|Other",
                 "AFOLU|Land|Wetlands",
             ),
-            # input_sectors_optional=(),
             input_sectors_optional=(
                 "AFOLU|Land|Harvested Wood Products",
                 "AFOLU|Land|Land Use and Land-Use Change",
                 "AFOLU|Land|Other",
                 "AFOLU|Land|Wetlands",
             ),
-            #   input_species_optional=(),
             input_species_optional=(
                 "BC",
                 "CO",
@@ -147,26 +145,8 @@ GRIDDING_SECTORS = {
             gridding_sector="Agricultural Waste Burning",
             spatial_resolution="model region",
             input_sectors=("AFOLU|Agricultural Waste Burning",),
-            #  input_sectors=(
-            #     "AFOLU|Agricultural Waste Burning",
-            #    "AFOLU|Land|Harvested Wood Products",
-            #   "AFOLU|Land|Land Use and Land-Use Change",
-            #  "AFOLU|Land|Other",
-            # "AFOLU|Land|Wetlands",
-            # ),
             input_sectors_optional=(),
-            # input_sectors_optional=(
-            #   "AFOLU|Land|Harvested Wood Products",
-            #  "AFOLU|Land|Land Use and Land-Use Change",
-            # "AFOLU|Land|Other",
-            # "AFOLU|Land|Wetlands",
-            # ),
-            input_species_optional=(
-                #    "BC",
-                #   "CO",
-                #  "OC",
-                #    "Sulfur",
-            ),
+            input_species_optional=(),
         ),
         GriddingSectorComponentsReporting(
             gridding_sector="Aircraft",
