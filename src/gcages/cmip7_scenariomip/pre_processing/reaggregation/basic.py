@@ -74,25 +74,43 @@ class GriddingSectorComponentsReporting:
         """
         Convert to the complete set of variables for this gridding sector
         """
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-        )
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
         """
         Convert to the required set of variables for this gridding sector
         """
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-            if not (
-                sector in self.input_sectors_optional
-                or species in self.input_species_optional
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
             )
-        )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
+            )
 
 
 SECTOR_DOMESTIC_AVIATION = "Energy|Demand|Transportation|Domestic Aviation"
@@ -230,6 +248,48 @@ gridding_sectors_reporting = (
         input_sectors=("Waste",),
         input_sectors_optional=(),
         input_species_optional=(),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="BECCS",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Geological Storage|Biomass",),
+        input_sectors_optional=(),
+        input_species_optional=(
+            "BC",
+            "CH4",
+            "CO",
+            "NH3",
+            "N2O",
+            "NOx",
+            "OC",
+            "Sulfur",
+            "VOC",
+        ),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="Other non-Land CDR",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=(  # "Land Use",
+            "Ocean",
+            "Geological Storage|Direct Air Capture",
+            "Geological Storage|Synthetic Fuels",
+            "Geological Storage|Other Sources",
+            "Long-Lived Materials",
+            "Enhanced Weathering",
+            "Other",
+        ),
+        input_sectors_optional=(),
+        input_species_optional=(
+            "BC",
+            "CH4",
+            "CO",
+            "NH3",
+            "N2O",
+            "NOx",
+            "OC",
+            "Sulfur",
+            "VOC",
+        ),
     ),
 )
 
@@ -1005,6 +1065,26 @@ def to_gridding_sectors(
         axis="columns",
     )
 
+    # BECCS readdition into energy sector
+    region_sector_df["Emissions|CO2|Energy|Supply"] = (
+        region_sector_df["Emissions|CO2|Energy|Supply"]
+        + region_sector_df["Carbon Removal|Geological Storage|Biomass"]
+    )
+    # Other (non-Land) CDR readdition into Other carbon capture and removal
+    region_sector_df["Emissions|CO2|Other Capture and Removal"] = region_sector_df[
+        "Emissions|CO2|Other Capture and Removal"
+    ] + region_sector_df[
+        [
+            "Ocean",
+            "Geological Storage|Direct Air Capture",
+            "Geological Storage|Synthetic Fuels",
+            "Geological Storage|Other Sources",
+            "Long-Lived Materials",
+            "Enhanced Weathering",
+            "Other",
+        ]
+    ].sum(axis=1)
+
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
     is_co2 = region_sector_df_gridding.index.get_level_values("species") == "CO2"
@@ -1049,6 +1129,19 @@ def to_gridding_sectors(
         ),
         ("Solvents Production and Application", ["Product Use"]),
         ("Waste", ["Waste"]),
+        ("BECCS", ["Geological Storage|Biomass"]),
+        (
+            "Other non-Land CDR",
+            [
+                "Ocean",
+                "Geological Storage|Direct Air Capture",
+                "Geological Storage|Synthetic Fuels",
+                "Geological Storage|Other Sources",
+                "Long-Lived Materials",
+                "Enhanced Weathering",
+                "Other",
+            ],
+        ),
     ):
         if any("AFOLU" in c for c in components):
             region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
