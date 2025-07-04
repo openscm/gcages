@@ -104,15 +104,8 @@ gridding_sectors_reporting = (
     GriddingSectorComponentsReporting(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("AFOLU|Agriculture",),
-        input_sectors_optional=(),
-        input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Agricultural Waste Burning",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(
-            "AFOLU|Agricultural Waste Burning",
+            "AFOLU|Agriculture",
             "AFOLU|Land|Harvested Wood Products",
             "AFOLU|Land|Land Use and Land-Use Change",
             "AFOLU|Land|Other",
@@ -128,8 +121,16 @@ gridding_sectors_reporting = (
             "BC",
             "CO",
             "OC",
+            "CO2",
             "Sulfur",
         ),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="Agricultural Waste Burning",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("AFOLU|Agricultural Waste Burning",),
+        input_sectors_optional=(),
+        input_species_optional=(),
     ),
     GriddingSectorComponentsReporting(
         gridding_sector="Aircraft",
@@ -1009,18 +1010,17 @@ def to_gridding_sectors(
     # because we assume that the users have used `to_complete`
     # before calling this function.
     for gridding_sector, components in (
-        ("Agriculture", ["AFOLU|Agriculture"]),
         (
-            "Agricultural Waste Burning",
+            "Agriculture",
             [
-                "AFOLU|Agricultural Waste Burning",
-                # Hmmm, almost definitely wrong
+                "AFOLU|Agriculture",
                 "AFOLU|Land|Harvested Wood Products",
                 "AFOLU|Land|Land Use and Land-Use Change",
                 "AFOLU|Land|Other",
                 "AFOLU|Land|Wetlands",
             ],
         ),
+        ("Agricultural Waste Burning", ["AFOLU|Agricultural Waste Burning"]),
         ("Energy Sector", ["Energy|Supply"]),
         ("Forest Burning", ["AFOLU|Land|Fires|Forest Burning"]),
         ("Grassland Burning", ["AFOLU|Land|Fires|Grassland Burning"]),
