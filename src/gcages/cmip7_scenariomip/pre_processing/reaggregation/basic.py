@@ -121,8 +121,8 @@ gridding_sectors_reporting = (
             "BC",
             "CO",
             "OC",
-            "Sulfur",
             "CO2",
+            "Sulfur",
         ),
     ),
     GriddingSectorComponentsReporting(

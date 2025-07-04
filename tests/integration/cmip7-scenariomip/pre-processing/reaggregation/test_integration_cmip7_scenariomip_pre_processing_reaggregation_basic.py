@@ -139,6 +139,7 @@ GRIDDING_SECTORS = {
                 "CO",
                 "OC",
                 "Sulfur",
+                "CO2",
             ),
         ),
         GriddingSectorComponentsReporting(
