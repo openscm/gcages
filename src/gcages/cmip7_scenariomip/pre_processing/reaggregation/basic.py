@@ -120,6 +120,7 @@ gridding_sectors_reporting = (
         input_species_optional=(
             "BC",
             "CO",
+            "CO2",
             "OC",
             "Sulfur",
         ),
