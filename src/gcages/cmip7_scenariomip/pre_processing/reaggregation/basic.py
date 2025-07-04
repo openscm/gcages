@@ -1004,19 +1004,10 @@ def to_gridding_sectors(
         {"Energy|Demand|Transportation": "Transportation Sector"},
         axis="columns",
     )
-
-    # To handle CO2 differently
-    # Get boolean masks for CO2 and non-CO2 species
-    is_co2 = region_sector_df_gridding.index.get_level_values("species") == "CO2"
-    # Special treatment for CO2
-    region_sector_df_gridding_co2 = region_sector_df_gridding[is_co2]
-    # Select rows for non-CO2
-    region_sector_df_gridding = region_sector_df_gridding[~is_co2]
-
-    # # Do other compilations.
-    # # We can do this here with confidence
-    # # because we assume that the users have used `to_complete`
-    # # before calling this function.
+    # Do other compilations.
+    # We can do this here with confidence
+    # because we assume that the users have used `to_complete`
+    # before calling this function.
     for gridding_sector, components in (
         (
             "Agriculture",
@@ -1050,31 +1041,12 @@ def to_gridding_sectors(
         ("Solvents Production and Application", ["Product Use"]),
         ("Waste", ["Waste"]),
     ):
-        if any("AFOLU" in c for c in components):
-            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
-                list(set(components)), axis="columns", errors="ignore"
-            )
-        else:
-            region_sector_df_gridding_co2[gridding_sector] = (
-                region_sector_df_gridding_co2[components].sum(axis="columns")
-            )  # type: ignore # pandas-stubs confused
-            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
-                list(set(components) - {gridding_sector}), axis="columns"
-            )
-
         region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
             components
         ].sum(axis="columns")  # type: ignore # pandas-stubs confused
-
         region_sector_df_gridding = region_sector_df_gridding.drop(
             list(set(components) - {gridding_sector}), axis="columns"
         )
-
-    region_sector_df_gridding = (
-        pd.concat([region_sector_df_gridding, region_sector_df_gridding_co2])
-        .sort_index()
-        .fillna(0)
-    )
 
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
