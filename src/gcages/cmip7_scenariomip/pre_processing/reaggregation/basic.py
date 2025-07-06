@@ -1077,13 +1077,17 @@ def to_gridding_sectors(
         [
             "Ocean",
             "Geological Storage|Direct Air Capture",
-            "Geological Storage|Synthetic Fuels",
             "Geological Storage|Other Sources",
             "Long-Lived Materials",
             "Enhanced Weathering",
             "Other",
         ]
     ].sum(axis=1)
+
+    region_sector_df["Emissions|CO2|Energy|Demand|Industry"] = (
+        region_sector_df["Emissions|CO2|Energy|Demand|Industry"]
+        + region_sector_df["Geological Storage|Synthetic Fuels"]
+    )
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
