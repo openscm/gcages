@@ -59,6 +59,7 @@ COMPLETE_GRIDDING_SECTORS_MODEL_REGION: tuple[str, ...] = (
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Waste",
+    "CO2 AFOLU",
 )
 
 # For most of the tests, use the same world and model regions.
@@ -157,11 +158,12 @@ def gridding_emissions():
             ),
             None,
             (
-                "Agriculture",
-                "Agricultural Waste Burning",
-                "Forest Burning",
-                "Grassland Burning",
-                "Peat Burning",
+                # "Agriculture",
+                # "Agricultural Waste Burning",
+                # "Forest Burning",
+                # "Grassland Burning",
+                # "Peat Burning",
+                "CO2 AFOLU",
             ),
             id="default",
         ),
@@ -189,16 +191,18 @@ def gridding_emissions():
                 "Agriculture",
             ),
             (
-                "Agricultural Waste Burning",
-                "Forest Burning",
-                "Grassland Burning",
-                "Peat Burning",
+                # "Agricultural Waste Burning",
+                # "Forest Burning",
+                # "Grassland Burning",
+                # "Peat Burning",
+                "CO2 AFOLU",
             ),
             (
-                "Agricultural Waste Burning",
-                "Forest Burning",
-                "Grassland Burning",
-                "Peat Burning",
+                # "Agricultural Waste Burning",
+                # "Forest Burning",
+                # "Grassland Burning",
+                # "Peat Burning",
+                "CO2 AFOLU",
             ),
             id="agriculture-in-fossil",
         ),
@@ -285,14 +289,19 @@ def test_to_global_workflow_emissions_missing_sector_error(gridding_emissions):
     )
 
     co2_biosphere_sectors = (
-        "Agriculture",
-        "Agricultural Waste Burning",
+        # "Agriculture",
+        # "Agricultural Waste Burning",
         # "Forest Burning",
-        "Grassland Burning",
-        "Peat Burning",
+        # "Grassland Burning",
+        # "Peat Burning",
+        "CO2 AFOLU",
     )
 
-    not_used_cols = sorted(["Solvents Production and Application", "Forest Burning"])
+    not_used_cols = sorted(
+        [
+            "Solvents Production and Application",
+        ]
+    )
     error_msg = re.escape(
         "\n".join(
             [

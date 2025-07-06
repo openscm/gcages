@@ -43,6 +43,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
 from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 from gcages.index_manipulation import (
     combine_sectors,
+    combine_species,
     create_levels_based_on_existing,
     set_new_single_value_levels,
     split_sectors,
@@ -678,6 +679,51 @@ def complete_to_gridding_res():
     )
 
     unaggregated = get_df(COMPLETE_INDEX.difference(transport_index), model=MODEL)
+    # drop_vars = ["Emissions|BC|AFOLU","Emissions|CH4|AFOLU",
+    # "Emissions|N2O|AFOLU","Emissions|CO|AFOLU",
+    #              "Emissions|NH3|AFOLU","Emissions|OC|AFOLU",
+    # "Emissions|NOx|AFOLU","Emissions|Sulfur|AFOLU",
+    #              "Emissions|VOC|AFOLU","Emissions|CO2|AFOLU|Agriculture",
+    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
+    #              "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
+    # "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
+    #              "Emissions|CO2|AFOLU|Land|Other",
+    # "Emissions|CO2|AFOLU|Land|Wetlands",
+    # "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+    #              "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+    # "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",]
+    # Forcing "Emissions|{species}|AFOLU" to be equal to the subsectors sum
+    drop_vars = [
+        "Emissions|BC|AFOLU",
+        "Emissions|CH4|AFOLU",
+        "Emissions|N2O|AFOLU",
+        "Emissions|CO|AFOLU",
+        "Emissions|NH3|AFOLU",
+        "Emissions|OC|AFOLU",
+        "Emissions|NOx|AFOLU",
+        "Emissions|Sulfur|AFOLU",
+        "Emissions|VOC|AFOLU",
+        "Emissions|CO2|AFOLU",
+    ]
+    unaggregated = unaggregated.loc[
+        ~unaggregated.index.get_level_values("variable").isin(drop_vars)
+    ]
+    for var in drop_vars:
+        df = unaggregated
+
+        afolu_mask = df.index.get_level_values("variable").str.startswith(var)
+        afolu_df = df[afolu_mask]
+
+        new_index = afolu_df.index.to_frame()
+        new_index["variable"] = var
+        afolu_df.index = pd.MultiIndex.from_frame(new_index)
+
+        afolu_summed = afolu_df.groupby(
+            level=["variable", "region", "unit", "model", "scenario"]
+        ).sum()
+
+        unaggregated = pd.concat([df, afolu_summed]).sort_index()
+
     internally_consistent = get_aggregate_df(unaggregated, world_region=WORLD_REGION)
 
     # Add in the |Transportation level too
@@ -699,6 +745,30 @@ def complete_to_gridding_res():
             transport.reorder_levels(internally_consistent.index.names),
         ]
     )
+
+    # variables_to_zero = ["Emissions|CO2|AFOLU|Agriculture",
+    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
+    #     "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
+    #     "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
+    #     "Emissions|CO2|AFOLU|Land|Other",
+    #     "Emissions|CO2|AFOLU|Land|Wetlands",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
+    #     "Emissions|BC|AFOLU",
+    #     "Emissions|CH4|AFOLU",
+    #     "Emissions|N2O|AFOLU",
+    #     "Emissions|CO|AFOLU",
+    #     "Emissions|NH3|AFOLU",
+    #     "Emissions|OC|AFOLU",
+    #     "Emissions|NOx|AFOLU",
+    #     "Emissions|Sulfur|AFOLU",
+    #     "Emissions|VOC|AFOLU",
+    #     ]
+    #
+    # mask = internally_consistent.index.get_level_values("variable")
+    # .isin(variables_to_zero)
+    # internally_consistent.loc[mask, :] = 0.0
 
     tcr = to_complete(internally_consistent, model_regions=MODEL_REGIONS)
     assert tcr.assumed_zero is None
@@ -797,15 +867,16 @@ def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_griddin
     assert_frame_equal(multi_index_lookup(res, exp_transport.index), exp_transport)
 
 
-# def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
-#   internally_consistent, _, res = complete_to_gridding_res
+def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
+    internally_consistent, _, res = complete_to_gridding_res
 
-#  res_totals = set_new_single_value_levels(
-# combine_species(
-#     groupby_except(split_sectors(res), ["region", "sectors"]).sum()
-#  ),
-#   {"region": "World"},
-# ).reorder_levels(internally_consistent.index.names)
-# exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
+    res_totals = set_new_single_value_levels(
+        combine_species(
+            groupby_except(split_sectors(res), ["region", "sectors"]).sum()
+        ),
+        {"region": "World"},
+    ).reorder_levels(internally_consistent.index.names)
 
-# assert_frame_equal(res_totals, exp_totals)
+    exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
+
+    assert_frame_equal(res_totals, exp_totals)

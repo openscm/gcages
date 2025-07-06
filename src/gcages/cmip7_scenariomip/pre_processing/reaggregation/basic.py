@@ -592,6 +592,20 @@ def get_example_input(  # noqa: PLR0913
     else:
         res = res_gridding
 
+    drop_vars = [
+        "Emissions|CO2|AFOLU|Agriculture",
+        "Emissions|CO2|AFOLU|Agricultural Waste Burning",
+        "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
+        "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
+        "Emissions|CO2|AFOLU|Land|Other",
+        "Emissions|CO2|AFOLU|Land|Wetlands",
+        "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+        "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+        "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
+    ]
+
+    res = res.loc[~res.index.get_level_values("variable").isin(drop_vars)]
+
     return res
 
 
@@ -797,12 +811,31 @@ def assert_is_internally_consistent(  # noqa: PLR0913
         # because of how many different ways it can go wrong
         # e.g. you can have extra components that aren't used,
         # incorrect aggregation
+
+        drop_vars = [
+            "Emissions|CH4|AFOLU",
+            "Emissions|N2O|AFOLU",
+            "Emissions|NOx|AFOLU",
+            "Emissions|BC|AFOLU",
+            "Emissions|NH3|AFOLU",
+            "Emissions|OC|AFOLU",
+            "Emissions|VOC|AFOLU",
+            "Emissions|Sulfur|AFOLU",
+            "Emissions|CO|AFOLU",
+        ]
+        df_short = df_species_internal_consistency_checking_relevant
+        df_short = df_short.loc[
+            ~df_short.index.get_level_values("variable").isin(drop_vars)
+        ]
+
+        df_species_internal_consistency_checking_relevant = df_short
+
         df_species_aggregate = get_region_sector_sum(
             df_species_internal_consistency_checking_relevant,
             region_level=region_level,
             world_region=world_region,
         ).reorder_levels(df_species.index.names)
-
+        # breakpoint()
         tolerances_species = {}
         for kwarg, value in tolerances[species_total_variable].items():
             if pint is not None and isinstance(value, pint.Quantity):

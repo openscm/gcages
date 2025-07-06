@@ -265,13 +265,31 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             world_region=reaggregator.world_region,
         )
         gridded_emisssions_sectoral_regional_sum = grss(gridding_workflow_emissions)
+        # To avoid double counting
+        drop_vars = [
+            "Emissions|CH4|AFOLU",
+            "Emissions|N2O|AFOLU",
+            "Emissions|NOx|AFOLU",
+            "Emissions|BC|AFOLU",
+            "Emissions|NH3|AFOLU",
+            "Emissions|OC|AFOLU",
+            "Emissions|VOC|AFOLU",
+            "Emissions|Sulfur|AFOLU",
+            "Emissions|CO|AFOLU",
+        ]
+        df_to_sum = multi_index_lookup(
+            indf, reaggregator.get_internal_consistency_checking_index()
+        )
+        df_to_sum = df_to_sum.loc[
+            ~df_to_sum.index.get_level_values("variable").isin(drop_vars)
+        ]
+
         in_emissions_totals_to_compare_to = grss(
             # Make sure we only sum across the levels
             # that are useful for getting the total
-            multi_index_lookup(
-                indf, reaggregator.get_internal_consistency_checking_index()
-            )
+            df_to_sum
         )
+
         # No tolerance as this should be exact
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
