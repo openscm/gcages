@@ -289,7 +289,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             # that are useful for getting the total
             df_to_sum
         )
-
+        # breakpoint()
         # No tolerance as this should be exact
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
