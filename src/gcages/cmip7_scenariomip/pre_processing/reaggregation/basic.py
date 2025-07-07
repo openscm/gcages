@@ -822,6 +822,7 @@ def assert_is_internally_consistent(  # noqa: PLR0913
             "Emissions|VOC|AFOLU",
             "Emissions|Sulfur|AFOLU",
             "Emissions|CO|AFOLU",
+            # "Emissions|CO2|AFOLU",
         ]
         df_short = df_species_internal_consistency_checking_relevant
         df_short = df_short.loc[

@@ -215,6 +215,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         reaggregator = guess_reaggregator(indf, region_level=region_level)
 
     indf_reported_times = indf.dropna(how="all", axis="columns")
+
     if run_checks:
         indf_reported_times_nan = indf_reported_times.isnull().any(axis="columns")
         if indf_reported_times_nan.any():
@@ -605,6 +606,7 @@ class CMIP7ScenarioMIPPreProcessor:
             ),
         )
         res_d = defaultdict(list)
+
         for res_ms in res_g:
             for k, v in asdict(res_ms).items():
                 if v is not None:
