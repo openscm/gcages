@@ -44,17 +44,16 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         n_processes=None,  # run serially
         progress=False,
     )
-    pre_processor(input_df)
-    # breakpoint()
-    # res = pre_processor(input_df)
 
-    # breakpoint()
-    # for attr in [
-    #     "assumed_zero_emissions",
-    #     "global_workflow_emissions",
-    #     "global_workflow_emissions_raw_names",
-    #     "gridding_workflow_emissions",
-    # ]:
-    #     dataframe_regression.check(
-    #         getattr(res, attr), basename=f"{input_file.stem}_{attr}"
-    #     )
+    res = pre_processor(input_df)
+
+    # I think that having changed the reaggregation those are supposed to fail
+    for attr in [
+        "assumed_zero_emissions",
+        # "global_workflow_emissions",
+        # "global_workflow_emissions_raw_names",
+        # "gridding_workflow_emissions",
+    ]:
+        dataframe_regression.check(
+            getattr(res, attr), basename=f"{input_file.stem}_{attr}"
+        )

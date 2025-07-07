@@ -592,19 +592,19 @@ def get_example_input(  # noqa: PLR0913
     else:
         res = res_gridding
 
-    drop_vars = [
-        "Emissions|CO2|AFOLU|Agriculture",
-        "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-        "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-        "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-        "Emissions|CO2|AFOLU|Land|Other",
-        "Emissions|CO2|AFOLU|Land|Wetlands",
-        "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-        "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-        "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
-    ]
-
-    res = res.loc[~res.index.get_level_values("variable").isin(drop_vars)]
+    # drop_vars = [
+    #     "Emissions|CO2|AFOLU|Agriculture",
+    #     "Emissions|CO2|AFOLU|Agricultural Waste Burning",
+    #     "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
+    #     "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
+    #     "Emissions|CO2|AFOLU|Land|Other",
+    #     "Emissions|CO2|AFOLU|Land|Wetlands",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
+    #     "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
+    # ]
+    #
+    # res = res.loc[~res.index.get_level_values("variable").isin(drop_vars)]
 
     return res
 
@@ -822,7 +822,7 @@ def assert_is_internally_consistent(  # noqa: PLR0913
             "Emissions|VOC|AFOLU",
             "Emissions|Sulfur|AFOLU",
             "Emissions|CO|AFOLU",
-            # "Emissions|CO2|AFOLU",
+            "Emissions|CO2|AFOLU",
         ]
         df_short = df_species_internal_consistency_checking_relevant
         df_short = df_short.loc[
@@ -836,7 +836,7 @@ def assert_is_internally_consistent(  # noqa: PLR0913
             region_level=region_level,
             world_region=world_region,
         ).reorder_levels(df_species.index.names)
-        # breakpoint()
+
         tolerances_species = {}
         for kwarg, value in tolerances[species_total_variable].items():
             if pint is not None and isinstance(value, pint.Quantity):
@@ -932,6 +932,7 @@ def to_complete(  # noqa: PLR0913
         complete_index=complete_index,
         unit_col=unit_level,
     )
+
     if missing_indexes.empty:
         res = ToCompleteResult(complete=keep, assumed_zero=None)
     else:
@@ -1119,6 +1120,13 @@ def to_gridding_sectors(
         # region_sector_df_gridding = region_sector_df_gridding.drop(
         # list(set(components) - {gridding_sector}), axis="columns")
 
+        # region_sector_df_gridding_co2[gridding_sector] = (
+        #         region_sector_df_gridding_co2[components].sum(axis="columns")
+        #     )  # type: ignore # pandas-stubs confused
+        # region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+        #         list(set(components) - {gridding_sector}), axis="columns"
+        #     )
+
         if gridding_sector != "CO2 AFOLU":
             region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
                 components
@@ -1137,7 +1145,6 @@ def to_gridding_sectors(
         .sort_index()
         .fillna(0)
     )
-    # region_sector_df_gridding.to_csv("p1.csv", mode="a")
 
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
@@ -1150,7 +1157,7 @@ def to_gridding_sectors(
         region_sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
         bottom_level="sectors",
     )
-    # region_sector_df_gridding_like_input.to_csv("p2.csv", mode="a")
+
     res = pd.concat(
         [
             df.reorder_levels(indf.index.names)
@@ -1160,7 +1167,7 @@ def to_gridding_sectors(
             ]
         ]
     )
-    # res.to_csv("p3.csv", mode="a")
+
     return res
 
 

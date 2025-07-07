@@ -369,7 +369,10 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
                 "Forest Burning",
                 "Grassland Burning",
                 "Peat Burning",
-            ],
+            ],  # Those have been deprecated for CO2
+            *[
+                "AFOLU",
+            ],  # Present in sector_df_full.columns but 0 in CO2
         }
     )
     if not_used_cols:

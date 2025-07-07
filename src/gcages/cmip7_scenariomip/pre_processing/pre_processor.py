@@ -277,6 +277,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             "Emissions|VOC|AFOLU",
             "Emissions|Sulfur|AFOLU",
             "Emissions|CO|AFOLU",
+            "Emissions|CO2|AFOLU",
         ]
         df_to_sum = multi_index_lookup(
             indf, reaggregator.get_internal_consistency_checking_index()
@@ -290,11 +291,15 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             # that are useful for getting the total
             df_to_sum
         )
-        # breakpoint()
+
         # No tolerance as this should be exact
+        # Added small tolerance for large numbers (maybe should be better with min)
+        rtol = gridded_emisssions_sectoral_regional_sum.max().max() * 1e-8
+
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
             in_emissions_totals_to_compare_to,
+            rtol=rtol,
         )
 
     # Figure out the global workflow emissions

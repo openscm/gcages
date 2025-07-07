@@ -113,6 +113,7 @@ def test_output_vs_start_total_consistency(example_input_output):
         "Emissions|VOC|AFOLU",
         "Emissions|Sulfur|AFOLU",
         "Emissions|CO|AFOLU",
+        "Emissions|CO2|AFOLU",
     ]
     df_to_sum = multi_index_lookup(
         example_input_output.input,

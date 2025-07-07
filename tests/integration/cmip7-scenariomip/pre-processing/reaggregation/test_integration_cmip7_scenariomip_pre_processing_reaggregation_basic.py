@@ -381,6 +381,46 @@ def get_df(  # noqa: PLR0913
         {model_level: model, scenario_level: scenario},
     )
 
+    # Forcing the AFOLU line be the sum of the AFOLU sectors
+    unit_map = {
+        "BC": "Mt BC/yr",
+        "CH4": "Mt CH4/yr",
+        "CO": "Mt CO/yr",
+        "CO2": "Gt C/yr",
+        "N2O": "kt N2O/yr",
+        "NH3": "Mt NH3/yr",
+        "NOx": "Mt NO2/yr",
+        "OC": "Mt OC/yr",
+        "Sulfur": "Mt SO2/yr",
+        "VOC": "Mt VOC/yr",
+    }
+    for region in MODEL_REGIONS:
+        for species in COMPLETE_GRIDDING_SPECIES:
+            unit = unit_map[species]
+
+            # Filter index to match only relevant sub-variables
+            rows_to_sum = res.loc[
+                res.index.get_level_values("variable").str.startswith(
+                    f"Emissions|{species}|AFOLU|"
+                )
+                & (res.index.get_level_values("region") == region)
+                & (res.index.get_level_values("unit") == unit)
+                & (res.index.get_level_values("model") == model)
+                & (res.index.get_level_values("scenario") == scenario)
+            ]
+
+            target_row = (
+                f"Emissions|{species}|AFOLU",
+                region,
+                unit,
+                "model_a",
+                "scenario_a",
+            )
+            # Sum the rows
+            if target_row in res.index and not rows_to_sum.empty:
+                summed = rows_to_sum.sum(axis=0)
+                res.loc[target_row] = summed
+
     return res
 
 
@@ -693,36 +733,36 @@ def complete_to_gridding_res():
     #              "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
     # "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",]
     # Forcing "Emissions|{species}|AFOLU" to be equal to the subsectors sum
-    drop_vars = [
-        "Emissions|BC|AFOLU",
-        "Emissions|CH4|AFOLU",
-        "Emissions|N2O|AFOLU",
-        "Emissions|CO|AFOLU",
-        "Emissions|NH3|AFOLU",
-        "Emissions|OC|AFOLU",
-        "Emissions|NOx|AFOLU",
-        "Emissions|Sulfur|AFOLU",
-        "Emissions|VOC|AFOLU",
-        "Emissions|CO2|AFOLU",
-    ]
-    unaggregated = unaggregated.loc[
-        ~unaggregated.index.get_level_values("variable").isin(drop_vars)
-    ]
-    for var in drop_vars:
-        df = unaggregated
-
-        afolu_mask = df.index.get_level_values("variable").str.startswith(var)
-        afolu_df = df[afolu_mask]
-
-        new_index = afolu_df.index.to_frame()
-        new_index["variable"] = var
-        afolu_df.index = pd.MultiIndex.from_frame(new_index)
-
-        afolu_summed = afolu_df.groupby(
-            level=["variable", "region", "unit", "model", "scenario"]
-        ).sum()
-
-        unaggregated = pd.concat([df, afolu_summed]).sort_index()
+    # drop_vars = [
+    #     "Emissions|BC|AFOLU",
+    #     "Emissions|CH4|AFOLU",
+    #     "Emissions|N2O|AFOLU",
+    #     "Emissions|CO|AFOLU",
+    #     "Emissions|NH3|AFOLU",
+    #     "Emissions|OC|AFOLU",
+    #     "Emissions|NOx|AFOLU",
+    #     "Emissions|Sulfur|AFOLU",
+    #     "Emissions|VOC|AFOLU",
+    #     "Emissions|CO2|AFOLU",
+    # ]
+    # unaggregated = unaggregated.loc[
+    #     ~unaggregated.index.get_level_values("variable").isin(drop_vars)
+    # ]
+    # for var in drop_vars:
+    #     df = unaggregated
+    #
+    #     afolu_mask = df.index.get_level_values("variable").str.startswith(var)
+    #     afolu_df = df[afolu_mask]
+    #
+    #     new_index = afolu_df.index.to_frame()
+    #     new_index["variable"] = var
+    #     afolu_df.index = pd.MultiIndex.from_frame(new_index)
+    #
+    #     afolu_summed = afolu_df.groupby(
+    #         level=["variable", "region", "unit", "model", "scenario"]
+    #     ).sum()
+    #
+    #     unaggregated = pd.concat([df, afolu_summed]).sort_index()
 
     internally_consistent = get_aggregate_df(unaggregated, world_region=WORLD_REGION)
 
@@ -814,6 +854,7 @@ def test_complete_to_gridding_sectors_straightforward_sector(
         region_locator,
         list(gridding_sector_definition.input_sectors),
     ]
+    # Forcing CO2 dropped sectors to be 0 even in the CO2 case
     if gridding_sector_definition.gridding_sector in [
         "Agriculture",
         "Agricultural Waste Burning",
