@@ -92,23 +92,34 @@ class GriddingSectorComponentsReporting:
     input_species_optional: tuple[str, ...]
 
     def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-        )
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|CO2|{sector}" for sector in self.input_sectors
+            )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-            if not (
-                # note the OR logic here
-                sector in self.input_sectors_optional
-                or species in self.input_species_optional
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|CO2|{sector}"
+                for sector in self.input_sectors
+                if sector not in self.input_sectors_optional
             )
-        )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
+            )
 
 
 GRIDDING_SECTORS = {
@@ -262,6 +273,48 @@ GRIDDING_SECTORS = {
                 "VOC",
             ),
         ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="BECCS",
+            spatial_resolution="model region",
+            input_sectors=("Geological Storage|Biomass",),
+            input_sectors_optional=(),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Other non-Land CDR",
+            spatial_resolution="model region",
+            input_sectors=(
+                "Ocean",
+                "Geological Storage|Direct Air Capture",
+                "Geological Storage|Synthetic Fuels",
+                "Geological Storage|Other Sources",
+                "Long-Lived Materials",
+                "Enhanced Weathering",
+                # "Other",
+            ),
+            input_sectors_optional=(),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
     )
 }
 
@@ -312,6 +365,10 @@ COMPLETE_INDEX = to_index(
     all_species=COMPLETE_GRIDDING_SPECIES,
     world_region=WORLD_REGION,
     model_regions=MODEL_REGIONS,
+)
+mask = ~(
+    COMPLETE_INDEX.get_level_values("variable").str.startswith("Carbon Removal|")
+    & ~COMPLETE_INDEX.get_level_values("variable").str.startswith("Carbon Removal|CO2")
 )
 
 REQUIRED_INDEX = to_index(
@@ -420,6 +477,13 @@ def get_df(  # noqa: PLR0913
             if target_row in res.index and not rows_to_sum.empty:
                 summed = rows_to_sum.sum(axis=0)
                 res.loc[target_row] = summed
+
+    # Keep Carbon Removal CO2 only
+    mask = ~(
+        res.index.get_level_values("variable").str.startswith("Carbon Removal|")
+        & ~res.index.get_level_values("variable").str.startswith("Carbon Removal|CO2")
+    )
+    res = res[mask]
 
     return res
 
@@ -561,7 +625,7 @@ def test_assert_has_all_required_timeseries(to_remove, to_add, exp):
         to_remove_locator = multi_index_match(to_check.index, to_remove)
         assert to_remove_locator.sum() > 0, "Test won't do anything"
         to_check = to_check.loc[~to_remove_locator]
-
+    # breakpoint()
     if to_add is not None:
         already_included_locator = multi_index_match(to_check.index, to_add)
         assert already_included_locator.sum() == 0, "Test won't do anything"
@@ -719,50 +783,6 @@ def complete_to_gridding_res():
     )
 
     unaggregated = get_df(COMPLETE_INDEX.difference(transport_index), model=MODEL)
-    # drop_vars = ["Emissions|BC|AFOLU","Emissions|CH4|AFOLU",
-    # "Emissions|N2O|AFOLU","Emissions|CO|AFOLU",
-    #              "Emissions|NH3|AFOLU","Emissions|OC|AFOLU",
-    # "Emissions|NOx|AFOLU","Emissions|Sulfur|AFOLU",
-    #              "Emissions|VOC|AFOLU","Emissions|CO2|AFOLU|Agriculture",
-    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-    #              "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-    # "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-    #              "Emissions|CO2|AFOLU|Land|Other",
-    # "Emissions|CO2|AFOLU|Land|Wetlands",
-    # "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-    #              "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    # "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",]
-    # Forcing "Emissions|{species}|AFOLU" to be equal to the subsectors sum
-    # drop_vars = [
-    #     "Emissions|BC|AFOLU",
-    #     "Emissions|CH4|AFOLU",
-    #     "Emissions|N2O|AFOLU",
-    #     "Emissions|CO|AFOLU",
-    #     "Emissions|NH3|AFOLU",
-    #     "Emissions|OC|AFOLU",
-    #     "Emissions|NOx|AFOLU",
-    #     "Emissions|Sulfur|AFOLU",
-    #     "Emissions|VOC|AFOLU",
-    #     "Emissions|CO2|AFOLU",
-    # ]
-    # unaggregated = unaggregated.loc[
-    #     ~unaggregated.index.get_level_values("variable").isin(drop_vars)
-    # ]
-    # for var in drop_vars:
-    #     df = unaggregated
-    #
-    #     afolu_mask = df.index.get_level_values("variable").str.startswith(var)
-    #     afolu_df = df[afolu_mask]
-    #
-    #     new_index = afolu_df.index.to_frame()
-    #     new_index["variable"] = var
-    #     afolu_df.index = pd.MultiIndex.from_frame(new_index)
-    #
-    #     afolu_summed = afolu_df.groupby(
-    #         level=["variable", "region", "unit", "model", "scenario"]
-    #     ).sum()
-    #
-    #     unaggregated = pd.concat([df, afolu_summed]).sort_index()
 
     internally_consistent = get_aggregate_df(unaggregated, world_region=WORLD_REGION)
 
@@ -786,30 +806,6 @@ def complete_to_gridding_res():
         ]
     )
 
-    # variables_to_zero = ["Emissions|CO2|AFOLU|Agriculture",
-    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-    #     "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-    #     "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-    #     "Emissions|CO2|AFOLU|Land|Other",
-    #     "Emissions|CO2|AFOLU|Land|Wetlands",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
-    #     "Emissions|BC|AFOLU",
-    #     "Emissions|CH4|AFOLU",
-    #     "Emissions|N2O|AFOLU",
-    #     "Emissions|CO|AFOLU",
-    #     "Emissions|NH3|AFOLU",
-    #     "Emissions|OC|AFOLU",
-    #     "Emissions|NOx|AFOLU",
-    #     "Emissions|Sulfur|AFOLU",
-    #     "Emissions|VOC|AFOLU",
-    #     ]
-    #
-    # mask = internally_consistent.index.get_level_values("variable")
-    # .isin(variables_to_zero)
-    # internally_consistent.loc[mask, :] = 0.0
-
     tcr = to_complete(internally_consistent, model_regions=MODEL_REGIONS)
     assert tcr.assumed_zero is None
     input = tcr.complete
@@ -823,10 +819,11 @@ def complete_to_gridding_res():
 
 def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
     _, _, res = complete_to_gridding_res
-
+    # breakpoint()
     complete_gridding_index = get_complete_gridding_index(model_regions=MODEL_REGIONS)
     assert_all_groups_are_complete(res, complete_gridding_index)
     # Make sure there are no extras
+    # breakpoint()
     assert res.shape[0] == complete_gridding_index.shape[0]
 
 

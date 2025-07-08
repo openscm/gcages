@@ -545,7 +545,7 @@ class CMIP7ScenarioMIPPreProcessor:
     Name used for CO2 in variable names
     """
 
-    table: str = "Emissions"
+    table: tuple[str, ...] = ["Emissions", "Carbon Removal"]
     """
     The value used for the top level of variable names
     """

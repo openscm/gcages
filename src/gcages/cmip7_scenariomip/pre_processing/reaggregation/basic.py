@@ -74,25 +74,43 @@ class GriddingSectorComponentsReporting:
         """
         Convert to the complete set of variables for this gridding sector
         """
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-        )
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
         """
         Convert to the required set of variables for this gridding sector
         """
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-            if not (
-                sector in self.input_sectors_optional
-                or species in self.input_species_optional
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
             )
-        )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
+            )
 
 
 SECTOR_DOMESTIC_AVIATION = "Energy|Demand|Transportation|Domestic Aviation"
@@ -236,6 +254,48 @@ gridding_sectors_reporting = (
         gridding_sector="CO2 AFOLU",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU",),
+        input_sectors_optional=(),
+        input_species_optional=(
+            "BC",
+            "CH4",
+            "CO",
+            "NH3",
+            "N2O",
+            "NOx",
+            "OC",
+            "Sulfur",
+            "VOC",
+        ),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="BECCS",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Geological Storage|Biomass",),
+        input_sectors_optional=(),
+        input_species_optional=(
+            "BC",
+            "CH4",
+            "CO",
+            "NH3",
+            "N2O",
+            "NOx",
+            "OC",
+            "Sulfur",
+            "VOC",
+        ),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="Other non-Land CDR",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=(
+            "Ocean",
+            "Geological Storage|Direct Air Capture",
+            "Geological Storage|Synthetic Fuels",
+            "Geological Storage|Other Sources",
+            "Long-Lived Materials",
+            "Enhanced Weathering",
+            # "Other",
+        ),
         input_sectors_optional=(),
         input_species_optional=(
             "BC",
@@ -1002,12 +1062,16 @@ def to_gridding_sectors(
         .stack()
         .unstack("sectors")
     )
+    sector_df = sector_df.fillna(0)
+
     # Data with region information
     region_sector_df = (
         split_sectors(indf.loc[~world_locator], bottom_level="sectors")
         .stack()
         .unstack("sectors")
     )
+
+    region_sector_df = region_sector_df.fillna(0)
 
     # Move domestic aviation to the global level
     domestic_aviation_sum = groupby_except(
@@ -1043,6 +1107,56 @@ def to_gridding_sectors(
         {"Energy|Demand|Transportation": "Transportation Sector"},
         axis="columns",
     )
+
+    # CDR handling
+    # BECCS  & Other (non-Land) CDR readdition
+    # Get row masks just once
+    emissions_mask = (
+        region_sector_df.index.get_level_values("table") == "Emissions"
+    ) & (region_sector_df.index.get_level_values("species") == "CO2")
+    cdr_mask = (
+        region_sector_df.index.get_level_values("table") == "Carbon Removal"
+    ) & (region_sector_df.index.get_level_values("species") == "CO2")
+
+    sector_map = {
+        "Geological Storage|Biomass": "Energy|Supply",
+        "Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
+        "Ocean": "Other Capture and Removal",
+        "Geological Storage|Direct Air Capture": "Other Capture and Removal",
+        "Geological Storage|Other Sources": "Other Capture and Removal",
+        "Long-Lived Materials": "Other Capture and Removal",
+        "Enhanced Weathering": "Other Capture and Removal",
+        # "Other":                                 "Other Capture and Removal",
+    }
+    for cdr, emi in sector_map.items():
+        region_sector_df.loc[emissions_mask, emi] = (
+            region_sector_df.loc[emissions_mask, emi].fillna(0).values
+            + region_sector_df.loc[cdr_mask, cdr].fillna(0).values
+        )
+
+    # region_sector_df["Emissions|CO2|Energy|Supply"] = (
+    #     region_sector_df["Emissions|CO2|Energy|Supply"]
+    #     + region_sector_df["Carbon Removal|Geological Storage|Biomass"]
+    # )
+    # # Other (non-Land) CDR readdition into Other carbon capture and removal
+    # region_sector_df["Emissions|CO2|Other Capture and Removal"] = region_sector_df[
+    #     "Emissions|CO2|Other Capture and Removal"
+    # ] + region_sector_df[
+    #     [
+    #         "Ocean",
+    #         "Geological Storage|Direct Air Capture",
+    #         "Geological Storage|Other Sources",
+    #         "Long-Lived Materials",
+    #         "Enhanced Weathering",
+    #         "Other",
+    #     ]
+    # ].sum(axis=1)
+    #
+    # region_sector_df["Emissions|CO2|Energy|Demand|Industry"] = (
+    #     region_sector_df["Emissions|CO2|Energy|Demand|Industry"]
+    #     + region_sector_df["Geological Storage|Synthetic Fuels"]
+    # )
+
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
     is_co2 = region_sector_df_gridding.index.get_level_values("species") == "CO2"
@@ -1055,64 +1169,84 @@ def to_gridding_sectors(
     # We can do this here with confidence
     # because we assume that the users have used `to_complete`
     # before calling this function.
-    for gridding_sector, components in (
+
+    for table, sector_aggregation in [
         (
-            "Agriculture",
+            "Emissions",
             [
-                "AFOLU|Agriculture",
-                "AFOLU|Land|Harvested Wood Products",
-                "AFOLU|Land|Land Use and Land-Use Change",
-                "AFOLU|Land|Other",
-                "AFOLU|Land|Wetlands",
+                (
+                    "Agriculture",
+                    [
+                        "AFOLU|Agriculture",
+                        "AFOLU|Land|Harvested Wood Products",
+                        "AFOLU|Land|Land Use and Land-Use Change",
+                        "AFOLU|Land|Other",
+                        "AFOLU|Land|Wetlands",
+                    ],
+                ),
+                ("Agricultural Waste Burning", ["AFOLU|Agricultural Waste Burning"]),
+                ("Energy Sector", ["Energy|Supply"]),
+                ("Forest Burning", ["AFOLU|Land|Fires|Forest Burning"]),
+                ("Grassland Burning", ["AFOLU|Land|Fires|Grassland Burning"]),
+                (
+                    "Industrial Sector",
+                    [
+                        "Energy|Demand|Industry",
+                        "Industrial Processes",
+                        "Energy|Demand|Other Sector",
+                        "Other",
+                        "Other Capture and Removal",
+                    ],
+                ),
+                ("Peat Burning", ["AFOLU|Land|Fires|Peat Burning"]),
+                (
+                    "Residential Commercial Other",
+                    ["Energy|Demand|Residential and Commercial and AFOFI"],
+                ),
+                ("Solvents Production and Application", ["Product Use"]),
+                ("Waste", ["Waste"]),
+                ("CO2 AFOLU", ["AFOLU"]),
             ],
         ),
-        ("Agricultural Waste Burning", ["AFOLU|Agricultural Waste Burning"]),
-        ("Energy Sector", ["Energy|Supply"]),
-        ("Forest Burning", ["AFOLU|Land|Fires|Forest Burning"]),
-        ("Grassland Burning", ["AFOLU|Land|Fires|Grassland Burning"]),
         (
-            "Industrial Sector",
+            "Carbon Removal",
             [
-                "Energy|Demand|Industry",
-                "Industrial Processes",
-                "Energy|Demand|Other Sector",
-                "Other",
-                "Other Capture and Removal",
+                ("BECCS", ["Geological Storage|Biomass"]),
+                (
+                    "Other non-Land CDR",
+                    [
+                        "Ocean",
+                        "Geological Storage|Direct Air Capture",
+                        "Geological Storage|Synthetic Fuels",
+                        "Geological Storage|Other Sources",
+                        "Long-Lived Materials",
+                        "Enhanced Weathering",
+                    ],
+                ),
             ],
         ),
-        ("Peat Burning", ["AFOLU|Land|Fires|Peat Burning"]),
-        (
-            "Residential Commercial Other",
-            ["Energy|Demand|Residential and Commercial and AFOFI"],
-        ),
-        ("Solvents Production and Application", ["Product Use"]),
-        ("Waste", ["Waste"]),
-        ("CO2 AFOLU", ["AFOLU"]),
-    ):
-        if any("AFOLU|" in c for c in components):
-            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
-                list(set(components)), axis="columns", errors="ignore"
+    ]:
+        for gridding_sector, components in sector_aggregation:
+            # mask the right rows based on the table
+            mask = (
+                region_sector_df_gridding_co2.index.get_level_values("table") == table
             )
-        else:
-            region_sector_df_gridding_co2[gridding_sector] = (
-                region_sector_df_gridding_co2[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
-            )
-            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
-                list(set(components) - {gridding_sector}), axis="columns"
-            )
+            # Negative CDR
+            factor = -1 if table == "Carbon Removal" else 1
 
-        if gridding_sector != "CO2 AFOLU":
-            region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
-                components
-            ].sum(axis="columns")  # type: ignore # pandas-stubs confused
-
-            region_sector_df_gridding = region_sector_df_gridding.drop(
-                list(set(components) - {gridding_sector}), axis="columns"
-            )
-        else:
-            region_sector_df_gridding = region_sector_df_gridding.drop(
-                list(set(components)), axis="columns"
-            )
+            if any("AFOLU|" in c for c in components):
+                region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+                    columns=components, errors="ignore"
+                )
+            else:
+                subset = region_sector_df_gridding_co2.loc[mask, components].fillna(0)
+                region_sector_df_gridding_co2.loc[mask, gridding_sector] = (
+                    factor * subset.sum(axis="columns")
+                )
+                region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+                    columns=[c for c in components if c != gridding_sector],
+                    errors="ignore",
+                )
 
     region_sector_df_gridding = (
         pd.concat([region_sector_df_gridding, region_sector_df_gridding_co2])
