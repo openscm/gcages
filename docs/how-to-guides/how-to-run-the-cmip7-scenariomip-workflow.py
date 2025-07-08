@@ -83,7 +83,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""}
 EXAMPLE_INPUT_FILE = Path(
-    "tests/regression/cmip7-scenariomip/test-data/salted-202507-scenariomip-input.csv"
+    "tests/regression/cmip7-scenariomip/test-data/salted-202504-scenariomip-input.csv"
 )
 
 # %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
