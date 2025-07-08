@@ -57,6 +57,8 @@ COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
     "Transportation Sector",
     "Waste",
     "CO2 AFOLU",
+    "BECCS",
+    "Other non-Land CDR",
 )
 """
 Complete set of sectors for gridding
@@ -372,6 +374,8 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
             ],  # Those have been deprecated for CO2
             *[
                 "AFOLU",
+                "BECCS",
+                "Other non-Land CDR",
             ],  # Present in sector_df_full.columns but 0 in CO2
         }
     )

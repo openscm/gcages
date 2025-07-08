@@ -76,9 +76,7 @@ class GriddingSectorComponentsReporting:
         """
         if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
             return tuple(
-                f"Carbon Removal|{species}|{sector}"
-                for species in all_species
-                for sector in self.input_sectors
+                f"Carbon Removal|CO2|{sector}" for sector in self.input_sectors
             )
         else:
             return tuple(
@@ -93,13 +91,9 @@ class GriddingSectorComponentsReporting:
         """
         if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
             return tuple(
-                f"Carbon Removal|{species}|{sector}"
-                for species in all_species
+                f"Carbon Removal|CO2|{sector}"
                 for sector in self.input_sectors
-                if not (
-                    sector in self.input_sectors_optional
-                    or species in self.input_species_optional
-                )
+                if sector not in self.input_sectors_optional
             )
         else:
             return tuple(
@@ -1111,6 +1105,7 @@ def to_gridding_sectors(
     # CDR handling
     # BECCS  & Other (non-Land) CDR readdition
     # Get row masks just once
+
     emissions_mask = (
         region_sector_df.index.get_level_values("table") == "Emissions"
     ) & (region_sector_df.index.get_level_values("species") == "CO2")
@@ -1133,29 +1128,6 @@ def to_gridding_sectors(
             region_sector_df.loc[emissions_mask, emi].fillna(0).values
             + region_sector_df.loc[cdr_mask, cdr].fillna(0).values
         )
-
-    # region_sector_df["Emissions|CO2|Energy|Supply"] = (
-    #     region_sector_df["Emissions|CO2|Energy|Supply"]
-    #     + region_sector_df["Carbon Removal|Geological Storage|Biomass"]
-    # )
-    # # Other (non-Land) CDR readdition into Other carbon capture and removal
-    # region_sector_df["Emissions|CO2|Other Capture and Removal"] = region_sector_df[
-    #     "Emissions|CO2|Other Capture and Removal"
-    # ] + region_sector_df[
-    #     [
-    #         "Ocean",
-    #         "Geological Storage|Direct Air Capture",
-    #         "Geological Storage|Other Sources",
-    #         "Long-Lived Materials",
-    #         "Enhanced Weathering",
-    #         "Other",
-    #     ]
-    # ].sum(axis=1)
-    #
-    # region_sector_df["Emissions|CO2|Energy|Demand|Industry"] = (
-    #     region_sector_df["Emissions|CO2|Energy|Demand|Industry"]
-    #     + region_sector_df["Geological Storage|Synthetic Fuels"]
-    # )
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
@@ -1228,22 +1200,45 @@ def to_gridding_sectors(
     ]:
         for gridding_sector, components in sector_aggregation:
             # mask the right rows based on the table
-            mask = (
+            mask_co2 = (
                 region_sector_df_gridding_co2.index.get_level_values("table") == table
             )
-            # Negative CDR
-            factor = -1 if table == "Carbon Removal" else 1
+            mask_species = (
+                region_sector_df_gridding.index.get_level_values("table") == table
+            )
+            # Negative CDR BEWARE Tests does not like having the sign changed
+            factor = 1 if table == "Carbon Removal" else 1
 
+            # CO2 Aggregation
             if any("AFOLU|" in c for c in components):
                 region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                     columns=components, errors="ignore"
                 )
             else:
-                subset = region_sector_df_gridding_co2.loc[mask, components].fillna(0)
-                region_sector_df_gridding_co2.loc[mask, gridding_sector] = (
+                subset = region_sector_df_gridding_co2.loc[mask_co2, components].fillna(
+                    0
+                )
+                region_sector_df_gridding_co2.loc[mask_co2, gridding_sector] = (
                     factor * subset.sum(axis="columns")
                 )
                 region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+                    columns=[c for c in components if c != gridding_sector],
+                    errors="ignore",
+                )
+            # Other species aggregations
+            if gridding_sector in ["CO2 AFOLU", "Other non-Land CDR", "BECCS"]:
+                region_sector_df_gridding = region_sector_df_gridding.drop(
+                    columns=components, errors="ignore"
+                )
+            else:
+                summed = (
+                    region_sector_df_gridding.loc[mask_species, components]
+                    .fillna(0)
+                    .sum(axis="columns")
+                )
+                region_sector_df_gridding.loc[mask_species, gridding_sector] = summed
+
+                region_sector_df_gridding = region_sector_df_gridding.drop(
                     columns=[c for c in components if c != gridding_sector],
                     errors="ignore",
                 )
@@ -1254,6 +1249,7 @@ def to_gridding_sectors(
         .fillna(0)
     )
 
+    # World
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
             sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
@@ -1261,8 +1257,44 @@ def to_gridding_sectors(
         ),
         bottom_level="sectors",
     )
-    region_sector_df_gridding_like_input = combine_sectors(
-        region_sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
+    # Emissions
+    emissions_mask = (
+        region_sector_df_gridding.index.get_level_values("table") == "Emissions"
+    )
+    region_sector_df_gridding_emissions = region_sector_df_gridding[
+        emissions_mask
+    ].drop(columns=["BECCS", "Other non-Land CDR"])
+
+    region_sector_df_gridding_emissions_like_input = combine_sectors(
+        region_sector_df_gridding_emissions.unstack().stack(
+            "sectors", future_stack=True
+        ),  # type: ignore # pandas-stubs confused
+        bottom_level="sectors",
+    )
+
+    ## Carbon Removal
+    carbon_mask = (
+        region_sector_df_gridding.index.get_level_values("table") == "Carbon Removal"
+    )
+    region_sector_df_gridding_carbon = region_sector_df_gridding[carbon_mask].drop(
+        columns=[
+            "Waste",
+            "Transportation Sector",
+            "Agriculture",
+            "Agricultural Waste Burning",
+            "Energy Sector",
+            "Forest Burning",
+            "Grassland Burning",
+            "Industrial Sector",
+            "Peat Burning",
+            "Residential Commercial Other",
+            "Solvents Production and Application",
+            "CO2 AFOLU",
+        ]
+    )
+
+    region_sector_df_gridding_carbon_like_input = combine_sectors(
+        region_sector_df_gridding_carbon.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
         bottom_level="sectors",
     )
 
@@ -1271,7 +1303,8 @@ def to_gridding_sectors(
             df.reorder_levels(indf.index.names)
             for df in [
                 sector_df_gridding_like_input,
-                region_sector_df_gridding_like_input,
+                region_sector_df_gridding_emissions_like_input,
+                region_sector_df_gridding_carbon_like_input,
             ]
         ]
     )

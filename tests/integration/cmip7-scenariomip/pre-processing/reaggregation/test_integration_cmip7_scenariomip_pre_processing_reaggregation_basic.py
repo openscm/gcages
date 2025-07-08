@@ -366,10 +366,7 @@ COMPLETE_INDEX = to_index(
     world_region=WORLD_REGION,
     model_regions=MODEL_REGIONS,
 )
-mask = ~(
-    COMPLETE_INDEX.get_level_values("variable").str.startswith("Carbon Removal|")
-    & ~COMPLETE_INDEX.get_level_values("variable").str.startswith("Carbon Removal|CO2")
-)
+
 
 REQUIRED_INDEX = to_index(
     GRIDDING_SECTORS.values(),
@@ -625,7 +622,7 @@ def test_assert_has_all_required_timeseries(to_remove, to_add, exp):
         to_remove_locator = multi_index_match(to_check.index, to_remove)
         assert to_remove_locator.sum() > 0, "Test won't do anything"
         to_check = to_check.loc[~to_remove_locator]
-    # breakpoint()
+
     if to_add is not None:
         already_included_locator = multi_index_match(to_check.index, to_add)
         assert already_included_locator.sum() == 0, "Test won't do anything"
