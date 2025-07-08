@@ -592,20 +592,6 @@ def get_example_input(  # noqa: PLR0913
     else:
         res = res_gridding
 
-    # drop_vars = [
-    #     "Emissions|CO2|AFOLU|Agriculture",
-    #     "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-    #     "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-    #     "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-    #     "Emissions|CO2|AFOLU|Land|Other",
-    #     "Emissions|CO2|AFOLU|Land|Wetlands",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
-    # ]
-    #
-    # res = res.loc[~res.index.get_level_values("variable").isin(drop_vars)]
-
     return res
 
 
@@ -1110,22 +1096,10 @@ def to_gridding_sectors(
         else:
             region_sector_df_gridding_co2[gridding_sector] = (
                 region_sector_df_gridding_co2[components].sum(axis="columns")
-            )  # type: ignore # pandas-stubs confused
+            )
             region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                 list(set(components) - {gridding_sector}), axis="columns"
             )
-
-        # region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
-        #     components].sum(axis="columns")  # type: ignore # pandas-stubs confused
-        # region_sector_df_gridding = region_sector_df_gridding.drop(
-        # list(set(components) - {gridding_sector}), axis="columns")
-
-        # region_sector_df_gridding_co2[gridding_sector] = (
-        #         region_sector_df_gridding_co2[components].sum(axis="columns")
-        #     )  # type: ignore # pandas-stubs confused
-        # region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
-        #         list(set(components) - {gridding_sector}), axis="columns"
-        #     )
 
         if gridding_sector != "CO2 AFOLU":
             region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
