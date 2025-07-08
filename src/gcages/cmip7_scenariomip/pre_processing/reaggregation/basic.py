@@ -1095,7 +1095,7 @@ def to_gridding_sectors(
             )
         else:
             region_sector_df_gridding_co2[gridding_sector] = (
-                region_sector_df_gridding_co2[components].sum(axis="columns")
+                region_sector_df_gridding_co2[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
             )
             region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                 list(set(components) - {gridding_sector}), axis="columns"
