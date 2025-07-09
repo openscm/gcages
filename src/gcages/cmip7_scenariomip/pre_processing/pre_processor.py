@@ -210,7 +210,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             indf,
             ["model", "scenario", region_level, unit_level, variable_level],
         )
-    # breakpoint()
+
     if reaggregator is None:
         reaggregator = guess_reaggregator(indf, region_level=region_level)
 
@@ -301,7 +301,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             in_emissions_totals_to_compare_to,
             rtol=rtol,
         )
-
+    # breakpoint()
     # Figure out the global workflow emissions
     global_workflow_emissions_from_gridding_emissions = to_global_workflow_emissions(
         gridding_workflow_emissions,
@@ -315,7 +315,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         co2_biosphere_sectors=co2_biosphere_sectors,
         co2_name=co2_name,
     )
-
+    # breakpoint()
     gwe_split = split_sectors(gridding_workflow_emissions, middle_level="species")
     species_from_gridding = tuple(gwe_split.index.get_level_values("species").unique())
 
@@ -381,7 +381,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         if global_workflow_emissions_raw_names.columns.dtype != indf.columns.dtype:
             msg = "Column type does not match input"
             raise AssertionError(msg)
-
+    # breakpoint()
     global_workflow_emissions = update_index_levels_func(
         global_workflow_emissions_raw_names,
         {
@@ -392,14 +392,14 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             )
         },
     )
-
+    # breakpoint()
     res = CMIP7ScenarioMIPPreProcessingResult(
         assumed_zero_emissions=to_complete_result.assumed_zero,
         gridding_workflow_emissions=gridding_workflow_emissions,
         global_workflow_emissions=global_workflow_emissions,
         global_workflow_emissions_raw_names=global_workflow_emissions_raw_names,
     )
-
+    # breakpoint()
     return res
 
 
@@ -545,7 +545,7 @@ class CMIP7ScenarioMIPPreProcessor:
     Name used for CO2 in variable names
     """
 
-    table: tuple[str, ...] = ["Emissions", "Carbon Removal"]
+    table: tuple[str, ...] = ("Emissions", "Carbon Removal")
     """
     The value used for the top level of variable names
     """

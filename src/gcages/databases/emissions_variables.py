@@ -433,6 +433,14 @@ EMISSIONS_VARIABLES = pd.DataFrame(
             "Emissions|F-Gases|PFC|cC4F8",
             "Emissions|PFC|cC4F8",
         ),
+        (
+            None,
+            None,
+            "Carbon Removal",
+            "Carbon Removal|CO2",
+            None,
+            None,
+        ),
     ],
     columns=[
         "gcages",

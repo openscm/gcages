@@ -300,7 +300,7 @@ def to_global_workflow_emissions(  # noqa: PLR0913
             for df in [gw_total_df_input_like, gw_sector_df_input_like]
         ]
     )
-
+    # breakpoint()
     return res
 
 
@@ -367,7 +367,9 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
 
     sector_df_full = pd.concat([sector_df, region_sector_df_region_sum], axis="columns")
 
-    co2_locator = sector_df_full.index.get_level_values(species_level) == co2_name
+    co2_locator = (sector_df_full.index.get_level_values(species_level) == co2_name) & (
+        sector_df_full.index.get_level_values("table") == "Emissions"
+    )
 
     non_co2: pd.Series[NP_FLOAT_OR_INT] = sector_df_full[~co2_locator].sum(  # type: ignore # pandas-stubs out of date
         axis="columns"
@@ -419,5 +421,5 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
             for df in [co2_fossil, co2_biosphere]
         ]
     )
-
+    # breakpoint()
     return sectors, totals

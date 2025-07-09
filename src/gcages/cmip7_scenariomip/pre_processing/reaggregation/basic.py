@@ -1056,6 +1056,7 @@ def to_gridding_sectors(
         .stack()
         .unstack("sectors")
     )
+
     sector_df = sector_df.fillna(0)
 
     # Data with region information

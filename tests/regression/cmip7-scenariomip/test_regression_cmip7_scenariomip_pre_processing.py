@@ -33,21 +33,26 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     )
     input_df.columns.name = "year"
 
+    mask = input_df.index.get_level_values("variable").str.startswith(
+        "Emissions"
+    ) | input_df.index.get_level_values("variable").str.startswith("Carbon Removal")
+    input_df = input_df[mask].fillna(0)
+
     model_regions = [
         r
         for r in input_df.index.get_level_values("region").unique()
-        if r.startswith("model_1")
+        if r.startswith("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12")
     ]
+
     reaggregator = ReaggregatorBasic(model_regions=model_regions)
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
     )
-    # breakpoint()
+
     res = pre_processor(input_df)
 
-    # breakpoint()
     for attr in [
         "assumed_zero_emissions",
         "global_workflow_emissions",
