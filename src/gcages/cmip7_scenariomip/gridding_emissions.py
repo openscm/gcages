@@ -56,6 +56,7 @@ COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
     "Solvents Production and Application",
     "Transportation Sector",
     "Waste",
+    "CO2 AFOLU",
 )
 """
 Complete set of sectors for gridding
@@ -166,11 +167,12 @@ but the best we can do.
 CO2_BIOSPHERE_SECTORS_GRIDDING: tuple[str, ...] = (
     # Agriculture in biosphere because most of its emissions
     # are land carbon cycle (but not all, probably, in reality)
-    "Agriculture",
-    "Agricultural Waste Burning",
-    "Forest Burning",
-    "Grassland Burning",
-    "Peat Burning",
+    # "Agriculture",
+    # "Agricultural Waste Burning",
+    # "Forest Burning",
+    # "Grassland Burning",
+    # "Peat Burning",
+    "CO2 AFOLU",
 )
 """
 Sectors that come from biospheric CO2 reservoirs (gridding naming convention)
@@ -361,6 +363,16 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
         - {
             *co2_biosphere_sectors,
             *co2_fossil_sectors,
+            *[
+                "Agriculture",
+                "Agricultural Waste Burning",
+                "Forest Burning",
+                "Grassland Burning",
+                "Peat Burning",
+            ],  # Those have been deprecated for CO2
+            *[
+                "AFOLU",
+            ],  # Present in sector_df_full.columns but 0 in CO2
         }
     )
     if not_used_cols:

@@ -130,7 +130,7 @@ gridding_sectors_reporting = (
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Agricultural Waste Burning",),
         input_sectors_optional=(),
-        input_species_optional=(),
+        input_species_optional=("CO2",),
     ),
     GriddingSectorComponentsReporting(
         gridding_sector="Aircraft",
@@ -171,14 +171,14 @@ gridding_sectors_reporting = (
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Land|Fires|Forest Burning",),
         input_sectors_optional=(),
-        input_species_optional=(),
+        input_species_optional=("CO2",),
     ),
     GriddingSectorComponentsReporting(
         gridding_sector="Grassland Burning",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Land|Fires|Grassland Burning",),
         input_sectors_optional=(),
-        input_species_optional=(),
+        input_species_optional=("CO2",),
     ),
     GriddingSectorComponentsReporting(
         gridding_sector="Industrial Sector",
@@ -231,6 +231,23 @@ gridding_sectors_reporting = (
         input_sectors=("Waste",),
         input_sectors_optional=(),
         input_species_optional=(),
+    ),
+    GriddingSectorComponentsReporting(
+        gridding_sector="CO2 AFOLU",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("AFOLU",),
+        input_sectors_optional=(),
+        input_species_optional=(
+            "BC",
+            "CH4",
+            "CO",
+            "NH3",
+            "N2O",
+            "NOx",
+            "OC",
+            "Sulfur",
+            "VOC",
+        ),
     ),
 )
 
@@ -780,6 +797,26 @@ def assert_is_internally_consistent(  # noqa: PLR0913
         # because of how many different ways it can go wrong
         # e.g. you can have extra components that aren't used,
         # incorrect aggregation
+
+        drop_vars = [
+            "Emissions|CH4|AFOLU",
+            "Emissions|N2O|AFOLU",
+            "Emissions|NOx|AFOLU",
+            "Emissions|BC|AFOLU",
+            "Emissions|NH3|AFOLU",
+            "Emissions|OC|AFOLU",
+            "Emissions|VOC|AFOLU",
+            "Emissions|Sulfur|AFOLU",
+            "Emissions|CO|AFOLU",
+            "Emissions|CO2|AFOLU",
+        ]
+        df_short = df_species_internal_consistency_checking_relevant
+        df_short = df_short.loc[
+            ~df_short.index.get_level_values("variable").isin(drop_vars)
+        ]
+
+        df_species_internal_consistency_checking_relevant = df_short
+
         df_species_aggregate = get_region_sector_sum(
             df_species_internal_consistency_checking_relevant,
             region_level=region_level,
@@ -881,6 +918,7 @@ def to_complete(  # noqa: PLR0913
         complete_index=complete_index,
         unit_col=unit_level,
     )
+
     if missing_indexes.empty:
         res = ToCompleteResult(complete=keep, assumed_zero=None)
     else:
@@ -1005,6 +1043,14 @@ def to_gridding_sectors(
         {"Energy|Demand|Transportation": "Transportation Sector"},
         axis="columns",
     )
+    # To handle CO2 differently
+    # Get boolean masks for CO2 and non-CO2 species
+    is_co2 = region_sector_df_gridding.index.get_level_values("species") == "CO2"
+    # Special treatment for CO2
+    region_sector_df_gridding_co2 = region_sector_df_gridding[is_co2]
+    # Select rows for non-CO2
+    region_sector_df_gridding = region_sector_df_gridding[~is_co2]
+
     # Do other compilations.
     # We can do this here with confidence
     # because we assume that the users have used `to_complete`
@@ -1041,13 +1087,38 @@ def to_gridding_sectors(
         ),
         ("Solvents Production and Application", ["Product Use"]),
         ("Waste", ["Waste"]),
+        ("CO2 AFOLU", ["AFOLU"]),
     ):
-        region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
-            components
-        ].sum(axis="columns")  # type: ignore # pandas-stubs confused
-        region_sector_df_gridding = region_sector_df_gridding.drop(
-            list(set(components) - {gridding_sector}), axis="columns"
-        )
+        if any("AFOLU|" in c for c in components):
+            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+                list(set(components)), axis="columns", errors="ignore"
+            )
+        else:
+            region_sector_df_gridding_co2[gridding_sector] = (
+                region_sector_df_gridding_co2[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
+            )
+            region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
+                list(set(components) - {gridding_sector}), axis="columns"
+            )
+
+        if gridding_sector != "CO2 AFOLU":
+            region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
+                components
+            ].sum(axis="columns")  # type: ignore # pandas-stubs confused
+
+            region_sector_df_gridding = region_sector_df_gridding.drop(
+                list(set(components) - {gridding_sector}), axis="columns"
+            )
+        else:
+            region_sector_df_gridding = region_sector_df_gridding.drop(
+                list(set(components)), axis="columns"
+            )
+
+    region_sector_df_gridding = (
+        pd.concat([region_sector_df_gridding, region_sector_df_gridding_co2])
+        .sort_index()
+        .fillna(0)
+    )
 
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(

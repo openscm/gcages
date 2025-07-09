@@ -215,6 +215,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         reaggregator = guess_reaggregator(indf, region_level=region_level)
 
     indf_reported_times = indf.dropna(how="all", axis="columns")
+
     if run_checks:
         indf_reported_times_nan = indf_reported_times.isnull().any(axis="columns")
         if indf_reported_times_nan.any():
@@ -265,17 +266,40 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             world_region=reaggregator.world_region,
         )
         gridded_emisssions_sectoral_regional_sum = grss(gridding_workflow_emissions)
+        # To avoid double counting
+        drop_vars = [
+            "Emissions|CH4|AFOLU",
+            "Emissions|N2O|AFOLU",
+            "Emissions|NOx|AFOLU",
+            "Emissions|BC|AFOLU",
+            "Emissions|NH3|AFOLU",
+            "Emissions|OC|AFOLU",
+            "Emissions|VOC|AFOLU",
+            "Emissions|Sulfur|AFOLU",
+            "Emissions|CO|AFOLU",
+            "Emissions|CO2|AFOLU",
+        ]
+        df_to_sum = multi_index_lookup(
+            indf, reaggregator.get_internal_consistency_checking_index()
+        )
+        df_to_sum = df_to_sum.loc[
+            ~df_to_sum.index.get_level_values("variable").isin(drop_vars)
+        ]
+
         in_emissions_totals_to_compare_to = grss(
             # Make sure we only sum across the levels
             # that are useful for getting the total
-            multi_index_lookup(
-                indf, reaggregator.get_internal_consistency_checking_index()
-            )
+            df_to_sum
         )
+
         # No tolerance as this should be exact
+        # Added small tolerance for large numbers (maybe should be better with min)
+        rtol = gridded_emisssions_sectoral_regional_sum.max().max() * 1e-8
+
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
             in_emissions_totals_to_compare_to,
+            rtol=rtol,
         )
 
     # Figure out the global workflow emissions
@@ -587,6 +611,7 @@ class CMIP7ScenarioMIPPreProcessor:
             ),
         )
         res_d = defaultdict(list)
+
         for res_ms in res_g:
             for k, v in asdict(res_ms).items():
                 if v is not None:

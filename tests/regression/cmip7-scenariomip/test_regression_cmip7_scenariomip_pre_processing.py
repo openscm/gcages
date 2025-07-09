@@ -44,6 +44,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         n_processes=None,  # run serially
         progress=False,
     )
+
     res = pre_processor(input_df)
 
     for attr in [

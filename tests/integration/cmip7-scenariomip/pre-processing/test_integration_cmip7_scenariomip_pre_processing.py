@@ -102,13 +102,28 @@ def test_output_vs_start_total_consistency(example_input_output):
     gridded_emisssions_sector_regional_sum = get_region_sector_sum(
         example_input_output.output.gridding_workflow_emissions
     )
-
-    input_emissions_sector_region_sum = get_region_sector_sum(
-        multi_index_lookup(
-            example_input_output.input,
-            example_input_output.reaggregator.get_internal_consistency_checking_index(),
-        )
+    # To avoid double counting
+    drop_vars = [
+        "Emissions|CH4|AFOLU",
+        "Emissions|N2O|AFOLU",
+        "Emissions|NOx|AFOLU",
+        "Emissions|BC|AFOLU",
+        "Emissions|NH3|AFOLU",
+        "Emissions|OC|AFOLU",
+        "Emissions|VOC|AFOLU",
+        "Emissions|Sulfur|AFOLU",
+        "Emissions|CO|AFOLU",
+        "Emissions|CO2|AFOLU",
+    ]
+    df_to_sum = multi_index_lookup(
+        example_input_output.input,
+        example_input_output.reaggregator.get_internal_consistency_checking_index(),
     )
+    df_to_sum = df_to_sum.loc[
+        ~df_to_sum.index.get_level_values("variable").isin(drop_vars)
+    ]
+
+    input_emissions_sector_region_sum = get_region_sector_sum(df_to_sum)
 
     assert_frame_equal(
         gridded_emisssions_sector_regional_sum, input_emissions_sector_region_sum
