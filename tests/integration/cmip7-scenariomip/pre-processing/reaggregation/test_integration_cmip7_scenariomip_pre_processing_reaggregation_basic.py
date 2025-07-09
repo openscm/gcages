@@ -298,7 +298,7 @@ GRIDDING_SECTORS = {
                 "Geological Storage|Direct Air Capture",
                 "Geological Storage|Synthetic Fuels",
                 "Geological Storage|Other Sources",
-                "Long-Lived Materials",
+                # "Long-Lived Materials",
                 "Enhanced Weathering",
                 # "Other",
             ),
