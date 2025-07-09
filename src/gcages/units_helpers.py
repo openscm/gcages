@@ -7,10 +7,11 @@ from __future__ import annotations
 from collections.abc import Collection
 
 import pandas as pd
+from pandas_indexing import assignlevel
 
 
 def assert_has_no_pint_incompatible_characters(
-    units: Collection[str], pint_incompatible_characters=None
+    units: Collection[str], pint_incompatible_characters: Collection[str] | None = None
 ) -> None:
     """
     Assert that a collection does not contain pint-incompatible characters/strings
@@ -88,13 +89,15 @@ def strip_pint_incompatible_characters_from_units(
         `indf` with pint-incompatible characters
         removed from the `units_index_level` of its index.
     """
+    # TODO: I'm not sure if this copy is necessary
     res = indf.copy()
-    res.index = res.index.remove_unused_levels()  # type: ignore # not in pandas-stubs
-    res.index = res.index.set_levels(  # type: ignore # pandas-stubs out of date
-        res.index.levels[res.index.names.index(units_index_level)].map(  # type: ignore # pandas-stubs out of date
+
+    new_units = pd.Series(
+        data=res.index.get_level_values(units_index_level).map(
             strip_pint_incompatible_characters_from_unit_string
         ),
-        level=units_index_level,
+        index=res.index,
+        name=units_index_level,
     )
 
-    return res
+    return assignlevel(res, frame=new_units)
