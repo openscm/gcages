@@ -10,10 +10,10 @@ import pandas as pd
 
 
 def assert_has_no_pint_incompatible_characters(
-    units: Collection[str], pint_incompatible_characters: Collection[str] = {"-"}
+    units: Collection[str], pint_incompatible_characters=None
 ) -> None:
     """
-    Assert that a collection does not contain pint-incompatible characters
+    Assert that a collection does not contain pint-incompatible characters/strings
 
     Parameters
     ----------
@@ -25,6 +25,9 @@ def assert_has_no_pint_incompatible_characters(
     pint_incompatible_characters
         Characters which are incompatible with pint
 
+        This defaults to `{"-", "equiv"}`, which are commonly used in units,
+        but not compatible with pint.
+
         You should not need to change this, but it is made an argument just in case
 
     Raises
@@ -32,6 +35,9 @@ def assert_has_no_pint_incompatible_characters(
     AssertionError
         `units` has elements that contain pint-incompatible characters
     """
+    if pint_incompatible_characters is None:
+        pint_incompatible_characters = {"-", "equiv"}
+
     unit_contains_pint_incompatible = [
         u for u in units if any(pi in u for pi in pint_incompatible_characters)
     ]
@@ -39,7 +45,8 @@ def assert_has_no_pint_incompatible_characters(
         msg = (
             "The following units contain pint incompatible characters: "
             f"{unit_contains_pint_incompatible=}. "
-            f"{pint_incompatible_characters=}"
+            # Sort to make the error message deterministic
+            f"pint_incompatible_characters={sorted(pint_incompatible_characters)}"
         )
         raise AssertionError(msg)
 
@@ -58,7 +65,7 @@ def strip_pint_incompatible_characters_from_unit_string(unit_str: str) -> str:
     :
         `unit_str` with pint-incompatible characters removed
     """
-    return unit_str.replace("-", "")
+    return unit_str.replace("-", "").replace("equiv", "")
 
 
 def strip_pint_incompatible_characters_from_units(
