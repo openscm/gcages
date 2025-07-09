@@ -38,7 +38,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     mask = input_df.index.get_level_values("variable").str.startswith(
         "Emissions"
     ) | input_df.index.get_level_values("variable").str.startswith("Carbon Removal")
-    # input_df = input_df[mask].fillna(0)
+
     input_df = input_df[mask].T.interpolate(method="index").T
     input_df = input_df.rename(
         lambda x: re.sub(r"^Carbon Removal", r"Carbon Removal|CO2", x)

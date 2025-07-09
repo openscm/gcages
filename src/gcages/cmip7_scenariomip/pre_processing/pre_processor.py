@@ -294,7 +294,8 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
 
         # No tolerance as this should be exact
         # Added small tolerance for large numbers (maybe should be better with min)
-        rtol = abs(gridded_emisssions_sectoral_regional_sum.max().max() * 1e-8)
+        # rtol = abs(gridded_emisssions_sectoral_regional_sum.max().max() * 1e-8)
+        # rtol = 1e-8
         # The sign of the 'Carbon Removal' must be flipped to compare
         # (it gets changed in the reaggregation)
         mask = gridded_emisssions_sectoral_regional_sum.index.get_level_values(
@@ -305,7 +306,6 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
             in_emissions_totals_to_compare_to,
-            rtol=rtol,
         )
 
     # Figure out the global workflow emissions
