@@ -434,12 +434,12 @@ EMISSIONS_VARIABLES = pd.DataFrame(
             "Emissions|PFC|cC4F8",
         ),
         (
-            None,
-            None,
+            "Carbon Removal|CO2",
+            "Carbon Removal|CO2",
             "Carbon Removal",
             "Carbon Removal|CO2",
-            None,
-            None,
+            "Carbon Removal|CO2",
+            "Carbon Removal|CO2",
         ),
     ],
     columns=[
