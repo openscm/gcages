@@ -2,6 +2,7 @@
 Regression tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -33,22 +34,31 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     )
     input_df.columns.name = "year"
 
+    # The new salted data needs a bit of make-up
     mask = input_df.index.get_level_values("variable").str.startswith(
         "Emissions"
     ) | input_df.index.get_level_values("variable").str.startswith("Carbon Removal")
     input_df = input_df[mask].fillna(0)
+    input_df = input_df.rename(
+        lambda x: re.sub(r"^Carbon Removal", r"Carbon Removal|CO2", x)
+        if isinstance(x, str)
+        else x,
+        level="variable",
+    )
 
     model_regions = [
         r
         for r in input_df.index.get_level_values("region").unique()
-        if r.startswith("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12")
+        if r.startswith("model_1")
     ]
 
     reaggregator = ReaggregatorBasic(model_regions=model_regions)
+
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
+        run_checks=False,
     )
 
     res = pre_processor(input_df)

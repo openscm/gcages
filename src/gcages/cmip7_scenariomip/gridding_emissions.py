@@ -300,7 +300,6 @@ def to_global_workflow_emissions(  # noqa: PLR0913
             for df in [gw_total_df_input_like, gw_sector_df_input_like]
         ]
     )
-    # breakpoint()
     return res
 
 
@@ -421,5 +420,5 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
             for df in [co2_fossil, co2_biosphere]
         ]
     )
-    # breakpoint()
+
     return sectors, totals
