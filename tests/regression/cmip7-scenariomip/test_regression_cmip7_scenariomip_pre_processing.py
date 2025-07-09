@@ -44,9 +44,10 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         n_processes=None,  # run serially
         progress=False,
     )
-
+    # breakpoint()
     res = pre_processor(input_df)
 
+    # breakpoint()
     for attr in [
         "assumed_zero_emissions",
         "global_workflow_emissions",

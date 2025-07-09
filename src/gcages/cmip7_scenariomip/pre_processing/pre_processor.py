@@ -135,7 +135,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
     time_name: str,
     run_checks: bool,
     world_gridding_sectors: tuple[str, ...] = ("Aircraft", "International Shipping"),
-    table: str = "Emissions",
+    table: tuple[str, ...] = ("Emissions", "Carbon Removal"),
     level_separator: str = "|",
     co2_fossil_sectors: tuple[str, ...] = CO2_FOSSIL_SECTORS_GRIDDING,
     co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING,
@@ -210,7 +210,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             indf,
             ["model", "scenario", region_level, unit_level, variable_level],
         )
-
+    # breakpoint()
     if reaggregator is None:
         reaggregator = guess_reaggregator(indf, region_level=region_level)
 

@@ -271,6 +271,6 @@ def assert_all_groups_are_complete(
                 tmp[key] = value
 
             missing_l.append(tmp)
-
+    # breakpoint()
     if missing_l:
         raise NotCompleteError(pd.concat(missing_l), complete_index=complete_index)

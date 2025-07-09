@@ -816,11 +816,10 @@ def complete_to_gridding_res():
 
 def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
     _, _, res = complete_to_gridding_res
-    # breakpoint()
+
     complete_gridding_index = get_complete_gridding_index(model_regions=MODEL_REGIONS)
     assert_all_groups_are_complete(res, complete_gridding_index)
     # Make sure there are no extras
-    # breakpoint()
     assert res.shape[0] == complete_gridding_index.shape[0]
 
 
@@ -848,6 +847,12 @@ def test_complete_to_gridding_sectors_straightforward_sector(
         region_locator,
         list(gridding_sector_definition.input_sectors),
     ]
+    # Separating CDR form Emissions
+    if gridding_sector_definition.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+        tmp = tmp[tmp.index.get_level_values("table") != "Emissions"]
+    else:
+        tmp = tmp[tmp.index.get_level_values("table") != "Carbon Removal"]
+
     # Forcing CO2 dropped sectors to be 0 even in the CO2 case
     if gridding_sector_definition.gridding_sector in [
         "Agriculture",
@@ -874,7 +879,9 @@ def test_complete_to_gridding_sectors_straightforward_sector(
 def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_gridding_res):
     _, input_stacked, res = complete_to_gridding_res
 
-    region_locator = input_stacked.index.get_level_values("region") != WORLD_REGION
+    region_locator = (
+        input_stacked.index.get_level_values("region") != WORLD_REGION
+    ) & (input_stacked.index.get_level_values("table") != "Carbon Removal")
 
     domestic_aviation_sum = groupby_except(
         input_stacked.loc[region_locator][
@@ -883,12 +890,15 @@ def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_griddin
         "region",
     ).sum()
     tmp = input_stacked.loc[~region_locator].copy()
+    tmp = tmp[tmp.index.get_level_values("table") != "Carbon Removal"]
+
     tmp["Aircraft"] = (
         tmp["Energy|Demand|Bunkers|International Aviation"] + domestic_aviation_sum
     )
     exp_aircraft = combine_sectors(
         tmp[["Aircraft"]].unstack().stack("sectors", future_stack=True)
     ).reorder_levels(res.index.names)
+
     assert_frame_equal(multi_index_lookup(res, exp_aircraft.index), exp_aircraft)
 
     tmp = input_stacked.loc[region_locator].copy()
@@ -899,6 +909,7 @@ def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_griddin
     exp_transport = combine_sectors(
         tmp[["Transportation Sector"]].unstack().stack("sectors", future_stack=True)
     ).reorder_levels(res.index.names)
+
     assert_frame_equal(multi_index_lookup(res, exp_transport.index), exp_transport)
 
 

@@ -74,7 +74,10 @@ def get_complete_gridding_index(  # noqa: PLR0913
     world_region: str = "World",
     region_level: str = "region",
     variable_level: str = "variable",
-    table: str = "Emissions",
+    table: tuple[str, ...] = (
+        "Emissions",
+        "Carbon Removal",
+    ),
     level_separator: str = "|",
 ) -> pd.MultiIndex:
     """
@@ -111,7 +114,7 @@ def get_complete_gridding_index(  # noqa: PLR0913
         Index of complete gridding data
     """
     complete_world_variables = [
-        level_separator.join([table, species, sectors])
+        level_separator.join(["Emissions", species, sectors])
         for species, sectors in itertools.product(
             COMPLETE_GRIDDING_SPECIES, world_gridding_sectors
         )
@@ -123,12 +126,22 @@ def get_complete_gridding_index(  # noqa: PLR0913
     model_region_sectors = sorted(
         set(COMPLETE_GRIDDING_SECTORS) - set(world_gridding_sectors)
     )
-    complete_model_region_variables = [
-        level_separator.join([table, species, sectors])
-        for species, sectors in itertools.product(
-            COMPLETE_GRIDDING_SPECIES, model_region_sectors
-        )
+    # Separating Emissions for CDR at regional level
+    cdr_model_region_sectors = ["BECCS", "Other non-Land CDR"]
+    emissions_model_region_sectors = [
+        el for el in model_region_sectors if el not in cdr_model_region_sectors
     ]
+
+    complete_model_region_variables = [
+        level_separator.join(["Emissions", species, sectors])
+        for species, sectors in itertools.product(
+            COMPLETE_GRIDDING_SPECIES, emissions_model_region_sectors
+        )
+    ] + [
+        level_separator.join(["Carbon Removal", species, sectors])
+        for species, sectors in itertools.product(["CO2"], cdr_model_region_sectors)
+    ]
+
     model_region_required = pd.MultiIndex.from_product(
         [complete_model_region_variables, model_regions],
         names=[variable_level, region_level],
