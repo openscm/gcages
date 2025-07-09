@@ -124,6 +124,13 @@ def test_output_vs_start_total_consistency(example_input_output):
     ]
 
     input_emissions_sector_region_sum = get_region_sector_sum(df_to_sum)
+    # The sign of the 'Carbon Removal' must be flipped to do the comparision
+    # (it gets changed in the reaggregation)
+    #
+    mask = gridded_emisssions_sector_regional_sum.index.get_level_values(
+        "variable"
+    ).str.startswith("Carbon Removal")
+    gridded_emisssions_sector_regional_sum.loc[mask] *= -1
 
     assert_frame_equal(
         gridded_emisssions_sector_regional_sum, input_emissions_sector_region_sum

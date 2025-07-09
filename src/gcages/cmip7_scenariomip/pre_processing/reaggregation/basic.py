@@ -1125,10 +1125,14 @@ def to_gridding_sectors(
         # "Other":                                 "Other Capture and Removal",
     }
     for cdr, emi in sector_map.items():
-        region_sector_df.loc[emissions_mask, emi] = (
-            region_sector_df.loc[emissions_mask, emi].fillna(0).values
-            + region_sector_df.loc[cdr_mask, cdr].fillna(0).values
-        )
+        # The sum is done with some extra caution
+        left = region_sector_df.loc[emissions_mask, emi]
+        right = region_sector_df.loc[cdr_mask, cdr]
+        if left is None:
+            left = 0
+        if right is None:
+            right = 0
+        region_sector_df.loc[emissions_mask, emi] = left + right
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
@@ -1208,7 +1212,7 @@ def to_gridding_sectors(
                 region_sector_df_gridding.index.get_level_values("table") == table
             )
             # Negative CDR BEWARE Tests does not like having the sign changed
-            factor = 1 if table == "Carbon Removal" else 1
+            factor = -1 if table == "Carbon Removal" else 1
 
             # CO2 Aggregation
             if any("AFOLU|" in c for c in components):

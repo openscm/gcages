@@ -808,6 +808,10 @@ def complete_to_gridding_res():
     input = tcr.complete
 
     res = to_gridding_sectors(input)
+    # The signs of the Carbon Removal are flipped when gridding. Below are restored to
+    # the originals to allow comparisons.
+    mask = res.index.get_level_values("variable").str.startswith("Carbon Removal")
+    res.loc[mask] *= -1
 
     input_stacked = split_sectors(input).stack(future_stack=True).unstack("sectors")
 
