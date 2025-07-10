@@ -1226,7 +1226,7 @@ def to_gridding_sectors(  # noqa: PLR0915
                 )
                 region_sector_df_gridding_co2.loc[mask_co2, gridding_sector] = (
                     factor * subset.sum(axis=1)  # type: ignore # pandas-stubs confused
-                )  # type: ignore # pandas-stubs confused
+                )
                 region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                     columns=[c for c in components if c != gridding_sector],
                     errors="ignore",
