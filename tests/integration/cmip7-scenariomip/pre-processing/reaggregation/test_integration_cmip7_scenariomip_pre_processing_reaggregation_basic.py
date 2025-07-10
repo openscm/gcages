@@ -833,7 +833,13 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
         pytest.param(gs, id=name)
         for name, gs in GRIDDING_SECTORS.items()
         if name
-        not in ("Aircraft", "Domestic aviation headache", "Transportation Sector")
+        not in (
+            "Aircraft",
+            "Domestic aviation headache",
+            "Transportation Sector",
+            "Energy Sector",
+            "Industrial Sector",
+        )
     ),
 )
 def test_complete_to_gridding_sectors_straightforward_sector(
@@ -928,5 +934,11 @@ def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res)
     ).reorder_levels(internally_consistent.index.names)
 
     exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
+
+    # To account for CDR in the sum
+    exp_totals.loc["Emissions|CO2"] = (
+        exp_totals.loc["Emissions|CO2"].values
+        + exp_totals.loc["Carbon Removal|CO2"].values
+    )
 
     assert_frame_equal(res_totals, exp_totals)

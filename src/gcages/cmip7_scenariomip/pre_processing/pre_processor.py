@@ -292,17 +292,25 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             df_to_sum
         )
 
-        # No tolerance as this should be exact
-        # Added small tolerance for large numbers (maybe should be better with min)
-        # rtol = abs(gridded_emisssions_sectoral_regional_sum.max().max() * 1e-8)
-        # rtol = 1e-8
         # The sign of the 'Carbon Removal' must be flipped to compare
         # (it gets changed in the reaggregation)
         mask = gridded_emisssions_sectoral_regional_sum.index.get_level_values(
             "variable"
         ).str.startswith("Carbon Removal")
         gridded_emisssions_sectoral_regional_sum.loc[mask] *= -1
+        # To account for CDR in the sum
+        cdr = in_emissions_totals_to_compare_to.xs(
+            "Carbon Removal|CO2", level="variable"
+        )
+        emi = in_emissions_totals_to_compare_to.xs("Emissions|CO2", level="variable")
+        # Sum them
+        co2_sum = emi + cdr
+        # Assign the result back into the original DataFrame under "Emissions|CO2"
+        for idx, row in co2_sum.iterrows():
+            new_idx = idx[:3] + ("Emissions|CO2",) + idx[3:]  # Rebuild full MultiIndex
+            in_emissions_totals_to_compare_to.loc[new_idx] = row.values
 
+        # No tolerance as this should be exact
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
             in_emissions_totals_to_compare_to,

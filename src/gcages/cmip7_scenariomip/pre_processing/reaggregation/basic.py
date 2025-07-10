@@ -1021,7 +1021,7 @@ def to_complete(  # noqa: PLR0913
     return res
 
 
-def to_gridding_sectors(
+def to_gridding_sectors(  # noqa: PLR0915
     indf: pd.DataFrame, region_level: str = "region", world_region: str = "World"
 ) -> pd.DataFrame:
     """
@@ -1105,14 +1105,12 @@ def to_gridding_sectors(
 
     # CDR handling
     # BECCS  & Other (non-Land) CDR readdition
-    # Get row masks just once
-
     emissions_mask = (
-        region_sector_df.index.get_level_values("table") == "Emissions"
-    ) & (region_sector_df.index.get_level_values("species") == "CO2")
+        region_sector_df_gridding.index.get_level_values("table") == "Emissions"
+    ) & (region_sector_df_gridding.index.get_level_values("species") == "CO2")
     cdr_mask = (
-        region_sector_df.index.get_level_values("table") == "Carbon Removal"
-    ) & (region_sector_df.index.get_level_values("species") == "CO2")
+        region_sector_df_gridding.index.get_level_values("table") == "Carbon Removal"
+    ) & (region_sector_df_gridding.index.get_level_values("species") == "CO2")
 
     sector_map = {
         "Geological Storage|Biomass": "Energy|Supply",
@@ -1126,13 +1124,17 @@ def to_gridding_sectors(
     }
     for cdr, emi in sector_map.items():
         # The sum is done with some extra caution
-        left = region_sector_df.loc[emissions_mask, emi]
-        right = region_sector_df.loc[cdr_mask, cdr]
+        left = region_sector_df_gridding.loc[emissions_mask, emi]
+        right = region_sector_df_gridding.loc[cdr_mask, cdr]
+        if left.shape != right.shape:
+            msg = f"Shapes don't match: {left.shape} vs {right.shape}"
+            raise ValueError(msg)
         if left is None:
             left = 0
         if right is None:
             right = 0
-        region_sector_df.loc[emissions_mask, emi] = left + right
+
+        region_sector_df_gridding.loc[emissions_mask, emi] = left.values + right.values
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
@@ -1236,11 +1238,10 @@ def to_gridding_sectors(
                     columns=components, errors="ignore"
                 )
             else:
-                summed = (
-                    region_sector_df_gridding.loc[mask_species, components]
-                    .fillna(0)
-                    .sum(axis="columns")
+                summed = region_sector_df_gridding.loc[mask_species, components].sum(
+                    axis="columns"
                 )
+
                 region_sector_df_gridding.loc[mask_species, gridding_sector] = summed
 
                 region_sector_df_gridding = region_sector_df_gridding.drop(
