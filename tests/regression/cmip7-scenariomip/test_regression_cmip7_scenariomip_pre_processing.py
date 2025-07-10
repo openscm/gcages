@@ -2,7 +2,6 @@
 Regression tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
-import re
 from pathlib import Path
 
 import pytest
@@ -34,18 +33,21 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     )
     input_df.columns.name = "year"
 
-    # The new salted data needs a bit of make-up
-    mask = input_df.index.get_level_values("variable").str.startswith(
-        "Emissions"
-    ) | input_df.index.get_level_values("variable").str.startswith("Carbon Removal")
-
-    input_df = input_df[mask].T.interpolate(method="index").T
-    input_df = input_df.rename(
-        lambda x: re.sub(r"^Carbon Removal", r"Carbon Removal|CO2", x)
-        if isinstance(x, str)
-        else x,
-        level="variable",
-    )
+    # In case the new salted data needs a bit of make-up
+    # mask = input_df.index.get_level_values("variable").str.startswith(
+    #     "Emissions"
+    # ) | input_df.index.get_level_values("variable").str.startswith("Carbon Removal")
+    # input_df = input_df[mask]
+    # input_df = input_df.loc[:, 2015:2100:1].dropna(how="all", axis="columns")
+    # input_df = input_df.T.interpolate(method="index").T
+    #
+    # input_df = input_df.rename(
+    #     lambda x: re.sub(r"^Carbon Removal", r"Carbon Removal|CO2", x)
+    #     if isinstance(x, str)
+    #     else x,
+    #     level="variable",
+    # )
+    # input_df.to_csv("salted.csv")
 
     model_regions = [
         r

@@ -307,7 +307,9 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         co2_sum = emi + cdr
         # Assign the result back into the original DataFrame under "Emissions|CO2"
         for idx, row in co2_sum.iterrows():
-            new_idx = idx[:3] + ("Emissions|CO2",) + idx[3:]  # Rebuild full MultiIndex
+            new_idx = (
+                tuple(idx)[:3] + ("Emissions|CO2",) + tuple(idx)[3:]
+            )  # Rebuild full MultiIndex
             in_emissions_totals_to_compare_to.loc[new_idx] = row.values
 
         # No tolerance as this should be exact

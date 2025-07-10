@@ -1124,17 +1124,16 @@ def to_gridding_sectors(  # noqa: PLR0915
     }
     for cdr, emi in sector_map.items():
         # The sum is done with some extra caution
-        left = region_sector_df_gridding.loc[emissions_mask, emi]
-        right = region_sector_df_gridding.loc[cdr_mask, cdr]
-        if left.shape != right.shape:
-            msg = f"Shapes don't match: {left.shape} vs {right.shape}"
+        to_emi = region_sector_df_gridding.loc[emissions_mask, emi]
+        from_cdr = region_sector_df_gridding.loc[cdr_mask, cdr]
+        if (to_emi.shape != from_cdr.shape) or from_cdr.empty:
+            msg = f"Shapes don't match: {to_emi.shape} vs {from_cdr.shape}"
             raise ValueError(msg)
-        if left is None:
-            left = 0
-        if right is None:
-            right = 0
-
-        region_sector_df_gridding.loc[emissions_mask, emi] = left.values + right.values
+        to_emi_tosum = to_emi.fillna(0)
+        from_cdr_tosum = from_cdr.fillna(0)
+        region_sector_df_gridding.loc[emissions_mask, emi] = (
+            to_emi_tosum.values + from_cdr_tosum.values
+        )
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
@@ -1226,7 +1225,7 @@ def to_gridding_sectors(  # noqa: PLR0915
                     0
                 )
                 region_sector_df_gridding_co2.loc[mask_co2, gridding_sector] = (
-                    factor * subset.sum(axis="columns")
+                    factor * subset.sum(axis=1)
                 )
                 region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                     columns=[c for c in components if c != gridding_sector],
@@ -1239,7 +1238,7 @@ def to_gridding_sectors(  # noqa: PLR0915
                 )
             else:
                 summed = region_sector_df_gridding.loc[mask_species, components].sum(
-                    axis="columns"
+                    axis=1
                 )
 
                 region_sector_df_gridding.loc[mask_species, gridding_sector] = summed
