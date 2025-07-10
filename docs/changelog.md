@@ -21,6 +21,11 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.6.1 (2025-07-10)
+
+No significant changes.
+
+
 ## gcages v0.6.0 (2025-05-04)
 
 ### ⚠️ Breaking Changes
