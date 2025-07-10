@@ -189,6 +189,7 @@ reaggregator = (
 pre_processor = CMIP7ScenarioMIPPreProcessor(
     reaggregator=reaggregator,
     n_processes=None,  # run serially
+    run_checks=False,
 )
 
 # %% editable=true slideshow={"slide_type": ""}
