@@ -303,12 +303,12 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             "Carbon Removal|CO2", level="variable"
         )
         emi = in_emissions_totals_to_compare_to.xs("Emissions|CO2", level="variable")
-        # Sum them
+        # Sum
         co2_sum = emi + cdr
         # Assign the result back into the original DataFrame under "Emissions|CO2"
         for idx, row in co2_sum.iterrows():
             new_idx = (
-                tuple(idx)[:3] + ("Emissions|CO2",) + tuple(idx)[3:]
+                idx[:3] + ("Emissions|CO2",) + idx[3:]  # type: ignore
             )  # Rebuild full MultiIndex
             in_emissions_totals_to_compare_to.loc[new_idx] = row.values
 

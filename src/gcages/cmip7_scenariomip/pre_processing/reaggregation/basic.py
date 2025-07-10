@@ -1133,7 +1133,7 @@ def to_gridding_sectors(  # noqa: PLR0915
         from_cdr_tosum = from_cdr.fillna(0)
         region_sector_df_gridding.loc[emissions_mask, emi] = (
             to_emi_tosum.values + from_cdr_tosum.values
-        )
+        )  # type: ignore
 
     # To handle CO2 differently
     # Get boolean masks for CO2 and non-CO2 species
@@ -1226,7 +1226,7 @@ def to_gridding_sectors(  # noqa: PLR0915
                 )
                 region_sector_df_gridding_co2.loc[mask_co2, gridding_sector] = (
                     factor * subset.sum(axis=1)
-                )
+                )  # type: ignore
                 region_sector_df_gridding_co2 = region_sector_df_gridding_co2.drop(
                     columns=[c for c in components if c != gridding_sector],
                     errors="ignore",
@@ -1239,7 +1239,7 @@ def to_gridding_sectors(  # noqa: PLR0915
             else:
                 summed = region_sector_df_gridding.loc[mask_species, components].sum(
                     axis=1
-                )
+                )  # type: ignore
 
                 region_sector_df_gridding.loc[mask_species, gridding_sector] = summed
 
