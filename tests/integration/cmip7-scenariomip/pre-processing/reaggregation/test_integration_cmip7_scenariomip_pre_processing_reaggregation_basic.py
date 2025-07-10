@@ -92,23 +92,34 @@ class GriddingSectorComponentsReporting:
     input_species_optional: tuple[str, ...]
 
     def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-        )
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|CO2|{sector}" for sector in self.input_sectors
+            )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+            )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        return tuple(
-            f"Emissions|{species}|{sector}"
-            for species in all_species
-            for sector in self.input_sectors
-            if not (
-                # note the OR logic here
-                sector in self.input_sectors_optional
-                or species in self.input_species_optional
+        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+            return tuple(
+                f"Carbon Removal|CO2|{sector}"
+                for sector in self.input_sectors
+                if sector not in self.input_sectors_optional
             )
-        )
+        else:
+            return tuple(
+                f"Emissions|{species}|{sector}"
+                for species in all_species
+                for sector in self.input_sectors
+                if not (
+                    sector in self.input_sectors_optional
+                    or species in self.input_species_optional
+                )
+            )
 
 
 GRIDDING_SECTORS = {
@@ -262,6 +273,48 @@ GRIDDING_SECTORS = {
                 "VOC",
             ),
         ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="BECCS",
+            spatial_resolution="model region",
+            input_sectors=("Geological Storage|Biomass",),
+            input_sectors_optional=(),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Other non-Land CDR",
+            spatial_resolution="model region",
+            input_sectors=(
+                "Ocean",
+                "Geological Storage|Direct Air Capture",
+                "Geological Storage|Synthetic Fuels",
+                "Geological Storage|Other Sources",
+                # "Long-Lived Materials",
+                "Enhanced Weathering",
+                # "Other",
+            ),
+            input_sectors_optional=(),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
     )
 }
 
@@ -313,6 +366,7 @@ COMPLETE_INDEX = to_index(
     world_region=WORLD_REGION,
     model_regions=MODEL_REGIONS,
 )
+
 
 REQUIRED_INDEX = to_index(
     GRIDDING_SECTORS.values(),
@@ -420,6 +474,13 @@ def get_df(  # noqa: PLR0913
             if target_row in res.index and not rows_to_sum.empty:
                 summed = rows_to_sum.sum(axis=0)
                 res.loc[target_row] = summed
+
+    # Keep Carbon Removal CO2 only
+    mask = ~(
+        res.index.get_level_values("variable").str.startswith("Carbon Removal|")
+        & ~res.index.get_level_values("variable").str.startswith("Carbon Removal|CO2")
+    )
+    res = res[mask]
 
     return res
 
@@ -719,50 +780,6 @@ def complete_to_gridding_res():
     )
 
     unaggregated = get_df(COMPLETE_INDEX.difference(transport_index), model=MODEL)
-    # drop_vars = ["Emissions|BC|AFOLU","Emissions|CH4|AFOLU",
-    # "Emissions|N2O|AFOLU","Emissions|CO|AFOLU",
-    #              "Emissions|NH3|AFOLU","Emissions|OC|AFOLU",
-    # "Emissions|NOx|AFOLU","Emissions|Sulfur|AFOLU",
-    #              "Emissions|VOC|AFOLU","Emissions|CO2|AFOLU|Agriculture",
-    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-    #              "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-    # "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-    #              "Emissions|CO2|AFOLU|Land|Other",
-    # "Emissions|CO2|AFOLU|Land|Wetlands",
-    # "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-    #              "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    # "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",]
-    # Forcing "Emissions|{species}|AFOLU" to be equal to the subsectors sum
-    # drop_vars = [
-    #     "Emissions|BC|AFOLU",
-    #     "Emissions|CH4|AFOLU",
-    #     "Emissions|N2O|AFOLU",
-    #     "Emissions|CO|AFOLU",
-    #     "Emissions|NH3|AFOLU",
-    #     "Emissions|OC|AFOLU",
-    #     "Emissions|NOx|AFOLU",
-    #     "Emissions|Sulfur|AFOLU",
-    #     "Emissions|VOC|AFOLU",
-    #     "Emissions|CO2|AFOLU",
-    # ]
-    # unaggregated = unaggregated.loc[
-    #     ~unaggregated.index.get_level_values("variable").isin(drop_vars)
-    # ]
-    # for var in drop_vars:
-    #     df = unaggregated
-    #
-    #     afolu_mask = df.index.get_level_values("variable").str.startswith(var)
-    #     afolu_df = df[afolu_mask]
-    #
-    #     new_index = afolu_df.index.to_frame()
-    #     new_index["variable"] = var
-    #     afolu_df.index = pd.MultiIndex.from_frame(new_index)
-    #
-    #     afolu_summed = afolu_df.groupby(
-    #         level=["variable", "region", "unit", "model", "scenario"]
-    #     ).sum()
-    #
-    #     unaggregated = pd.concat([df, afolu_summed]).sort_index()
 
     internally_consistent = get_aggregate_df(unaggregated, world_region=WORLD_REGION)
 
@@ -786,35 +803,15 @@ def complete_to_gridding_res():
         ]
     )
 
-    # variables_to_zero = ["Emissions|CO2|AFOLU|Agriculture",
-    # "Emissions|CO2|AFOLU|Agricultural Waste Burning",
-    #     "Emissions|CO2|AFOLU|Land|Harvested Wood Products",
-    #     "Emissions|CO2|AFOLU|Land|Land Use and Land-Use Change",
-    #     "Emissions|CO2|AFOLU|Land|Other",
-    #     "Emissions|CO2|AFOLU|Land|Wetlands",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Grassland Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Peat Burning",
-    #     "Emissions|CO2|AFOLU|Land|Fires|Forest Burning",
-    #     "Emissions|BC|AFOLU",
-    #     "Emissions|CH4|AFOLU",
-    #     "Emissions|N2O|AFOLU",
-    #     "Emissions|CO|AFOLU",
-    #     "Emissions|NH3|AFOLU",
-    #     "Emissions|OC|AFOLU",
-    #     "Emissions|NOx|AFOLU",
-    #     "Emissions|Sulfur|AFOLU",
-    #     "Emissions|VOC|AFOLU",
-    #     ]
-    #
-    # mask = internally_consistent.index.get_level_values("variable")
-    # .isin(variables_to_zero)
-    # internally_consistent.loc[mask, :] = 0.0
-
     tcr = to_complete(internally_consistent, model_regions=MODEL_REGIONS)
     assert tcr.assumed_zero is None
     input = tcr.complete
 
     res = to_gridding_sectors(input)
+    # The signs of the Carbon Removal are flipped when gridding. Below are restored to
+    # the originals to allow comparisons.
+    mask = res.index.get_level_values("variable").str.startswith("Carbon Removal")
+    res.loc[mask] *= -1
 
     input_stacked = split_sectors(input).stack(future_stack=True).unstack("sectors")
 
@@ -836,7 +833,13 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
         pytest.param(gs, id=name)
         for name, gs in GRIDDING_SECTORS.items()
         if name
-        not in ("Aircraft", "Domestic aviation headache", "Transportation Sector")
+        not in (
+            "Aircraft",
+            "Domestic aviation headache",
+            "Transportation Sector",
+            "Energy Sector",
+            "Industrial Sector",
+        )
     ),
 )
 def test_complete_to_gridding_sectors_straightforward_sector(
@@ -854,6 +857,12 @@ def test_complete_to_gridding_sectors_straightforward_sector(
         region_locator,
         list(gridding_sector_definition.input_sectors),
     ]
+    # Separating CDR form Emissions
+    if gridding_sector_definition.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+        tmp = tmp[tmp.index.get_level_values("table") != "Emissions"]
+    else:
+        tmp = tmp[tmp.index.get_level_values("table") != "Carbon Removal"]
+
     # Forcing CO2 dropped sectors to be 0 even in the CO2 case
     if gridding_sector_definition.gridding_sector in [
         "Agriculture",
@@ -880,7 +889,9 @@ def test_complete_to_gridding_sectors_straightforward_sector(
 def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_gridding_res):
     _, input_stacked, res = complete_to_gridding_res
 
-    region_locator = input_stacked.index.get_level_values("region") != WORLD_REGION
+    region_locator = (
+        input_stacked.index.get_level_values("region") != WORLD_REGION
+    ) & (input_stacked.index.get_level_values("table") != "Carbon Removal")
 
     domestic_aviation_sum = groupby_except(
         input_stacked.loc[region_locator][
@@ -889,12 +900,15 @@ def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_griddin
         "region",
     ).sum()
     tmp = input_stacked.loc[~region_locator].copy()
+    tmp = tmp[tmp.index.get_level_values("table") != "Carbon Removal"]
+
     tmp["Aircraft"] = (
         tmp["Energy|Demand|Bunkers|International Aviation"] + domestic_aviation_sum
     )
     exp_aircraft = combine_sectors(
         tmp[["Aircraft"]].unstack().stack("sectors", future_stack=True)
     ).reorder_levels(res.index.names)
+
     assert_frame_equal(multi_index_lookup(res, exp_aircraft.index), exp_aircraft)
 
     tmp = input_stacked.loc[region_locator].copy()
@@ -905,6 +919,7 @@ def test_complete_to_gridding_sectors_transport_and_aviation(complete_to_griddin
     exp_transport = combine_sectors(
         tmp[["Transportation Sector"]].unstack().stack("sectors", future_stack=True)
     ).reorder_levels(res.index.names)
+
     assert_frame_equal(multi_index_lookup(res, exp_transport.index), exp_transport)
 
 
@@ -919,5 +934,11 @@ def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res)
     ).reorder_levels(internally_consistent.index.names)
 
     exp_totals = multi_index_lookup(internally_consistent, res_totals.index)
+
+    # To account for CDR in the sum
+    exp_totals.loc["Emissions|CO2"] = (
+        exp_totals.loc["Emissions|CO2"].values
+        + exp_totals.loc["Carbon Removal|CO2"].values
+    )
 
     assert_frame_equal(res_totals, exp_totals)

@@ -57,6 +57,8 @@ COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
     "Transportation Sector",
     "Waste",
     "CO2 AFOLU",
+    "BECCS",
+    "Other non-Land CDR",
 )
 """
 Complete set of sectors for gridding
@@ -72,7 +74,10 @@ def get_complete_gridding_index(  # noqa: PLR0913
     world_region: str = "World",
     region_level: str = "region",
     variable_level: str = "variable",
-    table: str = "Emissions",
+    table: tuple[str, ...] = (
+        "Emissions",
+        "Carbon Removal",
+    ),
     level_separator: str = "|",
 ) -> pd.MultiIndex:
     """
@@ -109,7 +114,7 @@ def get_complete_gridding_index(  # noqa: PLR0913
         Index of complete gridding data
     """
     complete_world_variables = [
-        level_separator.join([table, species, sectors])
+        level_separator.join(["Emissions", species, sectors])
         for species, sectors in itertools.product(
             COMPLETE_GRIDDING_SPECIES, world_gridding_sectors
         )
@@ -121,12 +126,22 @@ def get_complete_gridding_index(  # noqa: PLR0913
     model_region_sectors = sorted(
         set(COMPLETE_GRIDDING_SECTORS) - set(world_gridding_sectors)
     )
-    complete_model_region_variables = [
-        level_separator.join([table, species, sectors])
-        for species, sectors in itertools.product(
-            COMPLETE_GRIDDING_SPECIES, model_region_sectors
-        )
+    # Separating Emissions for CDR at regional level
+    cdr_model_region_sectors = ["BECCS", "Other non-Land CDR"]
+    emissions_model_region_sectors = [
+        el for el in model_region_sectors if el not in cdr_model_region_sectors
     ]
+
+    complete_model_region_variables = [
+        level_separator.join(["Emissions", species, sectors])
+        for species, sectors in itertools.product(
+            COMPLETE_GRIDDING_SPECIES, emissions_model_region_sectors
+        )
+    ] + [
+        level_separator.join(["Carbon Removal", species, sectors])
+        for species, sectors in itertools.product(["CO2"], cdr_model_region_sectors)
+    ]
+
     model_region_required = pd.MultiIndex.from_product(
         [complete_model_region_variables, model_regions],
         names=[variable_level, region_level],
@@ -285,7 +300,6 @@ def to_global_workflow_emissions(  # noqa: PLR0913
             for df in [gw_total_df_input_like, gw_sector_df_input_like]
         ]
     )
-
     return res
 
 
@@ -352,7 +366,9 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
 
     sector_df_full = pd.concat([sector_df, region_sector_df_region_sum], axis="columns")
 
-    co2_locator = sector_df_full.index.get_level_values(species_level) == co2_name
+    co2_locator = (sector_df_full.index.get_level_values(species_level) == co2_name) & (
+        sector_df_full.index.get_level_values("table") == "Emissions"
+    )
 
     non_co2: pd.Series[NP_FLOAT_OR_INT] = sector_df_full[~co2_locator].sum(  # type: ignore # pandas-stubs out of date
         axis="columns"
@@ -372,6 +388,8 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
             ],  # Those have been deprecated for CO2
             *[
                 "AFOLU",
+                "BECCS",
+                "Other non-Land CDR",
             ],  # Present in sector_df_full.columns but 0 in CO2
         }
     )
