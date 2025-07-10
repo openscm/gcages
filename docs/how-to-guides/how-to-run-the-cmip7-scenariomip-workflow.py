@@ -205,6 +205,7 @@ pre_processor_guess_reaggregator = CMIP7ScenarioMIPPreProcessor(
     # Don't specifiy the re-aggregator, let gcages guess
     # reaggregator=reaggregator,
     n_processes=None,  # run serially
+    run_checks=False,
 )
 # The guessing is not so intelligent, so we need to give it a hand
 # by stripping out everything except 'World' data
