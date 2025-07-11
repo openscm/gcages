@@ -23,7 +23,8 @@ from the examples given in that link.
 
 ## gcages v0.6.1 (2025-07-10)
 
-No significant changes.
+This release included the changes for the v0.7.0 release,
+but was released with the wrong version number.
 
 
 ## gcages v0.6.0 (2025-05-04)
