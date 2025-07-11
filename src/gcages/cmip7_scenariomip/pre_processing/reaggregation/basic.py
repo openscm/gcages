@@ -709,6 +709,8 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
             "Emissions|VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
             "Emissions|N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
+            # Will need to update when we fix the naming
+            "Carbon Removal|CO2": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
         }
 
     except ImportError:
@@ -723,6 +725,8 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
             "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
             "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
+            # Will need to update when we fix the naming
+            "Carbon Removal|CO2": dict(rtol=1e-3, atol=1e-6),
         }
 
     return default_tolerances
@@ -1021,6 +1025,7 @@ def to_gridding_sectors(
         .unstack("sectors")
     )
 
+    # TODO: remove, shouldn't be needed
     sector_df = sector_df.fillna(0)
 
     # Data with region information
@@ -1030,6 +1035,7 @@ def to_gridding_sectors(
         .unstack("sectors")
     )
 
+    # TODO: remove, shouldn't be needed
     region_sector_df = region_sector_df.fillna(0)
 
     # Move domestic aviation to the global level
@@ -1161,9 +1167,11 @@ def to_gridding_sectors(
         for gridding_sector, components in sector_aggregation:
             # Note to self: this will probably explode.
             # Need to be more careful with table handling.
-            region_sector_df_gridding[gridding_sector] = region_sector_df_gridding[
-                components
-            ].sum(axis="columns")  # type: ignore # pandas-stubs confused
+            factor = -1 if table == "Carbon Removal" else 1
+
+            region_sector_df_gridding[gridding_sector] = (
+                factor * region_sector_df_gridding[components].sum(axis="columns")
+            )  # type: ignore # pandas-stubs confused
             region_sector_df_gridding = region_sector_df_gridding.drop(
                 list(set(components) - {gridding_sector}), axis="columns"
             )
@@ -1208,7 +1216,6 @@ def to_gridding_sectors(
             "Peat Burning",
             "Residential Commercial Other",
             "Solvents Production and Application",
-            "CO2 AFOLU",
         ]
     )
 
@@ -1217,6 +1224,9 @@ def to_gridding_sectors(
         bottom_level="sectors",
     )
 
+    # TODO: change this,
+    # there shouldn't be a Carbon Removal table in the output I don't think
+    # (makes more headache than is helpful for working out totals)
     res = pd.concat(
         [
             df.reorder_levels(indf.index.names)

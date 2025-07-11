@@ -46,18 +46,18 @@ COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
     "Agricultural Waste Burning",
     "Agriculture",
     "Aircraft",
+    "BECCS",
     "Energy Sector",
     "Forest Burning",
     "Grassland Burning",
     "Industrial Sector",
     "International Shipping",
+    "Other non-Land CDR",
     "Peat Burning",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",
     "Waste",
-    "BECCS",
-    "Other non-Land CDR",
 )
 """
 Complete set of sectors for gridding
@@ -163,9 +163,11 @@ class SpatialResolutionOption(StrEnum):
 
 CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "Aircraft",
+    "BECCS",
     "International Shipping",
     "Energy Sector",
     "Industrial Sector",
+    "Other non-Land CDR",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",

@@ -59,7 +59,8 @@ COMPLETE_GRIDDING_SECTORS_MODEL_REGION: tuple[str, ...] = (
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Waste",
-    "CO2 AFOLU",
+    "BECCS",
+    "Other non-Land CDR",
 )
 
 # For most of the tests, use the same world and model regions.
@@ -155,15 +156,16 @@ def gridding_emissions():
                 "Solvents Production and Application",
                 "Transportation Sector",
                 "Waste",
+                "BECCS",
+                "Other non-Land CDR",
             ),
             None,
             (
-                # "Agriculture",
-                # "Agricultural Waste Burning",
-                # "Forest Burning",
-                # "Grassland Burning",
-                # "Peat Burning",
-                "CO2 AFOLU",
+                "Agriculture",
+                "Agricultural Waste Burning",
+                "Forest Burning",
+                "Grassland Burning",
+                "Peat Burning",
             ),
             id="default",
         ),
@@ -177,6 +179,8 @@ def gridding_emissions():
                 "Solvents Production and Application",
                 "Transportation Sector",
                 "Waste",
+                "BECCS",
+                "Other non-Land CDR",
                 "Agriculture",
             ),
             (
@@ -188,21 +192,21 @@ def gridding_emissions():
                 "Solvents Production and Application",
                 "Transportation Sector",
                 "Waste",
+                "BECCS",
+                "Other non-Land CDR",
                 "Agriculture",
             ),
             (
-                # "Agricultural Waste Burning",
-                # "Forest Burning",
-                # "Grassland Burning",
-                # "Peat Burning",
-                "CO2 AFOLU",
+                "Agricultural Waste Burning",
+                "Forest Burning",
+                "Grassland Burning",
+                "Peat Burning",
             ),
             (
-                # "Agricultural Waste Burning",
-                # "Forest Burning",
-                # "Grassland Burning",
-                # "Peat Burning",
-                "CO2 AFOLU",
+                "Agricultural Waste Burning",
+                "Forest Burning",
+                "Grassland Burning",
+                "Peat Burning",
             ),
             id="agriculture-in-fossil",
         ),
@@ -279,9 +283,11 @@ def test_to_global_workflow_emissions(  # noqa: PLR0913
 def test_to_global_workflow_emissions_missing_sector_error(gridding_emissions):
     co2_fossil_sectors = (
         "Aircraft",
+        "BECCS",
         "International Shipping",
         "Energy Sector",
         "Industrial Sector",
+        "Other non-Land CDR",
         "Residential Commercial Other",
         # "Solvents Production and Application",
         "Transportation Sector",
@@ -289,12 +295,11 @@ def test_to_global_workflow_emissions_missing_sector_error(gridding_emissions):
     )
 
     co2_biosphere_sectors = (
-        # "Agriculture",
-        # "Agricultural Waste Burning",
-        # "Forest Burning",
-        # "Grassland Burning",
-        # "Peat Burning",
-        "CO2 AFOLU",
+        "Agriculture",
+        "Agricultural Waste Burning",
+        "Forest Burning",
+        "Grassland Burning",
+        "Peat Burning",
     )
 
     not_used_cols = sorted(
