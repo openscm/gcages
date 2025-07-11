@@ -21,6 +21,18 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.7.0 (2025-07-11)
+
+### ⚠️ Breaking Changes
+
+- Managed the removal of subsectors for `Emissions|CO2|AFOLU` tree ([#23](https://github.com/openscm/gcages/pull/23))
+- Introduced the handling of the `Carbon Removal` tree ([#25](https://github.com/openscm/gcages/pull/25))
+
+### 🐛 Bug Fixes
+
+- Moved in `Agriculture` input sectors previously accounted in `Agriculture Waste Burning` ([#18](https://github.com/openscm/gcages/pull/18))
+
+
 ## gcages v0.6.1 (2025-07-10)
 
 This release included the changes for the v0.7.0 release,
