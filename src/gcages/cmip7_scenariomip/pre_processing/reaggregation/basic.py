@@ -1165,8 +1165,8 @@ def to_gridding_sectors(
         ),
     ]:
         for gridding_sector, components in sector_aggregation:
-            # Note to self: this will probably explode.
-            # Need to be more careful with table handling.
+            # TODO: update this so it's clearer what is going on.
+            # Will be a big refactor
             factor = -1 if table == "Carbon Removal" else 1
 
             region_sector_df_gridding[gridding_sector] = (

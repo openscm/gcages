@@ -61,6 +61,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
+        # TODO: turn this to True when cleaning up the CDR handling
         run_checks=False,
     )
 
