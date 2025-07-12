@@ -1170,8 +1170,8 @@ def to_gridding_sectors(
             factor = -1 if table == "Carbon Removal" else 1
 
             region_sector_df_gridding[gridding_sector] = (
-                factor * region_sector_df_gridding[components].sum(axis="columns")
-            )  # type: ignore # pandas-stubs confused
+                factor * region_sector_df_gridding[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
+            )
             region_sector_df_gridding = region_sector_df_gridding.drop(
                 list(set(components) - {gridding_sector}), axis="columns"
             )
