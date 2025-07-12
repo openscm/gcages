@@ -174,7 +174,18 @@ CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "Waste",
 )
 """
-Sectors that come from fossil CO2 reservoirs (gridding naming convention)
+Sectors that come from or go to fossil CO2 reservoirs (gridding naming convention)
+
+BECCS is here because the carbon is stored permanently (or assumed to be).
+It is grown then removed from the land pool,
+so is 'net zero' from the land pool's point of view
+(and handling this really well requires running a carbon cycle model
+to determine the possible uptake from the BECCS land-use,
+which isn't how the split between modelling domains works at the moment).
+
+There is the same issue for some non-land CDR e.g. ocean alkalinity stuff.
+Again, a handling sophisticiated enough to capture this properly
+is beyond the scope of the fossil/biosphere split we're making here.
 
 Not a perfect split with [CO2_BIOSPHERE_SECTORS_GRIDDING][(m).],
 but the best we can do.
