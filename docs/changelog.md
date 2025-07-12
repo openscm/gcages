@@ -21,6 +21,13 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.8.0 (2025-07-12)
+
+### ⚠️ Breaking Changes
+
+- Reverted the addition of a CO2 AFOLU gridding sector in CMIP7 ScenarioMIP pre-processing. ([#29](https://github.com/openscm/gcages/pull/29))
+
+
 ## gcages v0.7.0 (2025-07-11)
 
 ### ⚠️ Breaking Changes
