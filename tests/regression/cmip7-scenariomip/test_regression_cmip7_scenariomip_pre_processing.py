@@ -72,6 +72,8 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         "global_workflow_emissions_raw_names",
         "gridding_workflow_emissions",
     ]:
+        # Interestingly, this won't fail if there are extra, unexpected columns
+        # in the regression data against which we are comparing.
         dataframe_regression.check(
             getattr(res, attr), basename=f"{input_file.stem}_{attr}"
         )
