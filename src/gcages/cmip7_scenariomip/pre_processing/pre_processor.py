@@ -266,30 +266,13 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             world_region=reaggregator.world_region,
         )
         gridded_emisssions_sectoral_regional_sum = grss(gridding_workflow_emissions)
-        # To avoid double counting
-        drop_vars = [
-            "Emissions|CH4|AFOLU",
-            "Emissions|N2O|AFOLU",
-            "Emissions|NOx|AFOLU",
-            "Emissions|BC|AFOLU",
-            "Emissions|NH3|AFOLU",
-            "Emissions|OC|AFOLU",
-            "Emissions|VOC|AFOLU",
-            "Emissions|Sulfur|AFOLU",
-            "Emissions|CO|AFOLU",
-            "Emissions|CO2|AFOLU",
-        ]
-        df_to_sum = multi_index_lookup(
-            indf, reaggregator.get_internal_consistency_checking_index()
-        )
-        df_to_sum = df_to_sum.loc[
-            ~df_to_sum.index.get_level_values("variable").isin(drop_vars)
-        ]
 
         in_emissions_totals_to_compare_to = grss(
             # Make sure we only sum across the levels
             # that are useful for getting the total
-            df_to_sum
+            multi_index_lookup(
+                indf, reaggregator.get_internal_consistency_checking_index()
+            )
         )
 
         # The sign of the 'Carbon Removal' must be flipped to compare
@@ -626,8 +609,8 @@ class CMIP7ScenarioMIPPreProcessor:
                 max_workers=self.n_processes,
             ),
         )
-        res_d = defaultdict(list)
 
+        res_d = defaultdict(list)
         for res_ms in res_g:
             for k, v in asdict(res_ms).items():
                 if v is not None:

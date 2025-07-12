@@ -46,19 +46,18 @@ COMPLETE_GRIDDING_SECTORS: tuple[str, ...] = (
     "Agricultural Waste Burning",
     "Agriculture",
     "Aircraft",
+    "BECCS",
     "Energy Sector",
     "Forest Burning",
     "Grassland Burning",
     "Industrial Sector",
     "International Shipping",
+    "Other non-Land CDR",
     "Peat Burning",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",
     "Waste",
-    "CO2 AFOLU",
-    "BECCS",
-    "Other non-Land CDR",
 )
 """
 Complete set of sectors for gridding
@@ -164,16 +163,29 @@ class SpatialResolutionOption(StrEnum):
 
 CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "Aircraft",
+    "BECCS",
     "International Shipping",
     "Energy Sector",
     "Industrial Sector",
+    "Other non-Land CDR",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",
     "Waste",
 )
 """
-Sectors that come from fossil CO2 reservoirs (gridding naming convention)
+Sectors that come from or go to fossil CO2 reservoirs (gridding naming convention)
+
+BECCS is here because the carbon is stored permanently (or assumed to be).
+It is grown then removed from the land pool,
+so is 'net zero' from the land pool's point of view
+(and handling this really well requires running a carbon cycle model
+to determine the possible uptake from the BECCS land-use,
+which isn't how the split between modelling domains works at the moment).
+
+There is the same issue for some non-land CDR e.g. ocean alkalinity stuff.
+Again, a handling sophisticiated enough to capture this properly
+is beyond the scope of the fossil/biosphere split we're making here.
 
 Not a perfect split with [CO2_BIOSPHERE_SECTORS_GRIDDING][(m).],
 but the best we can do.
@@ -182,12 +194,11 @@ but the best we can do.
 CO2_BIOSPHERE_SECTORS_GRIDDING: tuple[str, ...] = (
     # Agriculture in biosphere because most of its emissions
     # are land carbon cycle (but not all, probably, in reality)
-    # "Agriculture",
-    # "Agricultural Waste Burning",
-    # "Forest Burning",
-    # "Grassland Burning",
-    # "Peat Burning",
-    "CO2 AFOLU",
+    "Agriculture",
+    "Agricultural Waste Burning",
+    "Forest Burning",
+    "Grassland Burning",
+    "Peat Burning",
 )
 """
 Sectors that come from biospheric CO2 reservoirs (gridding naming convention)
@@ -379,18 +390,6 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
         - {
             *co2_biosphere_sectors,
             *co2_fossil_sectors,
-            *[
-                "Agriculture",
-                "Agricultural Waste Burning",
-                "Forest Burning",
-                "Grassland Burning",
-                "Peat Burning",
-            ],  # Those have been deprecated for CO2
-            *[
-                "AFOLU",
-                "BECCS",
-                "Other non-Land CDR",
-            ],  # Present in sector_df_full.columns but 0 in CO2
         }
     )
     if not_used_cols:
