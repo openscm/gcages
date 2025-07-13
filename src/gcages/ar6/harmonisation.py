@@ -137,7 +137,7 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         filepath,
         lower_column_names=True,
         index_columns=["model", "scenario", "variable", "unit", "region"],
-        out_column_type=int,
+        out_columns_type=int,
     )
 
     return res

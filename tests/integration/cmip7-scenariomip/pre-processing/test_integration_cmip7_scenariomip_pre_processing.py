@@ -102,48 +102,22 @@ def test_output_vs_start_total_consistency(example_input_output):
     gridded_emisssions_sector_regional_sum = get_region_sector_sum(
         example_input_output.output.gridding_workflow_emissions
     )
-    # To avoid double counting
-    drop_vars = [
-        "Emissions|CH4|AFOLU",
-        "Emissions|N2O|AFOLU",
-        "Emissions|NOx|AFOLU",
-        "Emissions|BC|AFOLU",
-        "Emissions|NH3|AFOLU",
-        "Emissions|OC|AFOLU",
-        "Emissions|VOC|AFOLU",
-        "Emissions|Sulfur|AFOLU",
-        "Emissions|CO|AFOLU",
-        "Emissions|CO2|AFOLU",
-    ]
-    df_to_sum = multi_index_lookup(
-        example_input_output.input,
-        example_input_output.reaggregator.get_internal_consistency_checking_index(),
+
+    input_emissions_sector_region_sum = get_region_sector_sum(
+        multi_index_lookup(
+            example_input_output.input,
+            example_input_output.reaggregator.get_internal_consistency_checking_index(),
+        )
     )
-    df_to_sum = df_to_sum.loc[
-        ~df_to_sum.index.get_level_values("variable").isin(drop_vars)
-    ]
-
-    input_emissions_sector_region_sum = get_region_sector_sum(df_to_sum)
-    # The sign of the 'Carbon Removal' must be flipped to do the comparision
-    # (it gets changed in the reaggregation)
-    #
-    mask = gridded_emisssions_sector_regional_sum.index.get_level_values(
-        "variable"
-    ).str.startswith("Carbon Removal")
-    gridded_emisssions_sector_regional_sum.loc[mask] *= -1
-
-    # To account for CDR in the sum
-    cdr = input_emissions_sector_region_sum.xs("Carbon Removal|CO2", level="variable")
-    emi = input_emissions_sector_region_sum.xs("Emissions|CO2", level="variable")
-    # Sum them
-    co2_sum = emi + cdr
-    # Assign the result back into the original DataFrame under "Emissions|CO2"
-    for idx, row in co2_sum.iterrows():
-        new_idx = idx[:3] + ("Emissions|CO2",) + idx[3:]  # Rebuild full MultiIndex
-        input_emissions_sector_region_sum.loc[new_idx] = row.values
 
     assert_frame_equal(
-        gridded_emisssions_sector_regional_sum, input_emissions_sector_region_sum
+        gridded_emisssions_sector_regional_sum,
+        # Only compare in the tree we use for gridded emissions
+        # i.e. ignore the carbon removal sum
+        multi_index_lookup(
+            input_emissions_sector_region_sum,
+            gridded_emisssions_sector_regional_sum.index,
+        ),
     )
 
 

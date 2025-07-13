@@ -94,7 +94,7 @@ def get_ar6_all_emissions(
     res = load_timeseries_csv(
         emissions_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
 
     return res
@@ -267,7 +267,7 @@ def get_ar6_temperature_outputs(
     res = load_timeseries_csv(
         temperatures_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
     if dropna:
         res = res.dropna(axis="columns", how="all")
@@ -451,6 +451,9 @@ def compare_close(
 
 
 def get_variable_unit_default(v: str) -> str:
+    if v.startswith("Carbon Removal"):
+        return "Mt CO2/yr"
+
     species = v.split("|")[1]
     unit_map = {
         "BC": "Mt BC/yr",

@@ -15,7 +15,12 @@ import numpy as np
 import pandas as pd
 from attrs import define, field
 from pandas_openscm.grouping import groupby_except
-from pandas_openscm.indexing import multi_index_lookup
+from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
+    set_levels,
+    update_index_levels_func,
+)
+from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 from gcages.aggregation import aggregate_df_level, get_region_sector_sum
 from gcages.assertions import assert_only_working_on_variable_unit_region_variations
@@ -27,6 +32,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.common import (
     ToCompleteResult,
 )
 from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.index_manipulation import (
     combine_sectors,
     create_levels_based_on_existing,
@@ -38,11 +44,13 @@ from gcages.testing import compare_close, get_variable_unit_default
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
 
 if TYPE_CHECKING:
+    import pint
+
     from gcages.typing import PINT_SCALAR
 
 
 @define
-class GriddingSectorComponentsReporting:
+class GriddingSectorComponents:
     """
     Definition of the components of a gridding sector for reporting
 
@@ -62,49 +70,92 @@ class GriddingSectorComponentsReporting:
     spatial_resolution: SpatialResolutionOption
 
     input_sectors: tuple[str, ...]
-    """The input sectors"""
+    """
+    The input sectors
+    """
 
     input_sectors_optional: tuple[str, ...]
-    """The input sectors that are optional"""
+    """
+    The input sectors that are optional
+    """
+
+    all_species: tuple[str, ...]
+    """The input species"""
 
     input_species_optional: tuple[str, ...]
     """The input species that are optional"""
 
-    def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
+    reporting_only: bool
+    """Is this definition only used for reporting, not aggregating?"""
+
+    def to_complete_variables(self) -> tuple[str, ...]:
         """
         Convert to the complete set of variables for this gridding sector
         """
-        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
-            return tuple(
-                f"Carbon Removal|CO2|{sector}" for sector in self.input_sectors
-            )
-        else:
-            return tuple(
-                f"Emissions|{species}|{sector}"
-                for species in all_species
-                for sector in self.input_sectors
-            )
+        return tuple(
+            f"Emissions|{species}|{sector}"
+            for species in self.all_species
+            for sector in self.input_sectors
+        )
 
-    def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
+    def to_required_variables(self) -> tuple[str, ...]:
         """
         Convert to the required set of variables for this gridding sector
         """
-        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
-            return tuple(
-                f"Carbon Removal|CO2|{sector}"
-                for sector in self.input_sectors
-                if sector not in self.input_sectors_optional
+        return tuple(
+            f"Emissions|{species}|{sector}"
+            for species in self.all_species
+            for sector in self.input_sectors
+            if not (
+                sector in self.input_sectors_optional
+                or species in self.input_species_optional
             )
-        else:
-            return tuple(
-                f"Emissions|{species}|{sector}"
-                for species in all_species
-                for sector in self.input_sectors
-                if not (
-                    sector in self.input_sectors_optional
-                    or species in self.input_species_optional
-                )
-            )
+        )
+
+
+@define
+class GriddingSectorComponentsCarbonRemovalReporting:
+    """
+    Definition of the components of a carbon removal gridding sector for reporting
+
+    This is for carbon removal i.e. is for CO2 only.
+
+    This is meant for internal use only.
+    """
+
+    gridding_sector: str
+    """The gridding sector"""
+
+    spatial_resolution: SpatialResolutionOption
+
+    input_sectors: tuple[str, ...]
+    """
+    The input sectors
+    """
+
+    input_sectors_optional: tuple[str, ...]
+    """
+    The input sectors that are optional
+    """
+
+    reporting_only: bool
+    """Is this definition only used for reporting, not aggregating?"""
+
+    def to_complete_variables(self) -> tuple[str, ...]:
+        """
+        Convert to the complete set of variables for this gridding sector
+        """
+        return tuple(f"Carbon Removal|{sector}" for sector in self.input_sectors)
+
+    def to_required_variables(self) -> tuple[str, ...]:
+        """
+        Convert to the required set of variables for this gridding sector
+        """
+        return tuple(
+            f"Carbon Removal|{sector}"
+            for sector in self.input_sectors
+            if sector not in self.input_sectors_optional
+        )
 
 
 SECTOR_DOMESTIC_AVIATION = "Energy|Demand|Transportation|Domestic Aviation"
@@ -113,7 +164,16 @@ Domestic aviation sector
 """
 
 gridding_sectors_reporting = (
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
+        gridding_sector="Agricultural Waste Burning",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("AFOLU|Agricultural Waste Burning",),
+        input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
+        input_species_optional=("CO2",),
+        reporting_only=False,
+    ),
+    GriddingSectorComponents(
         gridding_sector="Agriculture",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(
@@ -129,6 +189,7 @@ gridding_sectors_reporting = (
             "AFOLU|Land|Other",
             "AFOLU|Land|Wetlands",
         ),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(
             "BC",
             "CO",
@@ -136,15 +197,9 @@ gridding_sectors_reporting = (
             "CO2",
             "Sulfur",
         ),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Agricultural Waste Burning",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("AFOLU|Agricultural Waste Burning",),
-        input_sectors_optional=(),
-        input_species_optional=("CO2",),
-    ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Aircraft",
         spatial_resolution=SpatialResolutionOption.WORLD,
         input_sectors=(
@@ -155,44 +210,63 @@ gridding_sectors_reporting = (
             # (hence it doesn't appear here, see below)
         ),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=("CH4",),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="BECCS",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Geological Storage|Biomass",),
+        input_sectors_optional=("Geological Storage|Biomass",),
+        reporting_only=False,
+    ),
+    GriddingSectorComponents(
         gridding_sector="Domestic aviation headache",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(SECTOR_DOMESTIC_AVIATION,),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=("CH4",),
+        reporting_only=True,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Transportation Sector",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Energy|Demand|Transportation",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Energy Sector",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Energy|Supply",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Forest Burning",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Land|Fires|Forest Burning",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=("CO2",),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Grassland Burning",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Land|Fires|Grassland Burning",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=("CO2",),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Industrial Sector",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=(
@@ -202,97 +276,105 @@ gridding_sectors_reporting = (
             "Other",
             "Other Capture and Removal",
         ),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_sectors_optional=(
             "Energy|Demand|Other Sector",
             "Other",
             "Other Capture and Removal",
         ),
         input_species_optional=(),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="International Shipping",
         spatial_resolution=SpatialResolutionOption.WORLD,
         input_sectors=("Energy|Demand|Bunkers|International Shipping",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="Other non-Land CDR",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=(
+            "Enhanced Weathering",
+            "Geological Storage|Direct Air Capture",
+            "Geological Storage|Other Sources",
+            "Geological Storage|Synthetic Fuels",
+            # Left out for now because timber is included in AFOLU
+            # and the rest of "Long-Lived Materials|" reporting is super patchy,
+            # can stay in Emissions.
+            # "Long-Lived Materials",
+            "Ocean",
+            # Ignoring for now as doesn't seem to be used,
+            # can stay in Emissions.
+            # "Other",
+        ),
+        input_sectors_optional=(
+            "Enhanced Weathering",
+            "Geological Storage|Direct Air Capture",
+            "Geological Storage|Other Sources",
+            "Geological Storage|Synthetic Fuels",
+            # See note above
+            # "Long-Lived Materials",
+            "Ocean",
+            # See note above
+            # "Other",
+        ),
+        reporting_only=False,
+    ),
+    GriddingSectorComponents(
         gridding_sector="Peat Burning",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("AFOLU|Land|Fires|Peat Burning",),
         input_sectors_optional=("AFOLU|Land|Fires|Peat Burning",),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=COMPLETE_GRIDDING_SPECIES,
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Residential Commercial Other",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Energy|Demand|Residential and Commercial and AFOFI",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Solvents Production and Application",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Product Use",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=("BC", "CH4", "CO", "NOx", "OC", "Sulfur"),
+        reporting_only=False,
     ),
-    GriddingSectorComponentsReporting(
+    GriddingSectorComponents(
         gridding_sector="Waste",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Waste",),
         input_sectors_optional=(),
+        all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="BECCS",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Geological Storage|Biomass",),
-        input_sectors_optional=(),
-        input_species_optional=(
-            "BC",
-            "CH4",
-            "CO",
-            "NH3",
-            "N2O",
-            "NOx",
-            "OC",
-            "Sulfur",
-            "VOC",
-        ),
-    ),
-    GriddingSectorComponentsReporting(
-        gridding_sector="Other non-Land CDR",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=(
-            "Ocean",
-            "Geological Storage|Direct Air Capture",
-            "Geological Storage|Synthetic Fuels",
-            "Geological Storage|Other Sources",
-            # "Long-Lived Materials",
-            "Enhanced Weathering",
-            # "Other",
-        ),
-        input_sectors_optional=(),
-        input_species_optional=(
-            "BC",
-            "CH4",
-            "CO",
-            "NH3",
-            "N2O",
-            "NOx",
-            "OC",
-            "Sulfur",
-            "VOC",
-        ),
+        reporting_only=False,
     ),
 )
+"""
+The reporting sector component definitions
+
+Note that this only defines the reporting sectors.
+The sectors used for aggregation are defined in [to_gridding_sectors][(m).]
+because the logic for how we do the re-aggregation is more complex
+than a straight mapping.
+"""
 
 COMPLETE_WORLD_VARIABLES: tuple[str, ...] = tuple(
     v
     for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.WORLD
-    for v in gs.to_complete_variables(all_species=COMPLETE_GRIDDING_SPECIES)
+    for v in gs.to_complete_variables()
 )
 """
 Complete set of variables at the world level
@@ -302,7 +384,7 @@ REQUIRED_WORLD_VARIABLES: tuple[str, ...] = tuple(
     v
     for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.WORLD
-    for v in gs.to_required_variables(all_species=COMPLETE_GRIDDING_SPECIES)
+    for v in gs.to_required_variables()
 )
 """
 Required set of variables at the world level
@@ -319,7 +401,7 @@ COMPLETE_MODEL_REGION_VARIABLES: tuple[str, ...] = tuple(
     v
     for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.MODEL_REGION
-    for v in gs.to_complete_variables(all_species=COMPLETE_GRIDDING_SPECIES)
+    for v in gs.to_complete_variables()
 )
 """
 Complete set of variables at the model region level
@@ -329,7 +411,7 @@ REQUIRED_MODEL_REGION_VARIABLES: tuple[str, ...] = tuple(
     v
     for gs in gridding_sectors_reporting
     if gs.spatial_resolution == SpatialResolutionOption.MODEL_REGION
-    for v in gs.to_required_variables(all_species=COMPLETE_GRIDDING_SPECIES)
+    for v in gs.to_required_variables()
 )
 """
 Required set of variables at the model region level
@@ -461,8 +543,15 @@ def get_internal_consistency_checking_index(
     model_region_consistency_checking_variables = [
         v
         for v in COMPLETE_MODEL_REGION_VARIABLES
-        # Avoid double counting with "Energy|Demand|Transportation"
-        if SECTOR_DOMESTIC_AVIATION not in v
+        if not (
+            # Avoid double counting with "Energy|Demand|Transportation"
+            SECTOR_DOMESTIC_AVIATION in v
+            # Only check "Carbon Removal" two levels down
+            # because only below this do we really have sub-sectors
+            # (yet another example of the issue
+            # with the different meaning of different trees)
+            or (v.startswith("Carbon Removal") and v.count("|") <= 1)
+        )
     ]
     model_region_consistency_checking = pd.MultiIndex.from_product(
         [model_region_consistency_checking_variables, model_regions],
@@ -709,8 +798,17 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
             "Emissions|VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
             "Emissions|N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
-            # Will need to update when we fix the naming
-            "Carbon Removal|CO2": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            "Carbon Removal|Enhanced Weathering": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Geological Storage": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Long-Lived Materials": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            "Carbon Removal|Other": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
         }
 
     except ImportError:
@@ -725,8 +823,11 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
             "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
             "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
-            # Will need to update when we fix the naming
-            "Carbon Removal|CO2": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Enhanced Weathering": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
         }
 
     return default_tolerances
@@ -954,15 +1055,57 @@ def to_complete(  # noqa: PLR0913
             .drop_duplicates()
             .reorder_levels(["species", unit_level])
         }
-        missing_indexes_split = split_sectors(missing_indexes)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-        zeros_index_split = create_levels_based_on_existing(
-            missing_indexes_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-            {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-        )
-        zeros_index: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
-            zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
-            middle_level="species",
-        )
+
+        emissions_mask = missing_indexes.get_level_values(
+            variable_level
+        ).str.startswith("Emissions")
+        missing_indexes_emissions = missing_indexes[emissions_mask]
+        missing_indexes_carbon_removal = missing_indexes[~emissions_mask]
+
+        if not missing_indexes_emissions.empty:
+            missing_indexes_emissions_split = split_sectors(missing_indexes_emissions)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+            zeros_index_split = create_levels_based_on_existing(
+                missing_indexes_emissions_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+                {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+            )
+            zeros_index_emissions: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
+                zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
+                middle_level="species",
+            )
+
+        if not missing_indexes_carbon_removal.empty:
+            existing_carbon_removal = keep_split[
+                keep_split.index.get_level_values("table").str.startswith(
+                    "Carbon Removal"
+                )
+            ]
+            if existing_carbon_removal.empty:
+                unit = species_unit_map["CO2"]
+            else:
+                # Use the first, as good as any
+                unit = existing_carbon_removal.index.get_level_values("unit")[0]
+
+            zeros_index_carbon_removal = set_levels(
+                missing_indexes_carbon_removal, {unit_level: unit}
+            )
+
+        if (
+            not missing_indexes_emissions.empty
+            and not missing_indexes_carbon_removal.empty
+        ):
+            zeros_index = zeros_index_emissions.append(  # type: ignore # not supported by pandas-stubs
+                zeros_index_carbon_removal.reorder_levels(zeros_index_emissions.names)  # type: ignore # not supported by pandas-stubs
+            )
+
+        elif not missing_indexes_emissions.empty:
+            zeros_index = zeros_index_emissions
+
+        elif not missing_indexes_carbon_removal.empty:
+            zeros_index = zeros_index_carbon_removal
+
+        else:
+            raise AssertionError
+
         other_levels_deduped = indf.index.droplevel(
             [variable_level, unit_level, region_level]
         ).drop_duplicates()
@@ -989,6 +1132,140 @@ def to_complete(  # noqa: PLR0913
     return res
 
 
+# TODO: move to pandas-openscm
+def convert_unit_like(
+    df: pd.DataFrame,
+    target: pd.DataFrame,
+    df_unit_level: str = "unit",
+    target_unit_level: str | None = None,
+    ur: pint.UnitRegistry | None = None,
+) -> pd.DataFrame:
+    """
+    Convert to units like a different [pd.DataFrame][pandas.DataFrame]
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] of which to convert the units
+
+    target
+        [pd.DataFrame][pandas.DataFrame] whose units the result should match
+
+    df_unit_level
+        Level in `df`'s index which has unit information
+
+    target_unit_level
+        Level in `target`'s index which has unit information
+
+        If not provided, we assume this is the same as `df_unit_level`
+
+    ur
+        Unit registry to use for determining unit conversions
+
+        If not provided, we use [openscm_units.unit_registry][]
+
+    Returns
+    -------
+    :
+        `df` with units that match `target`
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        `ur` is `None` and openscm-units is not installed
+    """
+    if target_unit_level is None:
+        target_unit_col_use = df_unit_level
+    else:
+        target_unit_col_use = target_unit_level
+
+    extra_index_levels_target = target.index.names.difference(df.index.names)  # type: ignore # pandas-stubs confused
+    if extra_index_levels_target:
+        msg = (
+            "Haven't worked out the logic "
+            "when the target has index levels which aren't in `df`. "
+            f"{extra_index_levels_target=}"
+        )
+        raise NotImplementedError(msg)
+
+    df_units_s = df.index.get_level_values(df_unit_level).to_series(
+        index=df.index.droplevel(df_unit_level), name="df_unit"
+    )
+    target_units_s = target.index.get_level_values(target_unit_col_use).to_series(
+        index=target.index.droplevel(target_unit_col_use), name="target_unit"
+    )
+    unit_map = pd.DataFrame([*target_units_s.align(df_units_s)]).T
+
+    if (unit_map["df_unit"] == unit_map["target_unit"]).all():
+        # Already in matching units
+        return df
+
+    if ur is None:
+        try:
+            import openscm_units
+
+            ur = openscm_units.unit_registry
+        except ImportError:
+            raise MissingOptionalDependencyError(  # noqa: TRY003
+                "convert_unit_like(..., ur=None, ...)", "openscm_units"
+            )
+
+    df_converted = df.reset_index(df_unit_level, drop=True)
+    for (df_unit, target_unit), conversion_df in unit_map.groupby(
+        ["df_unit", "target_unit"]
+    ):
+        conversion_factor = ur(df_unit).to(target_unit).m
+        to_alter_loc = multi_index_match(df_converted.index, conversion_df.index)  # type: ignore
+        df_converted.loc[to_alter_loc, :] *= conversion_factor
+
+    # All conversions done so can simply assign the unit column.
+    # When moving to pandas-openscm, check this carefully
+    # using different input row order etc.
+    res = set_index_levels_func(
+        df_converted,
+        {df_unit_level: conversion_df["target_unit"].loc[df_converted.index]},
+    ).reorder_levels(df.index.names)
+
+    return res
+
+
+def aggregate_cols(
+    df: pd.DataFrame, aggregations: dict[str, list[str]]
+) -> pd.DataFrame:
+    """
+    Aggregate columns
+
+    This is a helper function for [to_gridding_sectors][(m).].
+
+    It does the aggregation in place so we can check that all the columns were used.
+
+    Parameters
+    ----------
+    df
+        Starting [pd.DataFrame][pandas.DataFrame]
+
+    aggregations
+        Aggregations to apply
+
+        Each key is the output column,
+        each value is the components that contribute to the output column.
+
+    Returns
+    -------
+    :
+        `df` with the aggregations applied
+    """
+    for aggregate, components in aggregations.items():
+        df[aggregate] = df[components].sum(axis="columns")
+        df = df.drop(
+            # Subtract aggregate in case the aggregate and component have the same name
+            list(set(components) - {aggregate}),
+            axis="columns",
+        )
+
+    return df
+
+
 def to_gridding_sectors(
     indf: pd.DataFrame, region_level: str = "region", world_region: str = "World"
 ) -> pd.DataFrame:
@@ -1011,172 +1288,162 @@ def to_gridding_sectors(
     :
         Data re-aggregated to the gridding sectors
     """
-    # Processing is way easier if we split into two DataFrame's
-    # and stack the sectors
-    world_locator = indf.index.get_level_values(region_level) == world_region
+    # Split off the carbon removal tree first
+    carbon_removal_mask = indf.index.get_level_values("variable").str.startswith(
+        "Carbon Removal"
+    )
+    carbon_removal = indf[carbon_removal_mask]
+    emissions = indf[~carbon_removal_mask]
+
+    # Processing is way easier if we process the DataFrame's a bit first
+    emissions_world_mask = (
+        emissions.index.get_level_values(region_level) == world_region
+    )
 
     # Data that is at the world level i.e. has no region information
-    sector_df = (
+    emissions_sector_df = (
         split_sectors(
-            indf.loc[world_locator].reset_index("region", drop=True),
+            emissions.loc[emissions_world_mask].reset_index("region", drop=True),
             bottom_level="sectors",
         )
         .stack()
         .unstack("sectors")
     )
 
-    # TODO: remove, shouldn't be needed
-    sector_df = sector_df.fillna(0)
-
     # Data with region information
-    region_sector_df = (
-        split_sectors(indf.loc[~world_locator], bottom_level="sectors")
+    emissions_region_sector_df = (
+        split_sectors(emissions.loc[~emissions_world_mask], bottom_level="sectors")
         .stack()
         .unstack("sectors")
     )
 
-    # TODO: remove, shouldn't be needed
-    region_sector_df = region_sector_df.fillna(0)
+    # CDR information
+    emissions_cdr = -1 * update_index_levels_func(
+        carbon_removal,
+        {"variable": lambda x: x.replace("Carbon Removal", "Emissions|CO2|CDR")},
+    )
+    emissions_cdr_world_mask = (
+        emissions_cdr.index.get_level_values(region_level) == world_region
+    )
+    if emissions_cdr_world_mask.any():
+        raise NotImplementedError
 
-    # Move domestic aviation to the global level
+    emissions_region_sector_df_co2_mask = (
+        emissions_region_sector_df.index.get_level_values("species") == "CO2"
+    )
+
+    emissions_cdr_region_sector_df = convert_unit_like(
+        split_sectors(  # type: ignore # pandas-stubs confused
+            emissions_cdr.loc[~emissions_cdr_world_mask], bottom_level="sectors"
+        )
+        .stack()
+        .unstack("sectors"),
+        emissions_region_sector_df.loc[emissions_region_sector_df_co2_mask],  # type: ignore # pandas-stubs confused
+    )
+
+    # Move domestic aviation to the global level,
+    # remove it from regional transport
+    # and drop the levels we no longer use.
     domestic_aviation_sum = groupby_except(
-        region_sector_df[SECTOR_DOMESTIC_AVIATION],  # type: ignore # issue in pandas-openscm
+        emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION],  # type: ignore # issue in pandas-openscm
         region_level,
     ).sum()
-    sector_df["Aircraft"] = (
-        sector_df["Energy|Demand|Bunkers|International Aviation"]
+    emissions_sector_df["Aircraft"] = (
+        emissions_sector_df["Energy|Demand|Bunkers|International Aviation"]
         + domestic_aviation_sum
     )
-    # The gridding transport sector excludes the aviation (which we just moved)
-    region_sector_df["Energy|Demand|Transportation"] = (
-        region_sector_df["Energy|Demand|Transportation"]
-        - region_sector_df[SECTOR_DOMESTIC_AVIATION]
+    emissions_region_sector_df["Energy|Demand|Transportation"] = (
+        emissions_region_sector_df["Energy|Demand|Transportation"]
+        - emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION]
     )
-    # Having done the move, drop the levels we no longer use
-    sector_df = sector_df.drop(
+    emissions_sector_df = emissions_sector_df.drop(
         ["Energy|Demand|Bunkers|International Aviation"], axis="columns"
     )
-    region_sector_df = region_sector_df.drop([SECTOR_DOMESTIC_AVIATION], axis="columns")
-
-    # Now it's very straight-forward
-    # Rename shipping at the world level without a loop
-    # because this is the only change
-    sector_df_gridding = sector_df.rename(
-        {"Energy|Demand|Bunkers|International Shipping": "International Shipping"},
-        axis="columns",
+    emissions_region_sector_df = emissions_region_sector_df.drop(
+        [SECTOR_DOMESTIC_AVIATION], axis="columns"
     )
 
-    # Get the region-sector gridding df started
-    # (including the renaming for transport)
-    region_sector_df_gridding = region_sector_df.rename(
-        {"Energy|Demand|Transportation": "Transportation Sector"},
-        axis="columns",
-    )
-
-    # CDR handling
-    # BECCS  & Other (non-Land) CDR readdition
-    emissions_mask = (
-        region_sector_df_gridding.index.get_level_values("table") == "Emissions"
-    ) & (region_sector_df_gridding.index.get_level_values("species") == "CO2")
-    cdr_mask = (
-        region_sector_df_gridding.index.get_level_values("table") == "Carbon Removal"
-    ) & (region_sector_df_gridding.index.get_level_values("species") == "CO2")
-
-    sector_map = {
-        "Geological Storage|Biomass": "Energy|Supply",
-        "Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        "Ocean": "Other Capture and Removal",
-        "Geological Storage|Direct Air Capture": "Other Capture and Removal",
-        "Geological Storage|Other Sources": "Other Capture and Removal",
-        # "Long-Lived Materials": "Other Capture and Removal",
-        "Enhanced Weathering": "Other Capture and Removal",
-        # "Other":                                 "Other Capture and Removal",
+    # Handle the CDR sectors
+    carbon_removal_map = {
+        "CDR|Enhanced Weathering": "Other Capture and Removal",
+        "CDR|Geological Storage|Biomass": "Energy|Supply",
+        "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
+        "CDR|Geological Storage|Other Sources": "Other Capture and Removal",
+        "CDR|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
+        # See note above
+        # "CDR|Long-Lived Materials": "Other Capture and Removal",
+        "CDR|Ocean": "Other Capture and Removal",
+        # See note above
+        # "CDR|Other": "Other Capture and Removal",
     }
-    for cdr, emi in sector_map.items():
-        # The sum is done with some extra caution
-        to_emi = region_sector_df_gridding.loc[emissions_mask, emi]
-        from_cdr = region_sector_df_gridding.loc[cdr_mask, cdr]
-        if (to_emi.shape != from_cdr.shape) or from_cdr.empty:
-            msg = f"Shapes don't match: {to_emi.shape} vs {from_cdr.shape}"
-            raise ValueError(msg)
-        to_emi_tosum = to_emi.fillna(0)
-        from_cdr_tosum = from_cdr.fillna(0)
-        region_sector_df_gridding.loc[emissions_mask, emi] = np.asarray(
-            to_emi_tosum.values
-        ) + np.asarray(from_cdr_tosum.values)
+    for cdr_sector, emissions_sector in carbon_removal_map.items():
+        row_loc = emissions_region_sector_df_co2_mask
+        col_loc = emissions_sector
+        emissions_region_sector_df.loc[row_loc, col_loc] = (
+            emissions_region_sector_df.loc[row_loc, col_loc]
+            - emissions_cdr_region_sector_df[cdr_sector]
+        )
 
-    # Do other compilations.
-    # We can do this here with confidence
-    # because we assume that the users have used `to_complete`
-    # before calling this function.
-    for table, sector_aggregation in [
-        (
-            "Emissions",
-            [
-                (
-                    "Agriculture",
-                    [
-                        "AFOLU|Agriculture",
-                        "AFOLU|Land|Harvested Wood Products",
-                        "AFOLU|Land|Land Use and Land-Use Change",
-                        "AFOLU|Land|Other",
-                        "AFOLU|Land|Wetlands",
-                    ],
-                ),
-                ("Agricultural Waste Burning", ["AFOLU|Agricultural Waste Burning"]),
-                ("Energy Sector", ["Energy|Supply"]),
-                ("Forest Burning", ["AFOLU|Land|Fires|Forest Burning"]),
-                ("Grassland Burning", ["AFOLU|Land|Fires|Grassland Burning"]),
-                (
-                    "Industrial Sector",
-                    [
-                        "Energy|Demand|Industry",
-                        "Industrial Processes",
-                        "Energy|Demand|Other Sector",
-                        "Other",
-                        "Other Capture and Removal",
-                    ],
-                ),
-                ("Peat Burning", ["AFOLU|Land|Fires|Peat Burning"]),
-                (
-                    "Residential Commercial Other",
-                    ["Energy|Demand|Residential and Commercial and AFOFI"],
-                ),
-                ("Solvents Production and Application", ["Product Use"]),
-                ("Waste", ["Waste"]),
+    # Aggregate
+    sector_df_gridding = aggregate_cols(
+        emissions_sector_df,  # type: ignore # need to cast first or something
+        {
+            "International Shipping": ["Energy|Demand|Bunkers|International Shipping"],
+            # Not the same as the reporting sector as we have done manipulations above
+            "Aircraft": ["Aircraft"],
+        },
+    )
+    region_sector_df_gridding = aggregate_cols(
+        emissions_region_sector_df,  # type: ignore # need to cast first or something
+        {
+            "Agricultural Waste Burning": [
+                "AFOLU|Agricultural Waste Burning",
             ],
-        ),
-        (
-            "Carbon Removal",
-            [
-                ("BECCS", ["Geological Storage|Biomass"]),
-                (
-                    "Other non-Land CDR",
-                    [
-                        "Ocean",
-                        "Geological Storage|Direct Air Capture",
-                        "Geological Storage|Synthetic Fuels",
-                        "Geological Storage|Other Sources",
-                        # "Long-Lived Materials",
-                        "Enhanced Weathering",
-                    ],
-                ),
+            "Agriculture": [
+                "AFOLU|Agriculture",
+                "AFOLU|Land|Harvested Wood Products",
+                "AFOLU|Land|Land Use and Land-Use Change",
+                "AFOLU|Land|Other",
+                "AFOLU|Land|Wetlands",
             ],
-        ),
-    ]:
-        for gridding_sector, components in sector_aggregation:
-            # TODO: update this so it's clearer what is going on.
-            # Will be a big refactor
-            factor = -1 if table == "Carbon Removal" else 1
+            "Energy Sector": ["Energy|Supply"],
+            "Forest Burning": ["AFOLU|Land|Fires|Forest Burning"],
+            "Grassland Burning": ["AFOLU|Land|Fires|Grassland Burning"],
+            "Industrial Sector": [
+                "Energy|Demand|Industry",
+                "Energy|Demand|Other Sector",
+                "Industrial Processes",
+                "Other",
+                "Other Capture and Removal",
+            ],
+            "Peat Burning": ["AFOLU|Land|Fires|Peat Burning"],
+            "Residential Commercial Other": [
+                "Energy|Demand|Residential and Commercial and AFOFI"
+            ],
+            "Solvents Production and Application": ["Product Use"],
+            "Transportation Sector": ["Energy|Demand|Transportation"],
+            "Waste": ["Waste"],
+        },
+    )
 
-            region_sector_df_gridding[gridding_sector] = (
-                factor * region_sector_df_gridding[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
-            )
-            region_sector_df_gridding = region_sector_df_gridding.drop(
-                list(set(components) - {gridding_sector}), axis="columns"
-            )
+    emissions_cdr_region_sector_df_gridding = aggregate_cols(
+        emissions_cdr_region_sector_df,
+        {
+            "BECCS": ["CDR|Geological Storage|Biomass"],
+            "Other non-Land CDR": [
+                "CDR|Enhanced Weathering",
+                "CDR|Geological Storage|Direct Air Capture",
+                "CDR|Geological Storage|Other Sources",
+                "CDR|Geological Storage|Synthetic Fuels",
+                # See note above
+                # "CDR|Long-Lived Materials",
+                "CDR|Ocean",
+                # See note above
+                # "CDR|Other",
+            ],
+        },
+    )
 
-    # World
     sector_df_gridding_like_input = combine_sectors(
         set_new_single_value_levels(
             sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
@@ -1184,56 +1451,25 @@ def to_gridding_sectors(
         ),
         bottom_level="sectors",
     )
-    # Emissions
-    emissions_mask = (
-        region_sector_df_gridding.index.get_level_values("table") == "Emissions"
+    region_sector_df_gridding_like_input = combine_sectors(
+        region_sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
+        bottom_level="sectors",
     )
-    region_sector_df_gridding_emissions = region_sector_df_gridding[
-        emissions_mask
-    ].drop(columns=["BECCS", "Other non-Land CDR"])
-
-    region_sector_df_gridding_emissions_like_input = combine_sectors(
-        region_sector_df_gridding_emissions.unstack().stack(
-            "sectors", future_stack=True
-        ),  # type: ignore # pandas-stubs confused
+    emissions_cdr_region_sector_df_gridding_like_input = combine_sectors(
+        emissions_cdr_region_sector_df_gridding.unstack().stack(
+            "sectors",  # type: ignore # pandas-stubs confused
+            future_stack=True,
+        ),
         bottom_level="sectors",
     )
 
-    ## Carbon Removal
-    carbon_mask = (
-        region_sector_df_gridding.index.get_level_values("table") == "Carbon Removal"
-    )
-    region_sector_df_gridding_carbon = region_sector_df_gridding[carbon_mask].drop(
-        columns=[
-            "Waste",
-            "Transportation Sector",
-            "Agriculture",
-            "Agricultural Waste Burning",
-            "Energy Sector",
-            "Forest Burning",
-            "Grassland Burning",
-            "Industrial Sector",
-            "Peat Burning",
-            "Residential Commercial Other",
-            "Solvents Production and Application",
-        ]
-    )
-
-    region_sector_df_gridding_carbon_like_input = combine_sectors(
-        region_sector_df_gridding_carbon.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
-        bottom_level="sectors",
-    )
-
-    # TODO: change this,
-    # there shouldn't be a Carbon Removal table in the output I don't think
-    # (makes more headache than is helpful for working out totals)
     res = pd.concat(
         [
             df.reorder_levels(indf.index.names)
             for df in [
                 sector_df_gridding_like_input,
-                region_sector_df_gridding_emissions_like_input,
-                region_sector_df_gridding_carbon_like_input,
+                region_sector_df_gridding_like_input,
+                emissions_cdr_region_sector_df_gridding_like_input,
             ]
         ]
     )

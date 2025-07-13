@@ -96,7 +96,7 @@ if not EXAMPLE_INPUT_FILE.exists():
 start = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_column_type=int,
+    out_columns_type=int,
 )
 start.columns.name = "year"
 start
