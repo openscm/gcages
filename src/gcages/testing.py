@@ -451,6 +451,9 @@ def compare_close(
 
 
 def get_variable_unit_default(v: str) -> str:
+    if v.startswith("Carbon Removal"):
+        return "Mt CO2/yr"
+
     species = v.split("|")[1]
     unit_map = {
         "BC": "Mt BC/yr",

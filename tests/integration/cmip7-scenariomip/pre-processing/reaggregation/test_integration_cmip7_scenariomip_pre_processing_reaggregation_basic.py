@@ -97,9 +97,7 @@ class GriddingSectorComponentsReporting:
 
     def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
         if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
-            return tuple(
-                f"Carbon Removal|CO2|{sector}" for sector in self.input_sectors
-            )
+            return tuple(f"Carbon Removal|{sector}" for sector in self.input_sectors)
         else:
             return tuple(
                 f"Emissions|{species}|{sector}"
@@ -110,7 +108,7 @@ class GriddingSectorComponentsReporting:
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
         if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
             return tuple(
-                f"Carbon Removal|CO2|{sector}"
+                f"Carbon Removal|{sector}"
                 for sector in self.input_sectors
                 if sector not in self.input_sectors_optional
             )
@@ -285,9 +283,9 @@ GRIDDING_SECTORS = {
                 "Geological Storage|Direct Air Capture",
                 "Geological Storage|Synthetic Fuels",
                 "Geological Storage|Other Sources",
-                # "Long-Lived Materials",
+                "Long-Lived Materials",
                 "Enhanced Weathering",
-                # "Other",
+                "Other",
             ),
             input_sectors_optional=(),
             input_species_optional=(
@@ -384,6 +382,9 @@ This is why the internal consistency index is its own thing.
 
 
 def guess_unit(v: str) -> str:
+    if v.startswith("Carbon Removal"):
+        return "Mt CO2/yr"
+
     species = v.split("|")[1]
     unit_map = {
         "BC": "Mt BC/yr",
@@ -421,13 +422,6 @@ def get_df(  # noqa: PLR0913
         ),
         {model_level: model, scenario_level: scenario},
     )
-
-    # Keep Carbon Removal CO2 only
-    mask = ~(
-        res.index.get_level_values("variable").str.startswith("Carbon Removal|")
-        & ~res.index.get_level_values("variable").str.startswith("Carbon Removal|CO2")
-    )
-    res = res[mask]
 
     return res
 
