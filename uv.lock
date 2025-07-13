@@ -1240,7 +1240,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pandas-indexing", marker = "extra == 'cmip7-scenariomip'", specifier = ">=0.6.3" },
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
-    { name = "pandas-openscm", specifier = ">=0.4.1" },
+    { name = "pandas-openscm", specifier = ">=0.5.1" },
     { name = "pymagicc", marker = "extra == 'ar6'", specifier = ">=2.1.5" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
     { name = "scmdata", marker = "extra == 'ar6'", specifier = ">=0.17.0,<0.18" },

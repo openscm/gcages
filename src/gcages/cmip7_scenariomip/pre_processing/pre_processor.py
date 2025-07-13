@@ -334,7 +334,8 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             == reaggregator.world_region
         )
     ]
-    # Drop out the carbon removal tree if it's there
+    # Don't report any carbon removal from the input
+    # because it is already covered by the Emissions tree from the gridding timeseries
     global_workflow_emissions_not_from_gridding_emissions = global_workflow_emissions_not_from_gridding_emissions.loc[  # noqa: E501
         ~global_workflow_emissions_not_from_gridding_emissions.index.get_level_values(
             variable_level

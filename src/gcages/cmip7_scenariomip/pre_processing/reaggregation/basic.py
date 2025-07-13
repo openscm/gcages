@@ -544,6 +544,7 @@ def get_internal_consistency_checking_index(
             # Avoid double counting with "Energy|Demand|Transportation"
             SECTOR_DOMESTIC_AVIATION in v
             # Only check "Carbon Removal" two levels down
+            # because only below this do we really have sub-sectors
             # (yet another example of the issue
             # with the different meaning of different trees)
             or (v.startswith("Carbon Removal") and v.count("|") <= 1)
@@ -1251,7 +1252,6 @@ def aggregate_cols(
     :
         `df` with the aggregations applied
     """
-    # Happens in place so we can make sure we used all the columns!
     for aggregate, components in aggregations.items():
         df[aggregate] = df[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
         df = df.drop(
