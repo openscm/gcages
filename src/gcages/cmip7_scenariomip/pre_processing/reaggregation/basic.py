@@ -365,7 +365,7 @@ gridding_sectors_reporting = (
 The reporting sector component definitions
 
 Note that this only defines the reporting sectors.
-The sectors used for aggregation are defined in [to_gridding_sectors][]
+The sectors used for aggregation are defined in [to_gridding_sectors][(m).]
 because the logic for how we do the re-aggregation is more complex
 than a straight mapping.
 """
@@ -1235,7 +1235,7 @@ def aggregate_cols(
     """
     Aggregate columns
 
-    This is a helper function for [to_gridding_sectors][].
+    This is a helper function for [to_gridding_sectors][(m).].
 
     It does the aggregation in place so we can check that all the columns were used.
 
