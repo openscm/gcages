@@ -135,7 +135,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
     time_name: str,
     run_checks: bool,
     world_gridding_sectors: tuple[str, ...] = ("Aircraft", "International Shipping"),
-    table: tuple[str, ...] = ("Emissions", "Carbon Removal"),
+    table: str = "Emissions",
     level_separator: str = "|",
     co2_fossil_sectors: tuple[str, ...] = CO2_FOSSIL_SECTORS_GRIDDING,
     co2_biosphere_sectors: tuple[str, ...] = CO2_BIOSPHERE_SECTORS_GRIDDING,
@@ -267,34 +267,16 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
         )
         gridded_emisssions_sectoral_regional_sum = grss(gridding_workflow_emissions)
 
-        in_emissions_totals_to_compare_to = grss(
-            # Make sure we only sum across the levels
-            # that are useful for getting the total
-            multi_index_lookup(
-                indf, reaggregator.get_internal_consistency_checking_index()
-            )
+        in_emissions_totals_to_compare_to = multi_index_lookup(
+            grss(
+                # Make sure we only sum across the levels
+                # that are useful for getting the total
+                multi_index_lookup(
+                    indf, reaggregator.get_internal_consistency_checking_index()
+                )
+            ),
+            gridded_emisssions_sectoral_regional_sum.index,
         )
-
-        # The sign of the 'Carbon Removal' must be flipped to compare
-        # (it gets changed in the reaggregation)
-        mask = gridded_emisssions_sectoral_regional_sum.index.get_level_values(
-            "variable"
-        ).str.startswith("Carbon Removal")
-        gridded_emisssions_sectoral_regional_sum.loc[mask] *= -1
-        # To account for CDR in the sum
-        cdr = in_emissions_totals_to_compare_to.xs(
-            "Carbon Removal|CO2", level="variable"
-        )
-        emi = in_emissions_totals_to_compare_to.xs("Emissions|CO2", level="variable")
-        # Sum
-        co2_sum = emi + cdr
-        # Assign the result back into the original DataFrame under "Emissions|CO2"
-        for idx, row in co2_sum.iterrows():
-            new_idx = (
-                idx[:3] + ("Emissions|CO2",) + idx[3:]  # type: ignore
-            )  # Rebuild full MultiIndex
-            in_emissions_totals_to_compare_to.loc[new_idx] = row.values
-
         # No tolerance as this should be exact
         assert_frame_equal(
             gridded_emisssions_sectoral_regional_sum,
@@ -544,7 +526,7 @@ class CMIP7ScenarioMIPPreProcessor:
     Name used for CO2 in variable names
     """
 
-    table: tuple[str, ...] = ("Emissions", "Carbon Removal")
+    table: str = "Emissions"
     """
     The value used for the top level of variable names
     """

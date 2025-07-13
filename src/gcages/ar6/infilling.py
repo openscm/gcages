@@ -76,7 +76,7 @@ def load_massaged_ar6_infilling_db(filepath: Path, cfcs: bool) -> pd.DataFrame:
         filepath,
         lower_column_names=True,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
 
     if cfcs:
@@ -163,7 +163,7 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
         filepath,
         lower_column_names=True,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
 
     history = raw.loc[

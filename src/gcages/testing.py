@@ -94,7 +94,7 @@ def get_ar6_all_emissions(
     res = load_timeseries_csv(
         emissions_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
 
     return res
@@ -267,7 +267,7 @@ def get_ar6_temperature_outputs(
     res = load_timeseries_csv(
         temperatures_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
     if dropna:
         res = res.dropna(axis="columns", how="all")

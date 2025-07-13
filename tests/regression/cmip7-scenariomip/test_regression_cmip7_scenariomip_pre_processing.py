@@ -29,7 +29,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     input_df = load_timeseries_csv(
         input_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
-        out_column_type=int,
+        out_columns_type=int,
     )
     input_df.columns.name = "year"
 
@@ -61,8 +61,6 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
-        # TODO: turn this to True when cleaning up the CDR handling
-        run_checks=False,
     )
 
     res = pre_processor(input_df)

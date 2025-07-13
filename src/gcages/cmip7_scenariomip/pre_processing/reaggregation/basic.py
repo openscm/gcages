@@ -17,6 +17,7 @@ from attrs import define, field
 from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
     set_index_levels_func,
+    set_levels,
     update_index_levels_func,
 )
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
@@ -217,7 +218,6 @@ gridding_sectors_reporting = (
         gridding_sector="BECCS",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
         input_sectors=("Geological Storage|Biomass",),
-        # TODO: make this optional?
         input_sectors_optional=("Geological Storage|Biomass",),
         reporting_only=False,
     ),
@@ -536,8 +536,14 @@ def get_internal_consistency_checking_index(
     model_region_consistency_checking_variables = [
         v
         for v in COMPLETE_MODEL_REGION_VARIABLES
-        # Avoid double counting with "Energy|Demand|Transportation"
-        if SECTOR_DOMESTIC_AVIATION not in v
+        if not (
+            # Avoid double counting with "Energy|Demand|Transportation"
+            SECTOR_DOMESTIC_AVIATION in v
+            # Only check "Carbon Removal" two levels down
+            # (yet another example of the issue
+            # with the different meaning of different trees)
+            or (v.startswith("Carbon Removal") and v.count("|") <= 1)
+        )
     ]
     model_region_consistency_checking = pd.MultiIndex.from_product(
         [model_region_consistency_checking_variables, model_regions],
@@ -784,8 +790,17 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
             "Emissions|VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
             "Emissions|N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
-            # Will need to update when we fix the naming
-            "Carbon Removal|CO2": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            "Carbon Removal|Enhanced Weathering": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Geological Storage": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Long-Lived Materials": dict(
+                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
+            ),
+            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            "Carbon Removal|Other": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
         }
 
     except ImportError:
@@ -800,8 +815,11 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
             "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
             "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
-            # Will need to update when we fix the naming
-            "Carbon Removal|CO2": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Enhanced Weathering": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
         }
 
     return default_tolerances
@@ -1029,15 +1047,57 @@ def to_complete(  # noqa: PLR0913
             .drop_duplicates()
             .reorder_levels(["species", unit_level])
         }
-        missing_indexes_split = split_sectors(missing_indexes)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-        zeros_index_split = create_levels_based_on_existing(
-            missing_indexes_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-            {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-        )
-        zeros_index: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
-            zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
-            middle_level="species",
-        )
+
+        emissions_mask = missing_indexes.get_level_values(
+            variable_level
+        ).str.startswith("Emissions")
+        missing_indexes_emissions = missing_indexes[emissions_mask]
+        missing_indexes_carbon_removal = missing_indexes[~emissions_mask]
+
+        if not missing_indexes_emissions.empty:
+            missing_indexes_emissions_split = split_sectors(missing_indexes_emissions)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+            zeros_index_split = create_levels_based_on_existing(
+                missing_indexes_emissions_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+                {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+            )
+            zeros_index_emissions: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
+                zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
+                middle_level="species",
+            )
+
+        if not missing_indexes_carbon_removal.empty:
+            existing_carbon_removal = keep_split[
+                keep_split.index.get_level_values("table").str.startswith(
+                    "Carbon Removal"
+                )
+            ]
+            if existing_carbon_removal.empty:
+                unit = species_unit_map["CO2"]
+            else:
+                # Use the first, as good as any
+                unit = existing_carbon_removal.index.get_level_values("unit")[0]
+
+            zeros_index_carbon_removal = set_levels(
+                missing_indexes_carbon_removal, {unit_level: unit}
+            )
+
+        if (
+            not missing_indexes_emissions.empty
+            and not missing_indexes_carbon_removal.empty
+        ):
+            zeros_index = zeros_index_emissions.append(
+                zeros_index_carbon_removal.reorder_levels(zeros_index_emissions.names)
+            )
+
+        elif not missing_indexes_emissions.empty:
+            zeros_index = zeros_index_emissions
+
+        elif not missing_indexes_carbon_removal.empty:
+            zeros_index = zeros_index_carbon_removal
+
+        else:
+            raise AssertionError
+
         other_levels_deduped = indf.index.droplevel(
             [variable_level, unit_level, region_level]
         ).drop_duplicates()
