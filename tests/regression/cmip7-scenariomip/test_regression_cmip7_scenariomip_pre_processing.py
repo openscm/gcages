@@ -20,8 +20,8 @@ pytest.importorskip("pandas_indexing")
     "input_file",
     (
         pytest.param(
-            HERE / "test-data" / "salted-202504-scenariomip-input.csv",
-            id="salted-202504-scenariomip-input",
+            HERE / "test-data" / "salted-202507-scenariomip-input.csv",
+            id="salted-202507-scenariomip-input",
         ),
     ),
 )
@@ -61,7 +61,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
-        run_checks=False,
+        run_checks=True,
     )
 
     res = pre_processor(input_df)
