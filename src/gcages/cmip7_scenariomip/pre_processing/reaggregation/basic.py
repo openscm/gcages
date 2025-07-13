@@ -302,10 +302,13 @@ gridding_sectors_reporting = (
             "Geological Storage|Direct Air Capture",
             "Geological Storage|Other Sources",
             "Geological Storage|Synthetic Fuels",
-            # TODO: check whether this should be included
+            # Left out for now because timber is included in AFOLU
+            # and the rest of "Long-Lived Materials|" reporting is super patchy,
+            # can stay in Emissions.
             # "Long-Lived Materials",
             "Ocean",
-            # TODO: check whether this should be included
+            # Ignoring for now as doesn't seem to be used,
+            # can stay in Emissions.
             # "Other",
         ),
         input_sectors_optional=(
@@ -313,10 +316,10 @@ gridding_sectors_reporting = (
             "Geological Storage|Direct Air Capture",
             "Geological Storage|Other Sources",
             "Geological Storage|Synthetic Fuels",
-            # TODO: check whether this should be included
+            # See note above
             # "Long-Lived Materials",
             "Ocean",
-            # TODO: check whether this should be included
+            # See note above
             # "Other",
         ),
         reporting_only=False,
@@ -1367,10 +1370,10 @@ def to_gridding_sectors(
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
         "CDR|Geological Storage|Other Sources": "Other Capture and Removal",
         "CDR|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        # TODO: check whether this should be included
+        # See note above
         # "CDR|Long-Lived Materials": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
-        # TODO: check whether this should be included
+        # See note above
         # "CDR|Other": "Other Capture and Removal",
     }
     for cdr_sector, emissions_sector in carbon_removal_map.items():
@@ -1432,10 +1435,10 @@ def to_gridding_sectors(
                 "CDR|Geological Storage|Direct Air Capture",
                 "CDR|Geological Storage|Other Sources",
                 "CDR|Geological Storage|Synthetic Fuels",
-                # TODO: check whether this should be included
+                # See note above
                 # "CDR|Long-Lived Materials",
                 "CDR|Ocean",
-                # TODO: check whether this should be included
+                # See note above
                 # "CDR|Other",
             ],
         },
