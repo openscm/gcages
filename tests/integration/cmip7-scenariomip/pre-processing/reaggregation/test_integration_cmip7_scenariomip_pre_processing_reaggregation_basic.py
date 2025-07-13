@@ -286,18 +286,18 @@ GRIDDING_SECTORS = {
                 "Geological Storage|Direct Air Capture",
                 "Geological Storage|Synthetic Fuels",
                 "Geological Storage|Other Sources",
-                "Long-Lived Materials",
+                # "Long-Lived Materials",
                 "Enhanced Weathering",
-                "Other",
+                # "Other",
             ),
             input_sectors_optional=(
                 "Ocean",
                 "Geological Storage|Direct Air Capture",
                 "Geological Storage|Synthetic Fuels",
                 "Geological Storage|Other Sources",
-                "Long-Lived Materials",
+                # "Long-Lived Materials",
                 "Enhanced Weathering",
-                "Other",
+                # "Other",
             ),
             input_species_optional=(
                 "BC",
@@ -1323,9 +1323,9 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         "Carbon Removal|Geological Storage|Direct Air Capture": "Other Capture and Removal",  # noqa: E501
         "Carbon Removal|Geological Storage|Other Sources": "Other Capture and Removal",
         "Carbon Removal|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        "Carbon Removal|Long-Lived Materials": "Other Capture and Removal",
+        # "Carbon Removal|Long-Lived Materials": "Other Capture and Removal",
         "Carbon Removal|Ocean": "Other Capture and Removal",
-        "Carbon Removal|Other": "Other Capture and Removal",
+        # "Carbon Removal|Other": "Other Capture and Removal",
     }
     for cdr_sector, raw_sector in carbon_removal_map.items():
         input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}")] = (
