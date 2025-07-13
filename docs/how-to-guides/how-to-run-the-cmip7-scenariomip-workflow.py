@@ -39,6 +39,8 @@ import seaborn as sns
 from pandas_openscm.io import load_timeseries_csv
 
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
+from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
+from gcages.index_manipulation import split_sectors
 
 # %%
 # Setup pint
@@ -81,7 +83,7 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""}
 EXAMPLE_INPUT_FILE = Path(
-    "tests/regression/cmip7-scenariomip/test-data/salted-202504-scenariomip-input.csv"
+    "tests/regression/cmip7-scenariomip/test-data/salted-202507-scenariomip-input.csv"
 )
 
 # %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
@@ -117,15 +119,23 @@ relplot_in_emms = partial(
 data = start.openscm.to_long_data(time_col_name="year")
 data = data[
     data["variable"].isin(
-        ["Emissions|CO2", "Emissions|CH4", "Emissions|Sulfur", "Emissions|BC"]
+        [
+            "Emissions|CO2",
+            "Emissions|CH4",
+            "Emissions|Sulfur",
+            "Emissions|BC",
+            "Carbon Removal|Geological Storage|Biomass",
+            "Carbon Removal|Geological Storage|Direct Air Capture",
+            "Carbon Removal|Enhanced Weathering",
+        ]
     )
     & (data["region"].isin(["World"]) | data["region"].str.startswith("model_1"))
 ]
 
 fg = sns.relplot(
     data=data,
-    hue="scenario",
-    style="region",
+    hue="region",
+    style="scenario",
     kind="line",
     linewidth=2.0,
     alpha=0.7,
@@ -184,14 +194,14 @@ reaggregator = (
 # we can initialise our pre-processor and do the pre-processing.
 
 # %% editable=true slideshow={"slide_type": ""}
-# pre_processor = CMIP7ScenarioMIPPreProcessor(
-#     reaggregator=reaggregator,
-#     n_processes=None,  # run serially
-#     run_checks=False,
-# )
+pre_processor = CMIP7ScenarioMIPPreProcessor(
+    reaggregator=reaggregator,
+    n_processes=None,  # run serially
+    run_checks=True,
+)
 
 # %% editable=true slideshow={"slide_type": ""}
-# res_pre_processed = pre_processor(start)
+res_pre_processed = pre_processor(start)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # As an aside, it is possible to let gcages
@@ -199,22 +209,25 @@ reaggregator = (
 # it's also more confusing when it goes wrong though.
 
 # %% editable=true slideshow={"slide_type": ""}
-# pre_processor_guess_reaggregator = CMIP7ScenarioMIPPreProcessor(
-#     # Don't specifiy the re-aggregator, let gcages guess
-#     # reaggregator=reaggregator,
-#     n_processes=None,  # run serially
-#     run_checks=False,
-# )
-# The guessing is not so intelligent, so we need to give it a hand
+pre_processor_guess_reaggregator = CMIP7ScenarioMIPPreProcessor(
+    # Don't specifiy the re-aggregator, let gcages guess
+    # reaggregator=reaggregator,
+    n_processes=None,  # run serially
+    run_checks=True,
+)
+
+# The guessing is not so intelligent
+# (it can't figure out which regions are model native and which aren't by itself),
+# so we need to give it a hand
 # by stripping out everything except 'World' data
 # and model-region data
 # (removing all other regional aggregations).
-# start_guessable = start.loc[
-#     (start.index.get_level_values("region") == "World")
-#     | start.index.get_level_values("region").str.startswith("model_1")
-# ]
+start_guessable = start.loc[
+    (start.index.get_level_values("region") == "World")
+    | start.index.get_level_values("region").str.startswith("model_1")
+]
 # The result is the same as the above
-# _ = pre_processor_guess_reaggregator(start_guessable)
+_ = pre_processor_guess_reaggregator(start_guessable)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # #### Results
@@ -226,82 +239,82 @@ reaggregator = (
 #
 # The first bit of information is data which can be used with the global workflow.
 
+# %%
+fg = sns.relplot(
+    data=res_pre_processed.global_workflow_emissions.openscm.to_long_data(
+        time_col_name="year"
+    ),
+    hue="scenario",
+    kind="line",
+    linewidth=2.0,
+    alpha=0.7,
+    facet_kws=dict(sharey=False),
+    x="year",
+    y="value",
+    col="variable",
+    col_order=sorted(
+        res_pre_processed.global_workflow_emissions.index.get_level_values(
+            "variable"
+        ).unique()
+    ),
+    col_wrap=4,
+    height=3.0,
+    aspect=1.0,
+)
+
+for ax in fg.axes.flatten():
+    if "CO2" in ax.get_title():
+        ax.axhline(0.0, linestyle="--", color="gray")
+    else:
+        ax.set_ylim(ymin=0.0)
+
+# %% [markdown]
+# ##### Gridding workflow emissions
+#
+# The second bit of information is data which can be used with the gridding workflow.
+# This contains data at the region-sector level
+# for a specific set of sectors.
+
+# %%
+data = split_sectors(
+    res_pre_processed.gridding_workflow_emissions
+).openscm.to_long_data(time_col_name="year")
+species_to_plot = "CO2"
+data = data[data["species"] == species_to_plot]
+# data = data[data["sectors"] == "Energy Sector"]
+
+fg = sns.relplot(
+    data=data,
+    style="scenario",
+    style_order=sorted(data["scenario"].unique()),
+    hue="sectors",
+    hue_order=sorted(data["sectors"].unique()),
+    col="region",
+    col_order=sorted(data["region"].unique()),
+    kind="line",
+    linewidth=2.0,
+    alpha=0.7,
+    facet_kws=dict(sharey=False),
+    x="year",
+    y="value",
+    col_wrap=3,
+    height=4.0,
+    aspect=1.0,
+)
+
+for ax in fg.axes.flatten():
+    ax.axhline(0.0, linestyle="--", color="gray")
+
+fg.fig.suptitle(species_to_plot, y=1.02)
+
+# %% [markdown]
+# As part of this reporting,
+# we also show which timeseries were assumed to be zero during the processing.
+# (Lots of assumptions are not an issue,
+# we simply include this for clarity and transparency.)
+
 # %% editable=true slideshow={"slide_type": ""}
-# fg = sns.relplot(
-#     data=res_pre_processed.global_workflow_emissions.openscm.to_long_data(
-#         time_col_name="year"
-#     ),
-#     hue="scenario",
-#     kind="line",
-#     linewidth=2.0,
-#     alpha=0.7,
-#     facet_kws=dict(sharey=False),
-#     x="year",
-#     y="value",
-#     col="variable",
-#     col_order=sorted(
-#         res_pre_processed.global_workflow_emissions.index.get_level_values(
-#             "variable"
-#         ).unique()
-#     ),
-#     col_wrap=4,
-#     height=3.0,
-#     aspect=1.0,
-# )
-#
-# for ax in fg.axes.flatten():
-#     if "CO2" in ax.get_title():
-#         ax.axhline(0.0, linestyle="--", color="gray")
-#     else:
-#         ax.set_ylim(ymin=0.0)
-#
-# # %% [markdown] editable=true slideshow={"slide_type": ""}
-# # ##### Gridding workflow emissions
-# #
-# # The second bit of information is data which can be used with the gridding workflow.
-# # This contains data at the region-sector level
-# # for a specific set of sectors.
-#
-# # %% editable=true slideshow={"slide_type": ""}
-# data = split_sectors(
-#     res_pre_processed.gridding_workflow_emissions
-# ).openscm.to_long_data(time_col_name="year")
-# species_to_plot = "CO2"
-# data = data[data["species"] == species_to_plot]
-# # data = data[data["sectors"] == "Energy Sector"]
-#
-# fg = sns.relplot(
-#     data=data,
-#     hue="scenario",
-#     hue_order=sorted(data["scenario"].unique()),
-#     style="sectors",
-#     style_order=sorted(data["sectors"].unique()),
-#     col="region",
-#     col_order=sorted(data["region"].unique()),
-#     kind="line",
-#     linewidth=2.0,
-#     alpha=0.7,
-#     facet_kws=dict(sharey=False),
-#     x="year",
-#     y="value",
-#     col_wrap=3,
-#     height=4.0,
-#     aspect=1.0,
-# )
-#
-# for ax in fg.axes.flatten():
-#     ax.axhline(0.0, linestyle="--", color="gray")
-#
-# fg.fig.suptitle(species_to_plot, y=1.02)
-#
-# # %% [markdown] editable=true slideshow={"slide_type": ""}
-# # As part of this reporting,
-# # we also show which timeseries were assumed to be zero during the processing.
-# # (Lots of assumptions are not an issue,
-# # we simply include this for clarity and transparency.)
-#
-# # %%
-# res_pre_processed.assumed_zero_emissions
+res_pre_processed.assumed_zero_emissions
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Harmonisation
