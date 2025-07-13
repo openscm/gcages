@@ -334,6 +334,12 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
             == reaggregator.world_region
         )
     ]
+    # Drop out the carbon removal tree if it's there
+    global_workflow_emissions_not_from_gridding_emissions = global_workflow_emissions_not_from_gridding_emissions.loc[  # noqa: E501
+        ~global_workflow_emissions_not_from_gridding_emissions.index.get_level_values(
+            variable_level
+        ).str.startswith("Carbon Removal")
+    ]
     # Can't use these yet
     # TODO: implement support for baskets
     global_workflow_emissions_not_from_gridding_emissions = global_workflow_emissions_not_from_gridding_emissions.loc[  # noqa: E501

@@ -18,7 +18,7 @@ def main() -> None:
     """
     Check the changes
     """
-    base_commit = "7cd9b76"
+    base_commit = "783edbf"
     file_to_check = "/".join(
         (
             "tests",
@@ -26,6 +26,7 @@ def main() -> None:
             "cmip7-scenariomip",
             "test_regression_cmip7_scenariomip_pre_processing",
             "salted-202504-scenariomip-input_gridding_workflow_emissions.csv",
+            # "salted-202504-scenariomip-input_global_workflow_emissions.csv",
         )
     )
     rtol = 1e-4
@@ -54,14 +55,20 @@ def main() -> None:
         right_name="HEAD",
         rtol=rtol,
     ).unstack()
+    print("diffs")
+    print("-----")
     print(diffs)
+    print("diffs post 2090")
+    print("-----")
+    print(diffs.loc[:, (slice(None), [2090, 2100])])
+    print()
     print(sorted(diffs.index.get_level_values("variable").unique()))
     print(
         diffs.loc[
             diffs.index.get_level_values("variable").str.contains("Agricultural Waste"),
             :,
         ]
-        .stack()
+        .stack(future_stack=True)
         .sort_index()
     )
 

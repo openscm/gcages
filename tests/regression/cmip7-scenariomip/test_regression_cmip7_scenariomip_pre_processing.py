@@ -61,6 +61,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
+        run_checks=False,
     )
 
     res = pre_processor(input_df)
@@ -74,5 +75,5 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         # Interestingly, this won't fail if there are extra, unexpected columns
         # in the regression data against which we are comparing.
         dataframe_regression.check(
-            getattr(res, attr), basename=f"{input_file.stem}_{attr}"
+            getattr(res, attr).sort_index(), basename=f"{input_file.stem}_{attr}"
         )

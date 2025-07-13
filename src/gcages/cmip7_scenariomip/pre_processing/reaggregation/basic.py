@@ -302,18 +302,22 @@ gridding_sectors_reporting = (
             "Geological Storage|Direct Air Capture",
             "Geological Storage|Other Sources",
             "Geological Storage|Synthetic Fuels",
-            "Long-Lived Materials",
+            # TODO: check whether this should be included
+            # "Long-Lived Materials",
             "Ocean",
-            "Other",
+            # TODO: check whether this should be included
+            # "Other",
         ),
         input_sectors_optional=(
             "Enhanced Weathering",
             "Geological Storage|Direct Air Capture",
             "Geological Storage|Other Sources",
             "Geological Storage|Synthetic Fuels",
-            "Long-Lived Materials",
+            # TODO: check whether this should be included
+            # "Long-Lived Materials",
             "Ocean",
-            "Other",
+            # TODO: check whether this should be included
+            # "Other",
         ),
         reporting_only=False,
     ),
@@ -1363,9 +1367,11 @@ def to_gridding_sectors(
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
         "CDR|Geological Storage|Other Sources": "Other Capture and Removal",
         "CDR|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        "CDR|Long-Lived Materials": "Other Capture and Removal",
+        # TODO: check whether this should be included
+        # "CDR|Long-Lived Materials": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
-        "CDR|Other": "Other Capture and Removal",
+        # TODO: check whether this should be included
+        # "CDR|Other": "Other Capture and Removal",
     }
     for cdr_sector, emissions_sector in carbon_removal_map.items():
         row_loc = emissions_region_sector_df_co2_mask
@@ -1426,9 +1432,11 @@ def to_gridding_sectors(
                 "CDR|Geological Storage|Direct Air Capture",
                 "CDR|Geological Storage|Other Sources",
                 "CDR|Geological Storage|Synthetic Fuels",
-                "CDR|Long-Lived Materials",
+                # TODO: check whether this should be included
+                # "CDR|Long-Lived Materials",
                 "CDR|Ocean",
-                "CDR|Other",
+                # TODO: check whether this should be included
+                # "CDR|Other",
             ],
         },
     )
