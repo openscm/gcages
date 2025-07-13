@@ -275,7 +275,7 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
                     indf, reaggregator.get_internal_consistency_checking_index()
                 )
             ),
-            gridded_emisssions_sectoral_regional_sum.index,
+            gridded_emisssions_sectoral_regional_sum.index,  # type: ignore # need to cast first or something
         )
         # No tolerance as this should be exact
         assert_frame_equal(

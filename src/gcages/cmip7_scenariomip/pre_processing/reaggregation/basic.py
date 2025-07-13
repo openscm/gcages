@@ -1090,8 +1090,8 @@ def to_complete(  # noqa: PLR0913
             not missing_indexes_emissions.empty
             and not missing_indexes_carbon_removal.empty
         ):
-            zeros_index = zeros_index_emissions.append(
-                zeros_index_carbon_removal.reorder_levels(zeros_index_emissions.names)
+            zeros_index = zeros_index_emissions.append(  # type: ignore # not supported by pandas-stubs
+                zeros_index_carbon_removal.reorder_levels(zeros_index_emissions.names)  # type: ignore # not supported by pandas-stubs
             )
 
         elif not missing_indexes_emissions.empty:
@@ -1176,7 +1176,7 @@ def convert_unit_like(
     else:
         target_unit_col_use = target_unit_level
 
-    extra_index_levels_target = target.index.names.difference(df.index.names)
+    extra_index_levels_target = target.index.names.difference(df.index.names)  # type: ignore # pandas-stubs confused
     if extra_index_levels_target:
         msg = (
             "Haven't worked out the logic "
@@ -1212,7 +1212,7 @@ def convert_unit_like(
         ["df_unit", "target_unit"]
     ):
         conversion_factor = ur(df_unit).to(target_unit).m
-        to_alter_loc = multi_index_match(df_converted.index, conversion_df.index)
+        to_alter_loc = multi_index_match(df_converted.index, conversion_df.index)  # type: ignore
         df_converted.loc[to_alter_loc, :] *= conversion_factor
 
     # All conversions done so can simply assign the unit column.
@@ -1253,7 +1253,7 @@ def aggregate_cols(
         `df` with the aggregations applied
     """
     for aggregate, components in aggregations.items():
-        df[aggregate] = df[components].sum(axis="columns")  # type: ignore # pandas-stubs confused
+        df[aggregate] = df[components].sum(axis="columns")
         df = df.drop(
             # Subtract aggregate in case the aggregate and component have the same name
             list(set(components) - {aggregate}),
@@ -1330,12 +1330,12 @@ def to_gridding_sectors(
     )
 
     emissions_cdr_region_sector_df = convert_unit_like(
-        split_sectors(
+        split_sectors(  # type: ignore # pandas-stubs confused
             emissions_cdr.loc[~emissions_cdr_world_mask], bottom_level="sectors"
         )
         .stack()
         .unstack("sectors"),
-        emissions_region_sector_df.loc[emissions_region_sector_df_co2_mask],
+        emissions_region_sector_df.loc[emissions_region_sector_df_co2_mask],  # type: ignore # pandas-stubs confused
     )
 
     # Move domestic aviation to the global level,
@@ -1383,7 +1383,7 @@ def to_gridding_sectors(
 
     # Aggregate
     sector_df_gridding = aggregate_cols(
-        emissions_sector_df,
+        emissions_sector_df,  # type: ignore # need to cast first or something
         {
             "International Shipping": ["Energy|Demand|Bunkers|International Shipping"],
             # Not the same as the reporting sector as we have done manipulations above
@@ -1391,7 +1391,7 @@ def to_gridding_sectors(
         },
     )
     region_sector_df_gridding = aggregate_cols(
-        emissions_region_sector_df,
+        emissions_region_sector_df,  # type: ignore # need to cast first or something
         {
             "Agricultural Waste Burning": [
                 "AFOLU|Agricultural Waste Burning",
