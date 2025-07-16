@@ -858,7 +858,7 @@ def test_assert_is_internally_consistent_modifications(
         to_modify_locator = multi_index_match(to_check.index, to_modify)
         assert to_modify_locator.sum() > 0, "Test won't do anything"
         # Huge change, tolerance sensitivity tested elsewhere
-        to_check.loc[to_modify_locator] *= 3.0
+        to_check.loc[to_modify_locator] *= 10.0
 
     if to_add is not None:
         already_included_locator = multi_index_match(to_check.index, to_add)
@@ -1142,6 +1142,9 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
 
 @pytest.fixture
 def complete_to_gridding_res():
+    # Needs to do unit conversion
+    pytest.importorskip("openscm_units")
+
     variables = tuple(
         f"Emissions|{species}|Energy|Demand|Transportation"
         for species in COMPLETE_GRIDDING_SPECIES

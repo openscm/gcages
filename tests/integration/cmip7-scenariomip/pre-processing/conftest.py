@@ -43,6 +43,9 @@ def example_input_output(request):
     should go in the tests of the different reaggregation options.
     """
     if request.param == "basic":
+        # Needs to do unit conversion
+        pytest.importorskip("openscm_units")
+
         model_regions_raw = ("China", "Pacific OECD")
         model = "model_am"
         model_regions = [f"{model}|{r}" for r in model_regions_raw]

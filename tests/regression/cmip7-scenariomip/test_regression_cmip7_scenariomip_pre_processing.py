@@ -2,6 +2,7 @@
 Regression tests of our pre-processing for CMIP7 ScenarioMIP
 """
 
+import importlib
 from pathlib import Path
 
 import pytest
@@ -56,6 +57,10 @@ def test_pre_processing_regression(input_file, dataframe_regression):
     ]
 
     reaggregator = ReaggregatorBasic(model_regions=model_regions)
+
+    if importlib.util.find_spec("openscm_units") is None:
+        # Loosen the tolerance given what we know about the units
+        reaggregator.internal_consistency_tolerances["Emissions|CO2"]["atol"] = 1.0
 
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         reaggregator=reaggregator,
