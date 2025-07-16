@@ -9,6 +9,7 @@ from typing import Any
 import pandas as pd
 
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
+from gcages.units_helpers import convert_unit_like
 
 
 class NotHarmonisedError(ValueError):
@@ -142,8 +143,15 @@ def assert_harmonised(
     NotHarmonisedError
         `df` is not harmonised to `history`
     """
+    df_unit_match = convert_unit_like(
+        df,
+        target=history,
+        # df_unit_level=df_unit_level,
+        # target_unit_level=target_unit_level,
+        # ur=ur,
+    )
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
-        df, history=history, time=harmonisation_time
+        df_unit_match, history=history, time=harmonisation_time
     )
     comparison = df_harm_year_aligned.round(rounding).compare(  # type: ignore # pandas-stubs out of date
         history_harm_year_aligned.round(rounding), result_names=("df", "history")

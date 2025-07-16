@@ -16,11 +16,10 @@ import pandas as pd
 from attrs import define, field
 from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
-    set_index_levels_func,
     set_levels,
     update_index_levels_func,
 )
-from pandas_openscm.indexing import multi_index_lookup, multi_index_match
+from pandas_openscm.indexing import multi_index_lookup
 
 from gcages.aggregation import aggregate_df_level, get_region_sector_sum
 from gcages.assertions import assert_only_working_on_variable_unit_region_variations
@@ -32,7 +31,6 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.common import (
     ToCompleteResult,
 )
 from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
-from gcages.exceptions import MissingOptionalDependencyError
 from gcages.index_manipulation import (
     combine_sectors,
     create_levels_based_on_existing,
@@ -42,10 +40,9 @@ from gcages.index_manipulation import (
 from gcages.internal_consistency import InternalConsistencyError
 from gcages.testing import compare_close, get_variable_unit_default
 from gcages.typing import NP_ARRAY_OF_FLOAT_OR_INT
+from gcages.units_helpers import convert_unit_like
 
 if TYPE_CHECKING:
-    import pint
-
     from gcages.typing import PINT_SCALAR
 
 
@@ -1128,103 +1125,6 @@ def to_complete(  # noqa: PLR0913
         )
         complete = pd.concat([keep, assumed_zero.reorder_levels(keep.index.names)])
         res = ToCompleteResult(complete=complete, assumed_zero=assumed_zero)
-
-    return res
-
-
-# TODO: move to pandas-openscm
-def convert_unit_like(
-    df: pd.DataFrame,
-    target: pd.DataFrame,
-    df_unit_level: str = "unit",
-    target_unit_level: str | None = None,
-    ur: pint.UnitRegistry | None = None,
-) -> pd.DataFrame:
-    """
-    Convert to units like a different [pd.DataFrame][pandas.DataFrame]
-
-    Parameters
-    ----------
-    df
-        [pd.DataFrame][pandas.DataFrame] of which to convert the units
-
-    target
-        [pd.DataFrame][pandas.DataFrame] whose units the result should match
-
-    df_unit_level
-        Level in `df`'s index which has unit information
-
-    target_unit_level
-        Level in `target`'s index which has unit information
-
-        If not provided, we assume this is the same as `df_unit_level`
-
-    ur
-        Unit registry to use for determining unit conversions
-
-        If not provided, we use [openscm_units.unit_registry][]
-
-    Returns
-    -------
-    :
-        `df` with units that match `target`
-
-    Raises
-    ------
-    MissingOptionalDependencyError
-        `ur` is `None` and openscm-units is not installed
-    """
-    if target_unit_level is None:
-        target_unit_col_use = df_unit_level
-    else:
-        target_unit_col_use = target_unit_level
-
-    extra_index_levels_target = target.index.names.difference(df.index.names)  # type: ignore # pandas-stubs confused
-    if extra_index_levels_target:
-        msg = (
-            "Haven't worked out the logic "
-            "when the target has index levels which aren't in `df`. "
-            f"{extra_index_levels_target=}"
-        )
-        raise NotImplementedError(msg)
-
-    df_units_s = df.index.get_level_values(df_unit_level).to_series(
-        index=df.index.droplevel(df_unit_level), name="df_unit"
-    )
-    target_units_s = target.index.get_level_values(target_unit_col_use).to_series(
-        index=target.index.droplevel(target_unit_col_use), name="target_unit"
-    )
-    unit_map = pd.DataFrame([*target_units_s.align(df_units_s)]).T
-
-    if (unit_map["df_unit"] == unit_map["target_unit"]).all():
-        # Already in matching units
-        return df
-
-    if ur is None:
-        try:
-            import openscm_units
-
-            ur = openscm_units.unit_registry
-        except ImportError:
-            raise MissingOptionalDependencyError(  # noqa: TRY003
-                "convert_unit_like(..., ur=None, ...)", "openscm_units"
-            )
-
-    df_converted = df.reset_index(df_unit_level, drop=True)
-    for (df_unit, target_unit), conversion_df in unit_map.groupby(
-        ["df_unit", "target_unit"]
-    ):
-        conversion_factor = ur(df_unit).to(target_unit).m
-        to_alter_loc = multi_index_match(df_converted.index, conversion_df.index)  # type: ignore
-        df_converted.loc[to_alter_loc, :] *= conversion_factor
-
-    # All conversions done so can simply assign the unit column.
-    # When moving to pandas-openscm, check this carefully
-    # using different input row order etc.
-    res = set_index_levels_func(
-        df_converted,
-        {df_unit_level: conversion_df["target_unit"].loc[df_converted.index]},
-    ).reorder_levels(df.index.names)
 
     return res
 
