@@ -116,6 +116,9 @@ jobs:
       run: |
         pip install setuptools
     - name: Run AR6 regression tests
+      # I can't figure out how to get MAGICC to run in CI,
+      # see https://github.com/openscm/gcages/issues/36
+      if: matrix.os != 'windows-latest'
       run: |
         echo "MAGICC_EXECUTABLE_7="
         echo $MAGICC_EXECUTABLE_7

@@ -11,7 +11,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        # Not running on windows, see https://github.com/openscm/gcages/issues/36
+        # os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        os: [ "ubuntu-latest", "macos-latest" ]
         # Just test on a sensible version
         # Use 3.11 while cicero-scm uses distutils in openscm-runner,
         # see https://github.com/openscm/openscm-runner/blob/261bd177b86a708b0080eed245b6511ebb0051bb/src/openscm_runner/adapters/ciceroscm_adapter/ciceroscm_wrapper.py#L10
@@ -33,10 +35,9 @@ jobs:
       - name: Try to run MAGICC
         if: matrix.os == 'windows-latest'
         run: |
-          pwd
+          # This is the thing I can't figure out, even just getting the version to appear doesn't work
+          # x-ref https://github.com/openscm/gcages/issues/36
           D:\a\gcages\gcages\tests\regression\ar6\ar6-workflow-inputs\magicc-v7.5.3\bin\magicc.exe --version
-          D:\a\gcages\gcages\tests\regression\ar6\ar6-workflow-inputs\magicc-v7.5.3\bin\magicc.exe version
-          .\\tests\\regression\\ar6\\ar6-workflow-inputs\\magicc-v7.5.3\\bin\\magicc.exe --version
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
           uv run pytest -r a -v -s tests -m "skip_ci_default"
