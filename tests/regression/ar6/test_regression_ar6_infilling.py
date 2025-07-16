@@ -90,6 +90,7 @@ def add_ar6_infilled_prefix_and_convert_to_iamc_and_add_harmonised(
 
 
 @get_key_testing_model_scenario_parameters()
+@pytest.mark.skip_ci_default
 @pytest.mark.slow
 def test_individual_scenario(model, scenario):
     harmonised = (
@@ -140,6 +141,7 @@ def test_individual_scenario(model, scenario):
     assert_frame_equal(res_comparable, exp)
 
 
+@pytest.mark.skip_ci_default
 @pytest.mark.slow
 def test_key_testing_scenarios_all_at_once_parallel():
     # Required for progress bars

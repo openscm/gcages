@@ -122,6 +122,9 @@ def test_output_vs_start_total_consistency(example_input_output):
 
 
 def test_multiple_scenarios_different_time_axes():
+    # Needs to do unit conversion
+    pytest.importorskip("openscm_units")
+
     model_a = "model_a"
     model_regions_a = [f"{model_a}|{r}" for r in ("China", "Pacific OECD")]
     scenario_a = get_example_input(

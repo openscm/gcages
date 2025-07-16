@@ -283,7 +283,7 @@ omit = [
 branch = true
 
 [tool.coverage.report]
-fail_under = 80  # hard to keep high given inability to run things on python 3.9
+fail_under = 75  # hard to keep high given inability to run things on python 3.9
 skip_empty = true
 show_missing = true
 exclude_also = [

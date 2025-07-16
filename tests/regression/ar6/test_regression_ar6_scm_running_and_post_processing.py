@@ -236,6 +236,7 @@ def test_individual_scenario(model, scenario):
     )
 
 
+@pytest.mark.skip_ci_default
 @pytest.mark.slow
 def test_parallel(tmp_path):
     """Test a few scenarios in parallel, not all to save compute time"""

@@ -66,6 +66,7 @@ def add_ar6_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
     return indf
 
 
+@pytest.mark.skip_ci_default
 @get_key_testing_model_scenario_parameters()
 def test_individual_scenario(model, scenario):
     raw = get_ar6_raw_emissions(
@@ -110,6 +111,7 @@ def test_individual_scenario(model, scenario):
 
 
 @pytest.mark.slow
+@pytest.mark.skip_ci_default
 def test_key_testing_scenarios_all_at_once_parallel():
     raw_l = []
     exp_l = []

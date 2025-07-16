@@ -4,6 +4,7 @@ on:
   # pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -28,6 +29,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           uv-dependency-install-flags: "--all-extras --group tests"
-      - name: Run tests
+      - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
           uv run pytest -r a -v -s tests -m "skip_ci_default"

@@ -913,7 +913,7 @@ def test_assert_is_internally_consistent_hierarchy_consistent():
         ),
         pytest.param(
             1.0,
-            dict(atol=Q(1.0, "MtCO2 / yr")),
+            dict(atol=Q(1.0, "MtCO2 / yr") if Q is not None else 1.0),
             pytest.raises(InternalConsistencyError),
             id="atol-raises-pint",
             marks=pytest.mark.skipif(Q is None, reason="Missing openscm-units"),
@@ -944,7 +944,7 @@ def test_assert_is_internally_consistent_hierarchy_consistent():
         ),
         pytest.param(
             0.01,
-            dict(rtol=Q(1e-6, "1")),
+            dict(rtol=Q(1e-6, "1") if Q is not None else 1.0),
             pytest.raises(InternalConsistencyError),
             id="rtol-raises-pint",
             marks=pytest.mark.skipif(Q is None, reason="Missing openscm-units"),
@@ -1142,6 +1142,9 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
 
 @pytest.fixture
 def complete_to_gridding_res():
+    # Needs to do unit conversion
+    pytest.importorskip("openscm_units")
+
     variables = tuple(
         f"Emissions|{species}|Energy|Demand|Transportation"
         for species in COMPLETE_GRIDDING_SPECIES
