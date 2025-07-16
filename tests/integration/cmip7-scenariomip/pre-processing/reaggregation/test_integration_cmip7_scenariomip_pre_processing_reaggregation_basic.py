@@ -858,7 +858,7 @@ def test_assert_is_internally_consistent_modifications(
         to_modify_locator = multi_index_match(to_check.index, to_modify)
         assert to_modify_locator.sum() > 0, "Test won't do anything"
         # Huge change, tolerance sensitivity tested elsewhere
-        to_check.loc[to_modify_locator] *= 10.0
+        to_check.loc[to_modify_locator] *= 3.0
 
     if to_add is not None:
         already_included_locator = multi_index_match(to_check.index, to_add)
