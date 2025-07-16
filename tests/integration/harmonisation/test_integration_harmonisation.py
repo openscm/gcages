@@ -349,7 +349,6 @@ def test_overrides_multi_scenario_aneris_not_all_scenarios_specified():
         )
 
 
-@pytest.mark.xfail(reason="unit support not fully implemented")
 def test_overrides_multi_scenario_multi_unit_aneris():
     pytest.importorskip("aneris")
 
