@@ -1,7 +1,7 @@
 name: CI main only
 
 on:
-  pull_request:
+  # pull_request:
   push:
     branches: [main]
   workflow_dispatch:
@@ -17,7 +17,7 @@ jobs:
         # Just test on a sensible version
         # Use 3.11 while cicero-scm uses distutils in openscm-runner,
         # see https://github.com/openscm/openscm-runner/blob/261bd177b86a708b0080eed245b6511ebb0051bb/src/openscm_runner/adapters/ciceroscm_adapter/ciceroscm_wrapper.py#L10
-        python-version: [ "3.10" ]
+        python-version: [ "3.11" ]
     runs-on: "${{ matrix.os }}"
     steps:
       - name: Check out repository
