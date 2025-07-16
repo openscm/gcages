@@ -21,6 +21,25 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.9.0 (2025-07-16)
+
+### ⚠️ Breaking Changes
+
+- - Changed CMIP7 ScenarioMIP pre-processing. Carbon removal variables are now pre-processed into the Emissions tree, rather than being kept separate as part of the Carbon Removal tree. This greatly simplifies downstream use as all variables are in one tree.
+  - Updated to requiring pandas-openscm>=0.5.1
+
+  ([#30](https://github.com/openscm/gcages/pull/30))
+- Updated minimum numpy version to 1.26.0, the earliest that is not in end-of-life. Fixed the numpy pin for Python 3.13 to >=2.1.0, the first numpy version which supported Python 3.13. ([#34](https://github.com/openscm/gcages/pull/34))
+
+### 🎉 Improvements
+
+- Added unit conversion support to [gcages.harmonisation.common.assert_harmonised][] ([#33](https://github.com/openscm/gcages/pull/33))
+
+### 🔧 Trivial/Internal Changes
+
+- [#30](https://github.com/openscm/gcages/pull/30), [#31](https://github.com/openscm/gcages/pull/31), [#32](https://github.com/openscm/gcages/pull/32), [#34](https://github.com/openscm/gcages/pull/34)
+
+
 ## gcages v0.8.0 (2025-07-12)
 
 ### ⚠️ Breaking Changes
