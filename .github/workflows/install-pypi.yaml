@@ -103,7 +103,7 @@ jobs:
         echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64" >> $GITHUB_ENV
         # # Useful if the path appears to have changed
         # find / -name 'libgfortran.5.dylib' 2>/dev/null
-        echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/current/" >> $GITHUB_ENV
+        echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/" >> $GITHUB_ENV
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'windows-latest'
       run: |

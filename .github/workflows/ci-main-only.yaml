@@ -29,11 +29,10 @@ jobs:
         run: |
           # # Useful if the path appears to have changed
           # find / -name 'libgfortran.5.dylib' 2>/dev/null
-          echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/current/" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/" >> $GITHUB_ENV
       - name: Try to run MAGICC (${{ matrix.os }})
         if: matrix.os == 'macos-latest'
         run: |
-          ls /opt/homebrew/lib/gcc/current/
           DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/ ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
           echo $DYLD_LIBRARY_PATH
           ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
