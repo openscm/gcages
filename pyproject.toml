@@ -56,7 +56,7 @@ ar6 = [
     # Needed because of bad maintenance of scmdata
     "xarray<2025",
 ]
-cmip7_scenariomip = [
+cmip7scenariomip = [
     "pandas-indexing>=0.6.3",
 ]
 progress = [
@@ -64,7 +64,7 @@ progress = [
 ]
 full = [
     "gcages[ar6]",
-    "gcages[cmip7_scenariomip]",
+    "gcages[cmip7scenariomip]",
     "gcages[progress]",
 ]
 
@@ -274,6 +274,7 @@ includes = [
     "src/gcages",
     "LICENCE",
 ]
+excludes = ["tests"]
 
 [tool.coverage.run]
 source = [
