@@ -44,6 +44,7 @@ Issues = "https://github.com/openscm/gcages/issues"
 [project.optional-dependencies]
 ar6 = [
     "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
+    "pycountry>=24.0 ; python_full_version >= '3.10'",
     "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
     "pandas-openscm[db]>=0.5.1",

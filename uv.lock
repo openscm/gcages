@@ -903,6 +903,7 @@ ar6 = [
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
     { name = "pandas-openscm", extra = ["db"] },
+    { name = "pycountry", marker = "python_full_version >= '3.10'" },
     { name = "pymagicc" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -918,6 +919,7 @@ full = [
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
     { name = "pandas-openscm", extra = ["db"] },
+    { name = "pycountry", marker = "python_full_version >= '3.10'" },
     { name = "pymagicc" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -1249,6 +1251,7 @@ requires-dist = [
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
     { name = "pandas-openscm", specifier = ">=0.5.1" },
     { name = "pandas-openscm", extras = ["db"], marker = "extra == 'ar6'", specifier = ">=0.5.1" },
+    { name = "pycountry", marker = "python_full_version >= '3.10' and extra == 'ar6'", specifier = ">=24.0" },
     { name = "pymagicc", marker = "extra == 'ar6'", specifier = ">=2.1.5" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
     { name = "scmdata", marker = "extra == 'ar6'", specifier = ">=0.17.0,<0.18" },
@@ -3798,11 +3801,11 @@ wheels = [
 
 [[package]]
 name = "pycountry"
-version = "23.12.11"
+version = "24.6.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/08/4a/137f422423b9c85148183691da65c5c843a209b7fc0c33a5144489366f53/pycountry-23.12.11.tar.gz", hash = "sha256:00569d82eaefbc6a490a311bfa84a9c571cff9ddbf8b0a4f4e7b4f868b4ad925", size = 5927399 }
+sdist = { url = "https://files.pythonhosted.org/packages/76/57/c389fa68c50590881a75b7883eeb3dc15e9e73a0fdc001cdd45c13290c92/pycountry-24.6.1.tar.gz", hash = "sha256:b61b3faccea67f87d10c1f2b0fc0be714409e8fcdcc1315613174f6466c10221", size = 6043910 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/12/fdbcd29b5a243af2f1c1a83636a21e3837aeaa070c9212ebe657e39ce563/pycountry-23.12.11-py3-none-any.whl", hash = "sha256:2ff91cff4f40ff61086e773d61e72005fe95de4a57bfc765509db05695dc50ab", size = 6214021 },
+    { url = "https://files.pythonhosted.org/packages/b1/ec/1fb891d8a2660716aadb2143235481d15ed1cbfe3ad669194690b0604492/pycountry-24.6.1-py3-none-any.whl", hash = "sha256:f1a4fb391cd7214f8eefd39556d740adcc233c778a27f8942c8dca351d6ce06f", size = 6335189 },
 ]
 
 [[package]]
