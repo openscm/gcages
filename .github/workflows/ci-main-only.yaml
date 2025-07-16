@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "macos-latest", "windows-latest" ]
+        os: [ "ubuntu-latest", "macos-latest", "windows-2019" ]
         # Just test on a sensible version
         # Use 3.11 while cicero-scm uses distutils in openscm-runner,
         # see https://github.com/openscm/openscm-runner/blob/261bd177b86a708b0080eed245b6511ebb0051bb/src/openscm_runner/adapters/ciceroscm_adapter/ciceroscm_wrapper.py#L10
@@ -30,14 +30,8 @@ jobs:
           # # Useful if the path appears to have changed
           # find / -name 'libgfortran.5.dylib' 2>/dev/null
           echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/" >> $GITHUB_ENV
-      - name: Try to run MAGICC (${{ matrix.os }})
-        if: matrix.os == 'macos-latest'
-        run: |
-          DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/ ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
-          echo $DYLD_LIBRARY_PATH
-          ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
-      - name: Try to run MAGICC (${{ matrix.os }})
-        if: matrix.os == 'windows-latest'
+      - name: Try to run MAGICC
+        if: matrix.os == 'windows-2019'
         run: |
           .\\tests\\regression\\ar6\\ar6-workflow-inputs\\magicc-v7.5.3\\bin\\magicc.exe --version
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
