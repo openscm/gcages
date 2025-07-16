@@ -21,6 +21,27 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.10.0 (2025-07-16)
+
+### ⚠️ Breaking Changes
+
+- - Renamed the extra "cmip7_scenariomip" to "cmip7scenariomip"
+  - Stopped packaging the tests as part of releases (this significantly reduces the size of the distributions)
+
+  ([#35](https://github.com/openscm/gcages/pull/35))
+
+### 🐛 Bug Fixes
+
+- - Fixed the dependencies required for running the AR6 setup
+  - Made it possible to run the AR6 setup on windows
+
+  ([#35](https://github.com/openscm/gcages/pull/35))
+
+### 🔧 Trivial/Internal Changes
+
+- [#35](https://github.com/openscm/gcages/pull/35)
+
+
 ## gcages v0.9.0 (2025-07-16)
 
 ### ⚠️ Breaking Changes
