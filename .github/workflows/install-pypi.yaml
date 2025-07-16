@@ -95,15 +95,27 @@ jobs:
         pip install 'gcages[ar6]'
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'ubuntu-latest'
-      run: echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc" >> $GITHUB_ENV
+      run: |
+        echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc" >> $GITHUB_ENV
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'macos-latest'
-      run: echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64" >> $GITHUB_ENV
+      run: |
+        find / -name 'libgfortran.5.dylib' 2>/dev/null
+        echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64" >> $GITHUB_ENV
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'windows-latest'
-      run: echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc.exe" >> $GITHUB_ENV
+      run: |
+        chcp 65001  # set code page to utf-8
+        echo "MAGICC_EXECUTABLE_7=./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc.exe" >> $env:GITHUB_ENV
+    - name: Install distutils
+      # Workaround needed while cicero-scm uses distutils in openscm-runner,
+      # see https://github.com/openscm/openscm-runner/blob/261bd177b86a708b0080eed245b6511ebb0051bb/src/openscm_runner/adapters/ciceroscm_adapter/ciceroscm_wrapper.py#L10
+      if: matrix.python-version == "3.12" || matrix.python-version == "3.13"
+      run: |
+        pip install setuptools
     - name: Run AR6 regression tests
       run: |
         echo "MAGICC_EXECUTABLE_7="
         echo $MAGICC_EXECUTABLE_7
+        echo $env:MAGICC_EXECUTABLE_7
         pytest tests -r a -vv tests/regression/ar6
