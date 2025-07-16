@@ -5,6 +5,7 @@ Infilling part of the AR6 workflow
 from __future__ import annotations
 
 import functools
+import platform
 from collections.abc import Iterable, Mapping
 from functools import partial
 from pathlib import Path
@@ -150,7 +151,10 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
         ) from exc
 
     fp_hash = get_file_hash(filepath, algorithm="sha256")
-    fp_hash_exp = "9ad0550c671701622ec2b2e7ba2b6c38d58f83507938ab0f5aa8b1a35d26c015"
+    if platform.system() == "Windows":
+        fp_hash_exp = "39ca03de170dab52a1845a25ebedeeb69704b8c86d16be14a08cc06fceba5369"
+    else:
+        fp_hash_exp = "9ad0550c671701622ec2b2e7ba2b6c38d58f83507938ab0f5aa8b1a35d26c015"
 
     if fp_hash != fp_hash_exp:
         msg = (
