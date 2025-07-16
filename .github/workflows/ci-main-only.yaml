@@ -17,13 +17,6 @@ jobs:
         # see https://github.com/openscm/openscm-runner/blob/261bd177b86a708b0080eed245b6511ebb0051bb/src/openscm_runner/adapters/ciceroscm_adapter/ciceroscm_wrapper.py#L10
         python-version: [ "3.11" ]
     runs-on: "${{ matrix.os }}"
-    defaults:
-      run:
-        # This might be needed for Windows
-        # and doesn't seem to affect unix-based systems so we include it.
-        # If you have better proof of whether this is needed or not,
-        # feel free to update.
-        shell: bash
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -36,11 +29,11 @@ jobs:
         run: |
           # # Useful if the path appears to have changed
           # find / -name 'libgfortran.5.dylib' 2>/dev/null
-          echo "DYLD_LIBRARY_PATH=/opt/homebrew/opt/gfortran/lib/gcc/current/" >> $GITHUB_ENV
+          echo "/opt/homebrew/lib/gcc/current/" >> $GITHUB_ENV
       - name: Try to run MAGICC (${{ matrix.os }})
         if: matrix.os == 'macos-latest'
         run: |
-          DYLD_LIBRARY_PATH=/opt/homebrew/opt/gfortran/lib/gcc/current/ ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
+          DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/current/ ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
           echo $DYLD_LIBRARY_PATH
           ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
       - name: Try to run MAGICC (${{ matrix.os }})

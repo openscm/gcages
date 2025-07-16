@@ -470,7 +470,7 @@ if not MAGICC_AR6_PROBABILISTIC_CONFIG_FILE.exists():
 if platform.system() == "Darwin":
     if platform.processor() == "arm":
         MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
-        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
+        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/lib/gcc/current/"
 
 elif platform.system() == "Linux":
     MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
