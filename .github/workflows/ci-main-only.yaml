@@ -31,6 +31,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           uv-dependency-install-flags: "--all-extras --group tests"
+      - name: Set DYLD path
+        if: matrix.os == 'macos-latest'
+        run: |
+          # # Useful if the path appears to have changed
+          # find / -name 'libgfortran.5.dylib' 2>/dev/null
+          echo "DYLD_LIBRARY_PATH=/opt/homebrew/opt/gfortran/lib/gcc/current/" >> $GITHUB_ENV
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
           uv run pytest -r a -v -s tests -m "skip_ci_default"
