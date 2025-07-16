@@ -35,6 +35,7 @@ executing==2.1.0
 f90nml==1.4.5
 fastapi==0.115.12 ; python_full_version >= '3.10'
 fastjsonschema==2.21.1
+filelock==3.16.1
 flexcache==0.3
 flexparser==0.4
 fonttools==4.56.0

@@ -887,7 +887,7 @@ wheels = [
 
 [[package]]
 name = "gcages"
-version = "0.8.1a1"
+version = "0.9.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -902,6 +902,7 @@ ar6 = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
+    { name = "pandas-openscm", extra = ["db"] },
     { name = "pymagicc" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -916,6 +917,7 @@ full = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
+    { name = "pandas-openscm", extra = ["db"] },
     { name = "pymagicc" },
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
     { name = "scipy", version = "1.15.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
@@ -1246,6 +1248,7 @@ requires-dist = [
     { name = "pandas-indexing", marker = "extra == 'cmip7-scenariomip'", specifier = ">=0.6.3" },
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
     { name = "pandas-openscm", specifier = ">=0.5.1" },
+    { name = "pandas-openscm", extras = ["db"], marker = "extra == 'ar6'", specifier = ">=0.5.1" },
     { name = "pymagicc", marker = "extra == 'ar6'", specifier = ">=2.1.5" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
     { name = "scmdata", marker = "extra == 'ar6'", specifier = ">=0.17.0,<0.18" },
@@ -3282,6 +3285,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3a/77/d1c5a0ce351e50bf5093e091c5eed5036cd09894dd205d0e11d3c49717e4/pandas_openscm-0.5.1.tar.gz", hash = "sha256:5f69eb04c6cbc4df42359452582bef560cf7e37103b10826263b4b21c02177e0", size = 1494899 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/16/e7f1259211890d7236bed64f79e8cef2f6c42d1db1bf12291afbd5eafc87/pandas_openscm-0.5.1-py3-none-any.whl", hash = "sha256:362cb8c475d047b497434c274bd15925060da41a9ca201126c297f9b64b6ca97", size = 68989 },
+]
+
+[package.optional-dependencies]
+db = [
+    { name = "filelock" },
 ]
 
 [[package]]
