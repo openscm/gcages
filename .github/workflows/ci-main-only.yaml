@@ -33,7 +33,6 @@ jobs:
       - name: Try to run MAGICC
         if: matrix.os == 'windows-latest'
         run: |
-          ls C:\ProgramData\chocolatey\lib\mingw\tools\install\mingw64\bin
           .\\tests\\regression\\ar6\\ar6-workflow-inputs\\magicc-v7.5.3\\bin\\magicc.exe --version
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
