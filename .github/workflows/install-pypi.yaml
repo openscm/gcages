@@ -37,6 +37,7 @@ jobs:
       run: |
         pip install --upgrade pip wheel
         pip install "${{ matrix.install-target }}" 2>stderr.txt
+        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
     - name: Check no warnings
       if: matrix.os != 'windows-latest'
       run: |
@@ -69,6 +70,7 @@ jobs:
     - name: Install min test dependencies
       run: |
         pip install -r requirements-only-tests-min-locked.txt
+        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
     - name: Run tests
       run: |
         # Can't run doctests here because the paths are different.
@@ -81,6 +83,7 @@ jobs:
     - name: Install all test dependencies
       run: |
         pip install -r requirements-only-tests-locked.txt
+        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
     - name: Run tests with extra test dependencies installed
       run: |
         # Can't run doctests here because the paths are different.
@@ -89,10 +92,14 @@ jobs:
       if: contains(matrix.install-target, 'locked')
       run: |
         pip install 'gcages[ar6-locked]'
+        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
+        python -c 'import pycountry'
     - name: Install all AR6 dependencies library
       if: "!contains(matrix.install-target, 'locked')"
       run: |
         pip install 'gcages[ar6]'
+        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
+        python -c 'import pycountry'
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'ubuntu-latest'
       run: |
