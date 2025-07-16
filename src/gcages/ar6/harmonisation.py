@@ -128,7 +128,7 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
     """
     fp_hash = get_file_hash(filepath, algorithm="sha256")
     if platform.system() == "Windows":
-        fp_hash_exp = "9ad0550c671701622ec2b2e7ba2b6c38d58f83507938ab0f5aa8b1a35d26c015"
+        fp_hash_exp = "02ca7093ef31cb25bcb3f6489d4f9530eae15d62885245d9686bad614f507cc3"
     else:
         fp_hash_exp = "b0538b63aca8e0846a4bb55da50529e72f83cb0c7373f26eac4c2a80ca6e3ac1"
 
