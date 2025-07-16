@@ -37,6 +37,14 @@ jobs:
           # # Useful if the path appears to have changed
           # find / -name 'libgfortran.5.dylib' 2>/dev/null
           echo "DYLD_LIBRARY_PATH=/opt/homebrew/opt/gfortran/lib/gcc/current/" >> $GITHUB_ENV
+      - name: Try to run MAGICC (${{ matrix.os }})
+        if: matrix.os == 'macos-latest'
+        run: |
+          ./tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc-darwin-arm64 --version
+      - name: Try to run MAGICC (${{ matrix.os }})
+        if: matrix.os == 'windows-latest'
+        run: |
+          .\tests\regression\ar6\ar6-workflow-inputs\magicc-v7.5.3\bin\magicc.exe --version
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
           uv run pytest -r a -v -s tests -m "skip_ci_default"
