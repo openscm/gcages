@@ -85,3 +85,14 @@ jobs:
       run: |
         # Can't run doctests here because the paths are different.
         pytest tests -r a -vv tests
+    - name: Install all AR6 dependencies library
+      if: contains(matrix.install-target, 'locked')
+      run: |
+        pip install 'gcages[locked,ar6]'
+    - name: Install all AR6 dependencies application
+      if: "!contains(matrix.install-target, 'locked')"
+      run: |
+        pip install 'gcages[ar6]'
+    - name: Run AR6 regression tests
+      run: |
+        pytest tests -r a -vv tests/regression/ar6
