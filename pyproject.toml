@@ -44,8 +44,10 @@ Issues = "https://github.com/openscm/gcages/issues"
 [project.optional-dependencies]
 ar6 = [
     "aneris-iamc>=0.4.2 ; python_full_version >= '3.10'",
+    "pycountry>=24.0 ; python_full_version >= '3.10'",
     "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
+    "pandas-openscm[db]>=0.5.1",
     "pymagicc>=2.1.5",
     "scipy>=1.13.0",
     # Needed because of bad maintenance of scmdata
@@ -54,7 +56,7 @@ ar6 = [
     # Needed because of bad maintenance of scmdata
     "xarray<2025",
 ]
-cmip7_scenariomip = [
+cmip7scenariomip = [
     "pandas-indexing>=0.6.3",
 ]
 progress = [
@@ -62,7 +64,7 @@ progress = [
 ]
 full = [
     "gcages[ar6]",
-    "gcages[cmip7_scenariomip]",
+    "gcages[cmip7scenariomip]",
     "gcages[progress]",
 ]
 
@@ -272,6 +274,7 @@ includes = [
     "src/gcages",
     "LICENCE",
 ]
+excludes = ["tests"]
 
 [tool.coverage.run]
 source = [

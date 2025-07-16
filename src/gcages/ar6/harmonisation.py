@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import importlib
 import multiprocessing
+import platform
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -126,10 +127,15 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
         `filepath` points to a file that does not have the expected hash
     """
     fp_hash = get_file_hash(filepath, algorithm="sha256")
-    if fp_hash != "b0538b63aca8e0846a4bb55da50529e72f83cb0c7373f26eac4c2a80ca6e3ac1":
+    if platform.system() == "Windows":
+        fp_hash_exp = "02ca7093ef31cb25bcb3f6489d4f9530eae15d62885245d9686bad614f507cc3"
+    else:
+        fp_hash_exp = "b0538b63aca8e0846a4bb55da50529e72f83cb0c7373f26eac4c2a80ca6e3ac1"
+
+    if fp_hash != fp_hash_exp:
         msg = (
             f"The sha256 hash of {filepath} is {fp_hash}. "
-            "This does not match what we expect."
+            f"This does not match what we expect {fp_hash_exp=}."
         )
         raise AssertionError(msg)
 
