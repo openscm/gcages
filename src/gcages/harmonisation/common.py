@@ -4,12 +4,15 @@ Common tools across different approaches
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
 from gcages.units_helpers import convert_unit_like
+
+if TYPE_CHECKING:
+    import pint
 
 
 class NotHarmonisedError(ValueError):
@@ -110,12 +113,15 @@ def align_history_to_data_at_time(
     return df_year_aligned, history_year_aligned
 
 
-def assert_harmonised(
+def assert_harmonised(  # noqa: PLR0913
     df: TimeseriesDataFrame,
     *,
     history: TimeseriesDataFrame,
     harmonisation_time: TIME_POINT,
     rounding: int = 10,
+    df_unit_level: str = "unit",
+    history_unit_level: str | None = None,
+    ur: pint.UnitRegistry | None = None,
 ) -> None:
     """
     Assert that the input is harmonised
@@ -134,6 +140,25 @@ def assert_harmonised(
     rounding
         Rounding to apply to the data before comparing
 
+    df_unit_level
+        Level in `df`'s index which has unit information
+
+        Only used if unit conversion is required
+
+    history_unit_level
+        Level in `history`'s index which has unit information
+
+        If not provided, we assume this is the same as `df_unit_level`
+
+        Only used if unit conversion is required
+
+    ur
+        Unit registry to use for determining unit conversions
+
+        Passed to [gcages.units_helpers.convert_unit_like][]
+
+        Only used if unit conversion is required
+
     Raises
     ------
     NotHarmonisedError
@@ -142,9 +167,9 @@ def assert_harmonised(
     df_unit_match = convert_unit_like(
         df,
         target=history,
-        # df_unit_level=df_unit_level,
-        # target_unit_level=target_unit_level,
-        # ur=ur,
+        df_unit_level=df_unit_level,
+        target_unit_level=history_unit_level,
+        ur=ur,
     )
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
         df_unit_match, history=history, time=harmonisation_time
