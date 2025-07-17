@@ -92,6 +92,7 @@ jobs:
       if: contains(matrix.install-target, 'locked')
       run: |
         pip install 'gcages[ar6-locked]'
+        pip install importlib-resources
         python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
         python -c 'import pycountry; print(pycountry.LOCALES_DIR)'
         python -c 'import aneris; import aneris.utils; print(aneris.utils.pycountry)'
