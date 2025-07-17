@@ -21,6 +21,13 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.10.1 (2025-07-17)
+
+### 🐛 Bug Fixes
+
+- Added explicit requirement on importlib-resources for running the AR6 setup as this seems to be needed to make things work on MacOS with Python 3.10 and 3.11 ([#37](https://github.com/openscm/gcages/pull/37))
+
+
 ## gcages v0.10.0 (2025-07-16)
 
 ### ⚠️ Breaking Changes
