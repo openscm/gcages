@@ -902,7 +902,7 @@ wheels = [
 
 [[package]]
 name = "gcages"
-version = "0.9.1a1"
+version = "0.10.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -916,6 +916,7 @@ dependencies = [
 [package.optional-dependencies]
 ar6 = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
+    { name = "importlib-resources", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
     { name = "pandas-openscm", extra = ["db"] },
@@ -934,6 +935,7 @@ cmip7scenariomip = [
 ]
 full = [
     { name = "aneris-iamc", marker = "python_full_version >= '3.10'" },
+    { name = "importlib-resources", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
     { name = "openscm-runner" },
     { name = "pandas-indexing", extra = ["units"] },
     { name = "pandas-openscm", extra = ["db"] },
@@ -1263,6 +1265,7 @@ requires-dist = [
     { name = "gcages", extras = ["ar6"], marker = "extra == 'full'" },
     { name = "gcages", extras = ["cmip7scenariomip"], marker = "extra == 'full'" },
     { name = "gcages", extras = ["progress"], marker = "extra == 'full'" },
+    { name = "importlib-resources", marker = "python_full_version >= '3.10' and python_full_version < '3.12' and extra == 'ar6'", specifier = ">=5.0" },
     { name = "numpy", marker = "python_full_version < '3.13'", specifier = ">=1.26.0" },
     { name = "numpy", marker = "python_full_version >= '3.13'", specifier = ">=2.1.0" },
     { name = "openscm-runner", marker = "extra == 'ar6'", specifier = ">=0.13.0" },
