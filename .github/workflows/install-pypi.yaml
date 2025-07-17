@@ -120,7 +120,4 @@ jobs:
       # see https://github.com/openscm/gcages/issues/36
       if: matrix.os != 'windows-latest'
       run: |
-        echo "MAGICC_EXECUTABLE_7="
-        echo $MAGICC_EXECUTABLE_7
-        echo $env:MAGICC_EXECUTABLE_7
         pytest tests -r a -vv tests/regression/ar6
