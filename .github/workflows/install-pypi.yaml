@@ -93,13 +93,20 @@ jobs:
       run: |
         pip install 'gcages[ar6-locked]'
         python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
-        python -c 'import pycountry'
+        python -c 'import pycountry; print(pycountry.LOCALES_DIR)'
+        python -c 'import aneris; import aneris.utils; print(aneris.utils.pycountry)'
+        echo "try:" > helper.py
+        echo "    import importlib_resources" >> helper.py
+        echo "    print('Using external importlib_resources')" >> helper.py
+        echo "    print(importlib_resources.files)" >> helper.py
+        echo "except ImportError as exc:" >> helper.py
+        echo "    print('External importlib_resources unavailable')" >> helper.py
+        echo "    print(exc)" >> helper.py
+        python helper.py
     - name: Install all AR6 dependencies library
       if: "!contains(matrix.install-target, 'locked')"
       run: |
         pip install 'gcages[ar6]'
-        python -c 'from importlib import resources as importlib_resources; print(importlib_resources.files)'
-        python -c 'import pycountry'
     - name: Set MAGICC executable environment variable
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -127,6 +134,7 @@ jobs:
       # see https://github.com/openscm/gcages/issues/36
       if: matrix.os != 'windows-latest'
       run: |
+        pip list
         echo "MAGICC_EXECUTABLE_7="
         echo $MAGICC_EXECUTABLE_7
         echo $env:MAGICC_EXECUTABLE_7
