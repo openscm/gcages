@@ -21,6 +21,17 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.11.0 (2025-07-23)
+
+### ⚠️ Breaking Changes
+
+- Updated minimum supported version of scmdata to v0.18.0. As a result, we could also drop the pin of xarray (as scmdata v0.18.0 fixes xarray compatibility issues, see https://github.com/openscm/scmdata/blob/main/docs/source/changelog.md). ([#38](https://github.com/openscm/gcages/pull/38))
+
+### 🔧 Trivial/Internal Changes
+
+- [#38](https://github.com/openscm/gcages/pull/38)
+
+
 ## gcages v0.10.1 (2025-07-17)
 
 ### 🐛 Bug Fixes
