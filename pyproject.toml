@@ -53,11 +53,8 @@ ar6 = [
     "pandas-openscm[db]>=0.5.1",
     "pymagicc>=2.1.5",
     "scipy>=1.13.0",
-    # Needed because of bad maintenance of scmdata
-    "scmdata>=0.17.0,<0.18",
+    "scmdata>=0.18.0",
     "silicone>=1.3.0",
-    # Needed because of bad maintenance of scmdata
-    "xarray<2025",
 ]
 cmip7scenariomip = [
     "pandas-indexing>=0.6.3",
