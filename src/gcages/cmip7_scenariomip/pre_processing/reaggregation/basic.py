@@ -324,16 +324,24 @@ gridding_sectors_reporting = (
         input_sectors=("Other Capture and Removal",),
         input_sectors_optional=("Other Capture and Removal",),
         all_species=COMPLETE_GRIDDING_SPECIES,
-        input_species_optional=("CH4","N2O","BC","CO","NH3","OC","NOx","Sulfur","VOC",),
+        input_species_optional=(
+            "CH4",
+            "N2O",
+            "BC",
+            "CO",
+            "NH3",
+            "OC",
+            "NOx",
+            "Sulfur",
+            "VOC",
+        ),
         reporting_only=False,
     ),
     GriddingSectorComponentsCarbonRemovalReporting(
         gridding_sector="BECCS",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Geological Storage|Biomass",
-                       ),
-        input_sectors_optional=("Geological Storage|Biomass",
-                                ),
+        input_sectors=("Geological Storage|Biomass",),
+        input_sectors_optional=("Geological Storage|Biomass",),
         reporting_only=False,
     ),
     GriddingSectorComponentsCarbonRemovalReporting(
@@ -543,11 +551,8 @@ def get_internal_consistency_checking_index(
         if not (
             # Avoid double counting with "Energy|Demand|Transportation"
             SECTOR_DOMESTIC_AVIATION in v
-            # Only check "Carbon Removal" two levels down
-            # because only below this do we really have sub-sectors
-            # (yet another example of the issue
-            # with the different meaning of different trees)
-            or (v.startswith("Carbon Removal") and v.count("|") <= 1)
+            # Do not check Carbon Removal tree at all!
+            or (v.startswith("Carbon Removal"))
         )
     ]
     model_region_consistency_checking = pd.MultiIndex.from_product(
@@ -1315,7 +1320,9 @@ def to_gridding_sectors(
                 "Industrial Processes",
                 "Other",
             ],
-            "Other CDR": ["Other Capture and Removal",],
+            "Other CDR": [
+                "Other Capture and Removal",
+            ],
             "Peat Burning": ["AFOLU|Land|Fires|Peat Burning"],
             "Residential Commercial Other": [
                 "Energy|Demand|Residential and Commercial and AFOFI"
@@ -1329,11 +1336,18 @@ def to_gridding_sectors(
     emissions_cdr_region_sector_df_gridding = aggregate_cols(
         emissions_cdr_region_sector_df,
         {
-            "BECCS": ["CDR|Geological Storage|Biomass",
-                      ],
-            "Enhanced Weathering": ["CDR|Enhanced Weathering",],
-            "Direct Air Capture": ["CDR|Geological Storage|Direct Air Capture",],
-            "Ocean": ["CDR|Ocean",],
+            "BECCS": [
+                "CDR|Geological Storage|Biomass",
+            ],
+            "Enhanced Weathering": [
+                "CDR|Enhanced Weathering",
+            ],
+            "Direct Air Capture": [
+                "CDR|Geological Storage|Direct Air Capture",
+            ],
+            "Ocean": [
+                "CDR|Ocean",
+            ],
         },
     )
 
