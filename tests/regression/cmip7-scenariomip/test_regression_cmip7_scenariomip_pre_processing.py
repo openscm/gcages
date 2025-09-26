@@ -55,7 +55,7 @@ def test_pre_processing_regression(input_file, dataframe_regression):
         for r in input_df.index.get_level_values("region").unique()
         if r.startswith("model_1")
     ]
-
+    # breakpoint()
     reaggregator = ReaggregatorBasic(model_regions=model_regions)
 
     if importlib.util.find_spec("openscm_units") is None:

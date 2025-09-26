@@ -54,13 +54,16 @@ COMPLETE_GRIDDING_SECTORS_MODEL_REGION: tuple[str, ...] = (
     "Forest Burning",
     "Grassland Burning",
     "Industrial Sector",
-    "International Shipping",
+    "International Shipping",  # MZ Why is it repeated twice??
     "Peat Burning",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Waste",
     "BECCS",
-    "Other non-Land CDR",
+    "Other CDR",
+    "Enhanced Weathering",
+    "Direct Air Capture",
+    "Ocean",
 )
 
 # For most of the tests, use the same world and model regions.
@@ -157,7 +160,10 @@ def gridding_emissions():
                 "Transportation Sector",
                 "Waste",
                 "BECCS",
-                "Other non-Land CDR",
+                "Other CDR",
+                "Enhanced Weathering",
+                "Direct Air Capture",
+                "Ocean",
             ),
             None,
             (
@@ -180,7 +186,10 @@ def gridding_emissions():
                 "Transportation Sector",
                 "Waste",
                 "BECCS",
-                "Other non-Land CDR",
+                "Other CDR",
+                "Enhanced Weathering",
+                "Direct Air Capture",
+                "Ocean",
                 "Agriculture",
             ),
             (
@@ -193,7 +202,10 @@ def gridding_emissions():
                 "Transportation Sector",
                 "Waste",
                 "BECCS",
-                "Other non-Land CDR",
+                "Other CDR",
+                "Enhanced Weathering",
+                "Direct Air Capture",
+                "Ocean",
                 "Agriculture",
             ),
             (
@@ -283,11 +295,14 @@ def test_to_global_workflow_emissions(  # noqa: PLR0913
 def test_to_global_workflow_emissions_missing_sector_error(gridding_emissions):
     co2_fossil_sectors = (
         "Aircraft",
-        "BECCS",
         "International Shipping",
         "Energy Sector",
         "Industrial Sector",
-        "Other non-Land CDR",
+        "BECCS",
+        "Other CDR",
+        "Enhanced Weathering",
+        "Direct Air Capture",
+        "Ocean",
         "Residential Commercial Other",
         # "Solvents Production and Application",
         "Transportation Sector",
