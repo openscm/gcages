@@ -440,7 +440,7 @@ CDR_SECOND_LEVEL_INDEX = pd.MultiIndex.from_product(
         [
             v
             for v in COMPLETE_INDEX.get_level_values("variable").unique()
-            if v.startswith("Carbon Removal") and v.count("|") <= 1
+            if v.startswith("Carbon Removal")  # and v.count("|") <= 3
         ],
         MODEL_REGIONS,
     ],
