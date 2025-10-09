@@ -440,7 +440,7 @@ CDR_SECOND_LEVEL_INDEX = pd.MultiIndex.from_product(
         [
             v
             for v in COMPLETE_INDEX.get_level_values("variable").unique()
-            if v.startswith("Carbon Removal")  # and v.count("|") <= 3
+            if v.startswith("Carbon Removal") and v.count("|") <= 1
         ],
         MODEL_REGIONS,
     ],
@@ -1388,24 +1388,6 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
     )
     assert_frame_equal(multi_index_lookup(res, exp_ocean.index), exp_ocean)
 
-    # exp_other_non_land_cdr = (
-    #     groupby_except(
-    #         -1
-    #         * 12
-    #         / 44.0
-    #         * input_regional.loc[
-    #             pix.ismatch(variable="Carbon Removal**")
-    #             & ~pix.isin(variable="Carbon Removal|Geological Storage|Biomass")
-    #         ],
-    #         "variable",
-    #     )
-    #     .sum()
-    #     .pix.assign(variable="Emissions|CO2|Other non-Land CDR", unit="Gt C/yr")
-    # )
-    # assert_frame_equal(
-    #     multi_index_lookup(res, exp_other_non_land_cdr.index), exp_other_non_land_cdr
-    # )
-
     # Add carbon removal onto the relevant sectors
     # (add because the total for these sectors needs to go up as we are moving removals)
     carbon_removal_map = {
@@ -1453,7 +1435,6 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
                 "Energy|Demand|Other Sector",
                 "Industrial Processes",
                 "Other",
-                # "Other Capture and Removal",
             ]
         ]
         .sum(axis="columns")

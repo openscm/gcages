@@ -551,10 +551,15 @@ def get_internal_consistency_checking_index(
         if not (
             # Avoid double counting with "Energy|Demand|Transportation"
             SECTOR_DOMESTIC_AVIATION in v
-            # Do not check Carbon Removal tree at all!
-            or (v.startswith("Carbon Removal"))
+            or (v.startswith("Carbon Removal") and v.count("|") <= 1)
         )
     ]
+    model_region_consistency_checking_variables.append(
+        "Carbon Removal|Geological Storage|Other Sources"
+    )
+    model_region_consistency_checking_variables.append(
+        "Carbon Removal|Geological Storage|Synthetic Fuels"
+    )
     model_region_consistency_checking = pd.MultiIndex.from_product(
         [model_region_consistency_checking_variables, model_regions],
         names=[variable_level, region_level],
@@ -1273,10 +1278,6 @@ def to_gridding_sectors(
         "CDR|Enhanced Weathering": "Other Capture and Removal",
         "CDR|Geological Storage|Biomass": "Energy|Supply",
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
-        # "CDR|Geological Storage|Other Sources": "Other Capture and Removal",
-        # "CDR|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        # See note above
-        # "CDR|Long-Lived Materials": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
         # See note above
         # "CDR|Other": "Other Capture and Removal",
