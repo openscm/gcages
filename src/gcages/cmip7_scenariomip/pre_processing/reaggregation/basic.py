@@ -211,13 +211,6 @@ gridding_sectors_reporting = (
         input_species_optional=("CH4",),
         reporting_only=False,
     ),
-    GriddingSectorComponentsCarbonRemovalReporting(
-        gridding_sector="BECCS",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Geological Storage|Biomass",),
-        input_sectors_optional=("Geological Storage|Biomass",),
-        reporting_only=False,
-    ),
     GriddingSectorComponents(
         gridding_sector="Domestic aviation headache",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
@@ -271,13 +264,11 @@ gridding_sectors_reporting = (
             "Energy|Demand|Other Sector",
             "Industrial Processes",
             "Other",
-            "Other Capture and Removal",
         ),
         all_species=COMPLETE_GRIDDING_SPECIES,
         input_sectors_optional=(
             "Energy|Demand|Other Sector",
             "Other",
-            "Other Capture and Removal",
         ),
         input_species_optional=(),
         reporting_only=False,
@@ -289,36 +280,6 @@ gridding_sectors_reporting = (
         input_sectors_optional=(),
         all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
-        reporting_only=False,
-    ),
-    GriddingSectorComponentsCarbonRemovalReporting(
-        gridding_sector="Other non-Land CDR",
-        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=(
-            "Enhanced Weathering",
-            "Geological Storage|Direct Air Capture",
-            "Geological Storage|Other Sources",
-            "Geological Storage|Synthetic Fuels",
-            # Left out for now because timber is included in AFOLU
-            # and the rest of "Long-Lived Materials|" reporting is super patchy,
-            # can stay in Emissions.
-            # "Long-Lived Materials",
-            "Ocean",
-            # Ignoring for now as doesn't seem to be used,
-            # can stay in Emissions.
-            # "Other",
-        ),
-        input_sectors_optional=(
-            "Enhanced Weathering",
-            "Geological Storage|Direct Air Capture",
-            "Geological Storage|Other Sources",
-            "Geological Storage|Synthetic Fuels",
-            # See note above
-            # "Long-Lived Materials",
-            "Ocean",
-            # See note above
-            # "Other",
-        ),
         reporting_only=False,
     ),
     GriddingSectorComponents(
@@ -355,6 +316,53 @@ gridding_sectors_reporting = (
         input_sectors_optional=(),
         all_species=COMPLETE_GRIDDING_SPECIES,
         input_species_optional=(),
+        reporting_only=False,
+    ),
+    GriddingSectorComponents(
+        gridding_sector="Other CDR",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Other Capture and Removal",),
+        input_sectors_optional=("Other Capture and Removal",),
+        all_species=COMPLETE_GRIDDING_SPECIES,
+        input_species_optional=(
+            "CH4",
+            "N2O",
+            "BC",
+            "CO",
+            "NH3",
+            "OC",
+            "NOx",
+            "Sulfur",
+            "VOC",
+        ),
+        reporting_only=False,
+    ),
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="BECCS",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Geological Storage|Biomass",),
+        input_sectors_optional=("Geological Storage|Biomass",),
+        reporting_only=False,
+    ),
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="Enhanced Weathering",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Enhanced Weathering",),
+        input_sectors_optional=("Enhanced Weathering",),
+        reporting_only=False,
+    ),
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="Direct Air Capture",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Geological Storage|Direct Air Capture",),
+        input_sectors_optional=("Geological Storage|Direct Air Capture",),
+        reporting_only=False,
+    ),
+    GriddingSectorComponentsCarbonRemovalReporting(
+        gridding_sector="Ocean",
+        spatial_resolution=SpatialResolutionOption.MODEL_REGION,
+        input_sectors=("Ocean",),
+        input_sectors_optional=("Ocean",),
         reporting_only=False,
     ),
 )
@@ -543,13 +551,19 @@ def get_internal_consistency_checking_index(
         if not (
             # Avoid double counting with "Energy|Demand|Transportation"
             SECTOR_DOMESTIC_AVIATION in v
-            # Only check "Carbon Removal" two levels down
-            # because only below this do we really have sub-sectors
-            # (yet another example of the issue
-            # with the different meaning of different trees)
             or (v.startswith("Carbon Removal") and v.count("|") <= 1)
         )
     ]
+    # Add components of the tree that are needed for consistency checking
+    # but we don't otherwise use.
+    # This is a nasty hack that we should clean up in future
+    # so the logic of this is more obvious.
+    model_region_consistency_checking_variables.append(
+        "Carbon Removal|Geological Storage|Other Sources"
+    )
+    model_region_consistency_checking_variables.append(
+        "Carbon Removal|Geological Storage|Synthetic Fuels"
+    )
     model_region_consistency_checking = pd.MultiIndex.from_product(
         [model_region_consistency_checking_variables, model_regions],
         names=[variable_level, region_level],
@@ -1268,10 +1282,6 @@ def to_gridding_sectors(
         "CDR|Enhanced Weathering": "Other Capture and Removal",
         "CDR|Geological Storage|Biomass": "Energy|Supply",
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
-        "CDR|Geological Storage|Other Sources": "Other Capture and Removal",
-        "CDR|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        # See note above
-        # "CDR|Long-Lived Materials": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
         # See note above
         # "CDR|Other": "Other Capture and Removal",
@@ -1314,6 +1324,8 @@ def to_gridding_sectors(
                 "Energy|Demand|Other Sector",
                 "Industrial Processes",
                 "Other",
+            ],
+            "Other CDR": [
                 "Other Capture and Removal",
             ],
             "Peat Burning": ["AFOLU|Land|Fires|Peat Burning"],
@@ -1329,17 +1341,17 @@ def to_gridding_sectors(
     emissions_cdr_region_sector_df_gridding = aggregate_cols(
         emissions_cdr_region_sector_df,
         {
-            "BECCS": ["CDR|Geological Storage|Biomass"],
-            "Other non-Land CDR": [
+            "BECCS": [
+                "CDR|Geological Storage|Biomass",
+            ],
+            "Enhanced Weathering": [
                 "CDR|Enhanced Weathering",
+            ],
+            "Direct Air Capture": [
                 "CDR|Geological Storage|Direct Air Capture",
-                "CDR|Geological Storage|Other Sources",
-                "CDR|Geological Storage|Synthetic Fuels",
-                # See note above
-                # "CDR|Long-Lived Materials",
+            ],
+            "Ocean": [
                 "CDR|Ocean",
-                # See note above
-                # "CDR|Other",
             ],
         },
     )

@@ -56,6 +56,7 @@ COMPLETE_GRIDDING_SECTORS_EXCEPT_CDR: tuple[str, ...] = (
     "Solvents Production and Application",
     "Transportation Sector",
     "Waste",
+    "Other CDR",
 )
 """
 Complete set of sectors for gridding excluding CDR sectors
@@ -63,7 +64,9 @@ Complete set of sectors for gridding excluding CDR sectors
 
 COMPLETE_GRIDDING_SECTORS_CDR: tuple[str, ...] = (
     "BECCS",
-    "Other non-Land CDR",
+    "Enhanced Weathering",
+    "Direct Air Capture",
+    "Ocean",
 )
 """
 Complete set of sectors for gridding CDR sectors
@@ -172,7 +175,10 @@ CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "International Shipping",
     "Energy Sector",
     "Industrial Sector",
-    "Other non-Land CDR",
+    "Other CDR",
+    "Enhanced Weathering",
+    "Direct Air Capture",
+    "Ocean",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",

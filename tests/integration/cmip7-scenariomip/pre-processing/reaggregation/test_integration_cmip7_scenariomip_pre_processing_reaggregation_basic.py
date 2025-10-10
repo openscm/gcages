@@ -99,7 +99,12 @@ class GriddingSectorComponentsReporting:
     input_species_optional: tuple[str, ...]
 
     def to_complete_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+        if self.gridding_sector in [
+            "BECCS",
+            "Enhanced Weathering",
+            "Direct Air Capture",
+            "Ocean",
+        ]:
             return tuple(f"Carbon Removal|{sector}" for sector in self.input_sectors)
         else:
             return tuple(
@@ -109,7 +114,12 @@ class GriddingSectorComponentsReporting:
             )
 
     def to_required_variables(self, all_species: tuple[str, ...]) -> tuple[str, ...]:
-        if self.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+        if self.gridding_sector in [
+            "BECCS",
+            "Enhanced Weathering",
+            "Direct Air Capture",
+            "Ocean",
+        ]:
             return tuple(
                 f"Carbon Removal|{sector}"
                 for sector in self.input_sectors
@@ -217,12 +227,10 @@ GRIDDING_SECTORS = {
                 "Energy|Demand|Other Sector",
                 "Industrial Processes",
                 "Other",
-                "Other Capture and Removal",
             ),
             input_sectors_optional=(
                 "Energy|Demand|Other Sector",
                 "Other",
-                "Other Capture and Removal",
             ),
             input_species_optional=(),
         ),
@@ -262,6 +270,23 @@ GRIDDING_SECTORS = {
             input_species_optional=(),
         ),
         GriddingSectorComponentsReporting(
+            gridding_sector="Other CDR",
+            spatial_resolution="model region",
+            input_sectors=("Other Capture and Removal",),
+            input_sectors_optional=("Other Capture and Removal",),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
+        GriddingSectorComponentsReporting(
             gridding_sector="BECCS",
             spatial_resolution="model region",
             input_sectors=("Geological Storage|Biomass",),
@@ -279,26 +304,44 @@ GRIDDING_SECTORS = {
             ),
         ),
         GriddingSectorComponentsReporting(
-            gridding_sector="Other non-Land CDR",
+            gridding_sector="Enhanced Weathering",
             spatial_resolution="model region",
-            input_sectors=(
-                "Ocean",
-                "Geological Storage|Direct Air Capture",
-                "Geological Storage|Synthetic Fuels",
-                "Geological Storage|Other Sources",
-                # "Long-Lived Materials",
-                "Enhanced Weathering",
-                # "Other",
+            input_sectors=("Enhanced Weathering",),
+            input_sectors_optional=("Enhanced Weathering",),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
             ),
-            input_sectors_optional=(
-                "Ocean",
-                "Geological Storage|Direct Air Capture",
-                "Geological Storage|Synthetic Fuels",
-                "Geological Storage|Other Sources",
-                # "Long-Lived Materials",
-                "Enhanced Weathering",
-                # "Other",
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Direct Air Capture",
+            spatial_resolution="model region",
+            input_sectors=("Geological Storage|Direct Air Capture",),
+            input_sectors_optional=("Geological Storage|Direct Air Capture",),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
             ),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Ocean",
+            spatial_resolution="model region",
+            input_sectors=("Ocean",),
+            input_sectors_optional=("Ocean",),
             input_species_optional=(
                 "BC",
                 "CH4",
@@ -326,7 +369,12 @@ def to_index(  # noqa: PLR0913
 ) -> pd.MultiIndex:
     res = None
     for gs in gss:
-        if gs.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+        if gs.gridding_sector in [
+            "BECCS",
+            "Enhanced Weathering",
+            "Direct Air Capture",
+            "Ocean",
+        ]:
             species_to_use = ["CO2"]
         else:
             species_to_use = all_species
@@ -1211,7 +1259,10 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
             "Transportation Sector",
             "Energy Sector",
             "Industrial Sector",
-            "Other non-Land CDR",
+            "Other CDR",
+            "Enhanced Weathering",
+            "Direct Air Capture",
+            "Ocean",
         )
     ),
 )
@@ -1231,7 +1282,13 @@ def test_complete_to_gridding_sectors_straightforward_sector(
         list(gridding_sector_definition.input_sectors),
     ]
 
-    if gridding_sector_definition.gridding_sector in ["BECCS", "Other non-Land CDR"]:
+    if gridding_sector_definition.gridding_sector in [
+        "BECCS",
+        "Other CDR",
+        "Enhanced Weathering",
+        "Direct Air Capture",
+        "Ocean",
+    ]:
         tmp = tmp[tmp.index.get_level_values("table") == "Carbon Removal"]
     else:
         tmp = tmp[tmp.index.get_level_values("table") == "Emissions"]
@@ -1298,25 +1355,38 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
             pix.isin(variable="Carbon Removal|Geological Storage|Biomass")
         ].pix.assign(variable="Emissions|CO2|BECCS", unit="Gt C/yr")
     )
+
     assert_frame_equal(multi_index_lookup(res, exp_beccs.index), exp_beccs)
 
-    exp_other_non_land_cdr = (
-        groupby_except(
-            -1
-            * 12
-            / 44.0
-            * input_regional.loc[
-                pix.ismatch(variable="Carbon Removal**")
-                & ~pix.isin(variable="Carbon Removal|Geological Storage|Biomass")
-            ],
-            "variable",
+    exp_enwea = (
+        -1
+        * 12
+        / 44.0
+        * input_regional.loc[
+            pix.isin(variable="Carbon Removal|Enhanced Weathering")
+        ].pix.assign(variable="Emissions|CO2|Enhanced Weathering", unit="Gt C/yr")
+    )
+    assert_frame_equal(multi_index_lookup(res, exp_enwea.index), exp_enwea)
+
+    exp_dac = (
+        -1
+        * 12
+        / 44.0
+        * input_regional.loc[
+            pix.isin(variable="Carbon Removal|Geological Storage|Direct Air Capture")
+        ].pix.assign(variable="Emissions|CO2|Direct Air Capture", unit="Gt C/yr")
+    )
+    assert_frame_equal(multi_index_lookup(res, exp_dac.index), exp_dac)
+
+    exp_ocean = (
+        -1
+        * 12
+        / 44.0
+        * input_regional.loc[pix.isin(variable="Carbon Removal|Ocean")].pix.assign(
+            variable="Emissions|CO2|Ocean", unit="Gt C/yr"
         )
-        .sum()
-        .pix.assign(variable="Emissions|CO2|Other non-Land CDR", unit="Gt C/yr")
     )
-    assert_frame_equal(
-        multi_index_lookup(res, exp_other_non_land_cdr.index), exp_other_non_land_cdr
-    )
+    assert_frame_equal(multi_index_lookup(res, exp_ocean.index), exp_ocean)
 
     # Add carbon removal onto the relevant sectors
     # (add because the total for these sectors needs to go up as we are moving removals)
@@ -1324,11 +1394,7 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         "Carbon Removal|Enhanced Weathering": "Other Capture and Removal",
         "Carbon Removal|Geological Storage|Biomass": "Energy|Supply",
         "Carbon Removal|Geological Storage|Direct Air Capture": "Other Capture and Removal",  # noqa: E501
-        "Carbon Removal|Geological Storage|Other Sources": "Other Capture and Removal",
-        "Carbon Removal|Geological Storage|Synthetic Fuels": "Energy|Demand|Industry",
-        # "Carbon Removal|Long-Lived Materials": "Other Capture and Removal",
         "Carbon Removal|Ocean": "Other Capture and Removal",
-        # "Carbon Removal|Other": "Other Capture and Removal",
     }
     for cdr_sector, raw_sector in carbon_removal_map.items():
         input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}")] = (
@@ -1369,7 +1435,6 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
                 "Energy|Demand|Other Sector",
                 "Industrial Processes",
                 "Other",
-                "Other Capture and Removal",
             ]
         ]
         .sum(axis="columns")
