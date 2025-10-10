@@ -54,7 +54,6 @@ COMPLETE_GRIDDING_SECTORS_MODEL_REGION: tuple[str, ...] = (
     "Forest Burning",
     "Grassland Burning",
     "Industrial Sector",
-    "International Shipping",  # MZ Why is it repeated twice??
     "Peat Burning",
     "Residential Commercial Other",
     "Solvents Production and Application",
