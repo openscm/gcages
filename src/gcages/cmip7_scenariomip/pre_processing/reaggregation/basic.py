@@ -554,10 +554,10 @@ def get_internal_consistency_checking_index(
             or (v.startswith("Carbon Removal") and v.count("|") <= 1)
         )
     ]
-	# Add components of the tree that are needed for consistency checking
-	# but we don't otherwise use.
-	# This is a nasty hack that we should clean up in future
-	# so the logic of this is more obvious.
+    # Add components of the tree that are needed for consistency checking
+    # but we don't otherwise use.
+    # This is a nasty hack that we should clean up in future
+    # so the logic of this is more obvious.
     model_region_consistency_checking_variables.append(
         "Carbon Removal|Geological Storage|Other Sources"
     )
