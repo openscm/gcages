@@ -21,6 +21,19 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.12.0 (2025-10-10)
+
+### ⚠️ Breaking Changes
+
+- Split out the Carbon Removal variable tree in a way that better facilitates downstream spatial downscaling.
+  This means that we no longer split out `Carbon Removal|Geological Storage|Other Sources` and `Carbon Removal|Geological Storage|Synthetic Fuels`, and have created four new gridding sector components:
+
+  - `Other CDR` (based on the emissions tree)
+  - `Enhanced Weathering`, `Direct Air Capture`, `Ocean` (based on the carbon removal tree)
+
+  ([#39](https://github.com/openscm/gcages/pull/39))
+
+
 ## gcages v0.11.0 (2025-07-23)
 
 ### ⚠️ Breaking Changes
