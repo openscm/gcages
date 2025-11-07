@@ -1,5 +1,5 @@
 """
-Tests of `gcages.harmonisation.aneris`
+Integration tests of `gcages.harmonisation`
 """
 
 import pandas as pd
