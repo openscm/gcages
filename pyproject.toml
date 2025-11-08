@@ -12,7 +12,7 @@ dependencies = [
     "numpy>=1.26.0; python_version < '3.13'",
     "numpy>=2.1.0; python_version >= '3.13'",
     "pandas>=2.2.0",
-    "pandas-openscm>=0.5.1",
+    "pandas-openscm>=0.8.0",
 ]
 readme = "README.md"
 classifiers = [

@@ -5,6 +5,7 @@ See https://docs.pytest.org/en/7.1.x/reference/fixtures.html#conftest-py-sharing
 """
 
 import pandas as pd
+import pandas_openscm
 import pytest
 
 
@@ -19,3 +20,24 @@ def pandas_terminal_width():
     # Display as many columns as you want (i.e. let the display width do the
     # truncation)
     pd.set_option("display.max_columns", 1000)
+
+
+@pytest.fixture()
+def setup_pandas_accessors() -> None:
+    # Not parallel safe, but good enough
+    pandas_openscm.register_pandas_accessors()
+
+    yield None
+
+    # Surprising and a bit annoying that there isn't a safer way to do this
+    pd.DataFrame._accessors.discard("openscm")
+    if hasattr(pd.DataFrame, "openscm"):
+        del pd.DataFrame.openscm
+
+    pd.Series._accessors.discard("openscm")
+    if hasattr(pd.Series, "openscm"):
+        del pd.Series.openscm
+
+    pd.Index._accessors.discard("openscm")
+    if hasattr(pd.Index, "openscm"):
+        del pd.Index.openscm

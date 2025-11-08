@@ -121,7 +121,7 @@ paginate==0.5.7
 pandas==2.3.1
 pandas-datapackage-reader==0.18.0
 pandas-indexing==0.6.3
-pandas-openscm==0.6.0
+pandas-openscm==0.9.0
 pandera==0.25.0 ; python_full_version >= '3.10'
 pandocfilters==1.5.1
 parso==0.8.4

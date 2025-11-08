@@ -1269,7 +1269,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pandas-indexing", marker = "extra == 'cmip7scenariomip'", specifier = ">=0.6.3" },
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
-    { name = "pandas-openscm", specifier = ">=0.5.1" },
+    { name = "pandas-openscm", specifier = ">=0.8.0" },
     { name = "pandas-openscm", extras = ["db"], marker = "extra == 'ar6'", specifier = ">=0.5.1" },
     { name = "pycountry", marker = "python_full_version >= '3.10' and extra == 'ar6'", specifier = ">=24.0" },
     { name = "pymagicc", marker = "extra == 'ar6'", specifier = ">=2.1.5" },
@@ -3398,7 +3398,7 @@ units = [
 
 [[package]]
 name = "pandas-openscm"
-version = "0.6.0"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -3407,9 +3407,9 @@ dependencies = [
     { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/41/4b/235f18e4ce6c2edf7bc9a3f1482eedb4cb52bc5d7d9a3cef39fcebd994cd/pandas_openscm-0.6.0.tar.gz", hash = "sha256:d2a5bcf00841ad2d3d5b9e87eb819e86cf7c16076f9a1e4a884c6ae2fc110087", size = 1495015, upload-time = "2025-07-16T11:59:46.887Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/84/c69abeeceb0905cb9166be8759fb6265c15971c80e9f256bdcb13481221e/pandas_openscm-0.9.0.tar.gz", hash = "sha256:f004eeddfd7c475e78a8f0039878f648cb5f6873f8ee4aef4d2a3f0c35263f21", size = 62216, upload-time = "2025-08-29T19:08:34.665Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/e3/be392f15bd48eb8a734334c548fec6ed3ba1e1cf72f5c35bb9e682a351ec/pandas_openscm-0.6.0-py3-none-any.whl", hash = "sha256:b8481fe46d04c46ace2fe527d20e264b367380f2ab8da1461eaad15c87753728", size = 69096, upload-time = "2025-07-16T11:59:45.495Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/1e/36765fc03a5f6cc788e0de78fb8ff31d8aff264ffcd8e403fd17d25aea10/pandas_openscm-0.9.0-py3-none-any.whl", hash = "sha256:f4373458ec439e8effb5213a121fdd2273967bff48a4b06d385997654a8c9008", size = 80550, upload-time = "2025-08-29T19:08:33.342Z" },
 ]
 
 [package.optional-dependencies]
