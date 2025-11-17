@@ -5,12 +5,7 @@ Integration tests of `gcages.infilling`
 import pandas as pd
 import pytest
 
-
-def test_basic_silicone():
-    assert False
-
-
-# Tests to write:
+# Unit tests to write:
 # - just basic infilling
 # - error if try to infill something that isn't there
 # - error if one scenario is missing required lead gas
@@ -22,12 +17,18 @@ def test_basic_silicone():
 
 
 def test_regional_infilling_silicone(setup_pandas_accessors):
-    # fake infilling db
-    # - CO2 total
-    # - CH4 (infill at regional level)
-    # - sulfur (infill at global level)
-    # infill
-    # check results against using silicone directly
+    """
+    Full integration test of infilling
+
+    This tries to test infilling including as many edge cases as possible.
+    For complete testing of all the paths and error handling, see the unit tests.
+
+    Edge cases we try to cover:
+
+    - unit conversion
+    - different source timeseries for infilling different target timeseries
+    - infilling at the regional level
+    """
     openscm_units = pytest.importorskip("openscm_units")
 
     scen_1 = pd.DataFrame(
