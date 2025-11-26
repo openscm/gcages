@@ -63,6 +63,8 @@ COMPLETE_GRIDDING_SECTORS_MODEL_REGION: tuple[str, ...] = (
     "Enhanced Weathering",
     "Direct Air Capture",
     "Ocean",
+    "Biochar",
+    "Soil Carbon Management",
 )
 
 # For most of the tests, use the same world and model regions.
@@ -163,6 +165,8 @@ def gridding_emissions():
                 "Enhanced Weathering",
                 "Direct Air Capture",
                 "Ocean",
+                "Biochar",
+                "Soil Carbon Management",
             ),
             None,
             (
@@ -189,6 +193,8 @@ def gridding_emissions():
                 "Enhanced Weathering",
                 "Direct Air Capture",
                 "Ocean",
+                "Biochar",
+                "Soil Carbon Management",
                 "Agriculture",
             ),
             (
@@ -205,6 +211,8 @@ def gridding_emissions():
                 "Enhanced Weathering",
                 "Direct Air Capture",
                 "Ocean",
+                "Biochar",
+                "Soil Carbon Management",
                 "Agriculture",
             ),
             (
@@ -302,6 +310,8 @@ def test_to_global_workflow_emissions_missing_sector_error(gridding_emissions):
         "Enhanced Weathering",
         "Direct Air Capture",
         "Ocean",
+        "Biochar",
+        "Soil Carbon Management",
         "Residential Commercial Other",
         # "Solvents Production and Application",
         "Transportation Sector",
