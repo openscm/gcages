@@ -856,10 +856,8 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Biochar": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Carbon Removal|Soil Carbon Management": dict(
-                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
-            ),
+            "Carbon Removal|Biochar": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Soil Carbon Management": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
         }
 
