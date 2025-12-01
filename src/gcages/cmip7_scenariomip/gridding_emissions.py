@@ -67,6 +67,8 @@ COMPLETE_GRIDDING_SECTORS_CDR: tuple[str, ...] = (
     "Enhanced Weathering",
     "Direct Air Capture",
     "Ocean",
+    "Biochar",
+    "Soil Carbon Management",
 )
 """
 Complete set of sectors for gridding CDR sectors
@@ -179,6 +181,8 @@ CO2_FOSSIL_SECTORS_GRIDDING: tuple[str, ...] = (
     "Enhanced Weathering",
     "Direct Air Capture",
     "Ocean",
+    "Biochar",
+    "Soil Carbon Management",
     "Residential Commercial Other",
     "Solvents Production and Application",
     "Transportation Sector",

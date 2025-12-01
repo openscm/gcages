@@ -104,6 +104,8 @@ class GriddingSectorComponentsReporting:
             "Enhanced Weathering",
             "Direct Air Capture",
             "Ocean",
+            "Biochar",
+            "Soil Carbon Management",
         ]:
             return tuple(f"Carbon Removal|{sector}" for sector in self.input_sectors)
         else:
@@ -119,6 +121,8 @@ class GriddingSectorComponentsReporting:
             "Enhanced Weathering",
             "Direct Air Capture",
             "Ocean",
+            "Biochar",
+            "Soil Carbon Management",
         ]:
             return tuple(
                 f"Carbon Removal|{sector}"
@@ -354,6 +358,40 @@ GRIDDING_SECTORS = {
                 "VOC",
             ),
         ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Biochar",
+            spatial_resolution="model region",
+            input_sectors=("Biochar",),
+            input_sectors_optional=("Biochar",),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
+        GriddingSectorComponentsReporting(
+            gridding_sector="Soil Carbon Management",
+            spatial_resolution="model region",
+            input_sectors=("Soil Carbon Management",),
+            input_sectors_optional=("Soil Carbon Management",),
+            input_species_optional=(
+                "BC",
+                "CH4",
+                "CO",
+                "NH3",
+                "N2O",
+                "NOx",
+                "OC",
+                "Sulfur",
+                "VOC",
+            ),
+        ),
     )
 }
 
@@ -374,6 +412,8 @@ def to_index(  # noqa: PLR0913
             "Enhanced Weathering",
             "Direct Air Capture",
             "Ocean",
+            "Biochar",
+            "Soil Carbon Management",
         ]:
             species_to_use = ["CO2"]
         else:
@@ -1263,6 +1303,8 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
             "Enhanced Weathering",
             "Direct Air Capture",
             "Ocean",
+            "Biochar",
+            "Soil Carbon Management",
         )
     ),
 )
@@ -1288,6 +1330,8 @@ def test_complete_to_gridding_sectors_straightforward_sector(
         "Enhanced Weathering",
         "Direct Air Capture",
         "Ocean",
+        "Biochar",
+        "Soil Carbon Management",
     ]:
         tmp = tmp[tmp.index.get_level_values("table") == "Carbon Removal"]
     else:
@@ -1387,6 +1431,26 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         )
     )
     assert_frame_equal(multi_index_lookup(res, exp_ocean.index), exp_ocean)
+
+    exp_biochar = (
+        -1
+        * 12
+        / 44.0
+        * input_regional.loc[pix.isin(variable="Carbon Removal|Biochar")].pix.assign(
+            variable="Emissions|CO2|Biochar", unit="Gt C/yr"
+        )
+    )
+    assert_frame_equal(multi_index_lookup(res, exp_biochar.index), exp_biochar)
+
+    exp_scm = (
+        -1
+        * 12
+        / 44.0
+        * input_regional.loc[
+            pix.isin(variable="Carbon Removal|Soil Carbon Management")
+        ].pix.assign(variable="Emissions|CO2|Soil Carbon Management", unit="Gt C/yr")
+    )
+    assert_frame_equal(multi_index_lookup(res, exp_scm.index), exp_scm)
 
     # Add carbon removal onto the relevant sectors
     # (add because the total for these sectors needs to go up as we are moving removals)
