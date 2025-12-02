@@ -21,6 +21,15 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.13.0 (2025-12-02)
+
+### ⚠️ Breaking Changes
+
+- # Additional CDR split
+
+  Improved CDR granularity adding the `Biochar` and `Soil Carbon Management` new componentes from the Carbon Removal tree. ([#40](https://github.com/openscm/gcages/pull/40))
+
+
 ## gcages v0.12.0 (2025-10-10)
 
 ### ⚠️ Breaking Changes
