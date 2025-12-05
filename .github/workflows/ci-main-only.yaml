@@ -1,7 +1,7 @@
 name: CI main only
 
 on:
-  pull_request:
+  # pull_request:
   push:
     branches: [main]
   workflow_dispatch:
