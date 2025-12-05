@@ -31,7 +31,8 @@ jobs:
         run: |
           # # Useful if the path appears to have changed
           # find / -name 'libgfortran.5.dylib' 2>/dev/null
-          echo "DYLD_LIBRARY_PATH=/opt/homebrew/lib/gcc/12/" >> $GITHUB_ENV
+          find /opt/homebrew -name libgfortran.5.dylib 2>/dev/null | head -1
+          echo "DYLD_LIBRARY_PATH=$(dirname $(find /opt/homebrew -name libgfortran.5.dylib 2>/dev/null | head -1))" >> $GITHUB_ENV
       - name: Try to run MAGICC
         if: matrix.os == 'windows-latest'
         run: |
