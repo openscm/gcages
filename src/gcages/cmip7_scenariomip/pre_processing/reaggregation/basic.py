@@ -368,15 +368,15 @@ gridding_sectors_reporting = (
     GriddingSectorComponentsCarbonRemovalReporting(
         gridding_sector="Biochar",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Biochar",),
-        input_sectors_optional=("Biochar",),
+        input_sectors=("Land Use|Biochar",),
+        input_sectors_optional=("Land Use|Biochar",),
         reporting_only=False,
     ),
     GriddingSectorComponentsCarbonRemovalReporting(
         gridding_sector="Soil Carbon Management",
         spatial_resolution=SpatialResolutionOption.MODEL_REGION,
-        input_sectors=("Soil Carbon Management",),
-        input_sectors_optional=("Soil Carbon Management",),
+        input_sectors=("Land Use|Soil Carbon Management",),
+        input_sectors_optional=("Land Use|Soil Carbon Management",),
         reporting_only=False,
     ),
 )
@@ -833,10 +833,7 @@ def get_default_internal_conistency_checking_tolerances() -> (
                 rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
             ),
             "Carbon Removal|Ocean": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Carbon Removal|Biochar": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Carbon Removal|Soil Carbon Management": dict(
-                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
-            ),
+            "Carbon Removal|Land Use": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
             "Carbon Removal|Other": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
         }
 
@@ -856,8 +853,7 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Biochar": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Soil Carbon Management": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Land Use": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
         }
 
@@ -1303,8 +1299,8 @@ def to_gridding_sectors(
         "CDR|Geological Storage|Biomass": "Energy|Supply",
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
-        "CDR|Biochar": "Other Capture and Removal",
-        "CDR|Soil Carbon Management": "Other Capture and Removal",
+        "CDR|Land Use|Biochar": "AFOLU|Land|Other",
+        "CDR|Land Use|Soil Carbon Management": "AFOLU|Land|Other",
         # See note above
         # "CDR|Other": "Other Capture and Removal",
     }
@@ -1376,10 +1372,10 @@ def to_gridding_sectors(
                 "CDR|Ocean",
             ],
             "Biochar": [
-                "CDR|Biochar",
+                "CDR|Land Use|Biochar",
             ],
             "Soil Carbon Management": [
-                "CDR|Soil Carbon Management",
+                "CDR|Land Use|Soil Carbon Management",
             ],
         },
     )
