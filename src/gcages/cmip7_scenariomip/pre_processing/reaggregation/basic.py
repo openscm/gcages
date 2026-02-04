@@ -1302,7 +1302,7 @@ def to_gridding_sectors(
         "CDR|Geological Storage|Biomass": "Energy|Supply",
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
-        "CDR|Land Use|Biochar": "AFOLU|Land|Land Use and Land-Use Change",
+        "CDR|Land Use|Biochar": "AFOLU|Land|Other",
         "CDR|Land Use|Soil Carbon Management": (
             "AFOLU|Land|Land Use and Land-Use Change"
         ),
