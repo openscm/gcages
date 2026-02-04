@@ -853,7 +853,10 @@ def get_default_internal_conistency_checking_tolerances() -> (
             "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
             "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Land Use": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Land Use|Biochar": dict(rtol=1e-3, atol=1e-6),
+            "Carbon Removal|Land Use|Soil Carbon Management": dict(
+                rtol=1e-3, atol=1e-6
+            ),
             "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
         }
 
@@ -1299,8 +1302,10 @@ def to_gridding_sectors(
         "CDR|Geological Storage|Biomass": "Energy|Supply",
         "CDR|Geological Storage|Direct Air Capture": "Other Capture and Removal",
         "CDR|Ocean": "Other Capture and Removal",
-        "CDR|Land Use|Biochar": "AFOLU|Land|Other",
-        "CDR|Land Use|Soil Carbon Management": "AFOLU|Land|Other",
+        "CDR|Land Use|Biochar": "AFOLU|Land|Land Use and Land-Use Change",
+        "CDR|Land Use|Soil Carbon Management": (
+            "AFOLU|Land|Land Use and Land-Use Change"
+        ),
         # See note above
         # "CDR|Other": "Other Capture and Removal",
     }

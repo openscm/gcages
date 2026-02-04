@@ -1299,6 +1299,7 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
             "Transportation Sector",
             "Energy Sector",
             "Industrial Sector",
+            "Agriculture",
             "Other CDR",
             "Enhanced Weathering",
             "Direct Air Capture",
