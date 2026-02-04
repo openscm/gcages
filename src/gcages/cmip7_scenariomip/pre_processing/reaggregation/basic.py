@@ -573,6 +573,12 @@ def get_internal_consistency_checking_index(
     # This is a nasty hack that we should clean up in future
     # so the logic of this is more obvious.
     model_region_consistency_checking_variables.append(
+        "Carbon Removal|Land Use|Agroforestry"
+    )
+    model_region_consistency_checking_variables.append(
+        "Carbon Removal|Land Use|Re/Afforestation"
+    )
+    model_region_consistency_checking_variables.append(
         "Carbon Removal|Geological Storage|Other Sources"
     )
     model_region_consistency_checking_variables.append(
