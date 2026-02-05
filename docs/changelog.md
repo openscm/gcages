@@ -21,6 +21,17 @@ from the examples given in that link.
 
 <!-- towncrier release notes start -->
 
+## gcages v0.14.0 (2026-02-05)
+
+### 🐛 Bug Fixes
+
+- Fixed Biochar and Soil Carbon Management accounting in the CMIP7 ScenarioMIP pre-processing. Soil carbon removal is now subtracted from `AFOLU|Land|Land Use and Land-Use Change` while biochar from `AFOLU|Land|Other. ([#42](https://github.com/openscm/gcages/pull/42))
+
+### 🔧 Trivial/Internal Changes
+
+- [#41](https://github.com/openscm/gcages/pull/41)
+
+
 ## gcages v0.13.0 (2025-12-02)
 
 ### ⚠️ Breaking Changes
