@@ -361,8 +361,8 @@ GRIDDING_SECTORS = {
         GriddingSectorComponentsReporting(
             gridding_sector="Biochar",
             spatial_resolution="model region",
-            input_sectors=("Biochar",),
-            input_sectors_optional=("Biochar",),
+            input_sectors=("Land Use|Biochar",),
+            input_sectors_optional=("Land Use|Biochar",),
             input_species_optional=(
                 "BC",
                 "CH4",
@@ -378,8 +378,8 @@ GRIDDING_SECTORS = {
         GriddingSectorComponentsReporting(
             gridding_sector="Soil Carbon Management",
             spatial_resolution="model region",
-            input_sectors=("Soil Carbon Management",),
-            input_sectors_optional=("Soil Carbon Management",),
+            input_sectors=("Land Use|Soil Carbon Management",),
+            input_sectors_optional=("Land Use|Soil Carbon Management",),
             input_species_optional=(
                 "BC",
                 "CH4",
@@ -1299,6 +1299,7 @@ def test_complete_to_gridding_sectors_output_index(complete_to_gridding_res):
             "Transportation Sector",
             "Energy Sector",
             "Industrial Sector",
+            "Agriculture",
             "Other CDR",
             "Enhanced Weathering",
             "Direct Air Capture",
@@ -1436,9 +1437,9 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         -1
         * 12
         / 44.0
-        * input_regional.loc[pix.isin(variable="Carbon Removal|Biochar")].pix.assign(
-            variable="Emissions|CO2|Biochar", unit="Gt C/yr"
-        )
+        * input_regional.loc[
+            pix.isin(variable="Carbon Removal|Land Use|Biochar")
+        ].pix.assign(variable="Emissions|CO2|Biochar", unit="Gt C/yr")
     )
     assert_frame_equal(multi_index_lookup(res, exp_biochar.index), exp_biochar)
 
@@ -1447,7 +1448,7 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         * 12
         / 44.0
         * input_regional.loc[
-            pix.isin(variable="Carbon Removal|Soil Carbon Management")
+            pix.isin(variable="Carbon Removal|Land Use|Soil Carbon Management")
         ].pix.assign(variable="Emissions|CO2|Soil Carbon Management", unit="Gt C/yr")
     )
     assert_frame_equal(multi_index_lookup(res, exp_scm.index), exp_scm)
