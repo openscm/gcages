@@ -579,6 +579,10 @@ def get_internal_consistency_checking_index(
         "Carbon Removal|Land Use|Re/Afforestation"
     )
     model_region_consistency_checking_variables.append(
+        "Carbon Removal|Land Use|Forest Management"
+    )
+    model_region_consistency_checking_variables.append("Carbon Removal|Land Use|Other")
+    model_region_consistency_checking_variables.append(
         "Carbon Removal|Geological Storage|Other Sources"
     )
     model_region_consistency_checking_variables.append(
