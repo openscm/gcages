@@ -26,7 +26,7 @@ from gcages.ar6.post_processing import set_new_single_value_levels
 from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
-    KEY_TESTING_MODEL_SCENARIOS,
+    KEY_AR6_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_ar6_infilled_emissions,
     get_ar6_metadata_outputs,
@@ -144,7 +144,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-@get_key_testing_model_scenario_parameters()
+@get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
 def test_individual_scenario(model, scenario):
     exp_metadata = get_ar6_metadata_outputs(
         model=model,

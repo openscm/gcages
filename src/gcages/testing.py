@@ -38,7 +38,7 @@ AR6_IPS = (
     ("WITCH 5.0", "CO_Bridge"),
 )
 
-KEY_TESTING_MODEL_SCENARIOS = tuple(
+KEY_AR6_TESTING_MODEL_SCENARIOS = tuple(
     [
         *AR6_IPS,
         # Other special cases
@@ -48,7 +48,9 @@ KEY_TESTING_MODEL_SCENARIOS = tuple(
 )
 
 
-def get_key_testing_model_scenario_parameters() -> pytest.MarkDecorator:
+def get_key_testing_model_scenario_parameters(
+    model_scenarios: tuple[tuple[str, str]],
+) -> pytest.MarkDecorator:
     try:
         import pytest
     except ImportError as exc:
@@ -58,7 +60,7 @@ def get_key_testing_model_scenario_parameters() -> pytest.MarkDecorator:
 
     return pytest.mark.parametrize(
         "model, scenario",
-        [(model, scenario) for model, scenario in KEY_TESTING_MODEL_SCENARIOS],
+        [(model, scenario) for model, scenario in model_scenarios],
     )
 
 
@@ -308,6 +310,83 @@ def get_ar6_metadata_outputs(
     ).loc[[(model, scenario)]]
 
     res.index = res.index.rename({"Model": "model", "Scenario": "scenario"})
+
+    return res
+
+
+KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS = (
+    ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
+    ("AIM 3.0", "SSP2 - Low Overshoot_a"),
+    ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
+    # ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
+    ("IMAGE 3.4", "SSP2 - Medium Emissions"),
+    ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
+    ("GCAM 8s", "SSP3 - High Emissions"),
+)
+
+
+@functools.cache
+def get_cmip7_scenariomip_pre_processed_emissions(
+    model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get pre-processed emissions from CMIP7 ScenarioMIP outputs
+
+    Parameters
+    ----------
+    model
+        Model for which to retrieve outputs
+
+    scenario
+        Scenario for which to retrieve outputs
+
+    processed_cmip7_scenariomip_output_data_dir
+        Directory in which the CMIP7 ScenarioMIP output was saved
+
+    Returns
+    -------
+    :
+        All pre-processed emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+    """
+    res = load_timeseries_csv(
+        processed_cmip7_scenariomip_output_data_dir
+        / f"{model}_{scenario}_pre-processed.csv",
+        index_columns=["model", "scenario", "variable", "region", "unit", "stage"],
+        out_columns_type=int,
+    )
+
+    return res
+
+
+@functools.cache
+def get_cmip7_scenariomip_harmonised_emissions(
+    model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get harmonised emissions from CMIP7 ScenarioMIP outputs
+
+    Parameters
+    ----------
+    model
+        Model for which to retrieve outputs
+
+    scenario
+        Scenario for which to retrieve outputs
+
+    processed_cmip7_scenariomip_output_data_dir
+        Directory in which the CMIP7 ScenarioMIP output was saved
+
+    Returns
+    -------
+    :
+        All harmonised emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+    """
+    res = load_timeseries_csv(
+        processed_cmip7_scenariomip_output_data_dir
+        / f"{model}_{scenario}_harmonised.csv",
+        index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
+        out_columns_type=int,
+    )
 
     return res
 
