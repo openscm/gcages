@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 
@@ -54,16 +55,28 @@ def test_individual_scenario_global(model, scenario):
     if pre_processed.empty:
         raise AssertionError
 
+    # Interpolate to annual values.
+    # TODO: put in pre-processing so end to end tests don't fail.
+    out_years = np.arange(pre_processed.columns.min(), pre_processed.columns.max() + 1)
+
+    pre_processed_interpolated = (
+        pre_processed.reindex(columns=out_years)
+        .sort_index(axis="columns")
+        .T.interpolate(method="index")
+        .T
+    )
+
     # Harmonise
     # Only works if aneris installed
     pytest.importorskip("aneris")
-    harmoniser = CMIP7ScenarioMIPHarmoniser.from_cmip7_scenariomip_config(
-        cmip7_scenariomip_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE,
-        harmonisation_year=2023,
+    harmoniser = CMIP7ScenarioMIPHarmoniser.from_cmip7_scenariomip_global_config(
+        cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE,
+        aneris_global_overrides_file=PROCESSED_CMIP7_SCENARIOMIP_OUTPUT_DIR
+        / "aneris-overrides-global.csv",
         n_processes=None,  # not parallel
         progress=False,
     )
-    res = harmoniser(pre_processed)
+    res = harmoniser(pre_processed_interpolated)
 
     # Get expected result
     harmonised_all = get_cmip7_scenariomip_harmonised_emissions(
