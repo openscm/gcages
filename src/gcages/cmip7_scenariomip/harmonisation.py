@@ -145,6 +145,7 @@ def create_cmip7_scenariomip_global_harmoniser(
     )
 
     aneris_overrides = load_aneris_overrides_file(aneris_global_overrides_file)
+    aneris_overrides = aneris_overrides.to_frame()  # from Series to DataFrame
     aneris_overrides = update_index_levels_func(
         aneris_overrides,
         {
