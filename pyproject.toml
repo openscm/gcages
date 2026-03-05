@@ -87,6 +87,7 @@ dev = [
     "pint>=0.24.4",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
     "pip==24.3.1",
+    "pooch>=1.9.0",
     "pre-commit==4.0.1",
     "pytest>=8.3.4",
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113

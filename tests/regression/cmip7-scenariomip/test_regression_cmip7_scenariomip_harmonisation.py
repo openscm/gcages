@@ -11,7 +11,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pandas_openscm.index_manipulation import update_index_levels_func
 
+from gcages.cmip7_scenariomip import CMIP7ScenarioMIPHarmoniser
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -23,8 +26,8 @@ from gcages.testing import (
 pix = pytest.importorskip("pandas_indexing")
 
 CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE = (
-    # TODO: update filename to match zenodo
-    # (can even just retrieve with pooch)
+    # Downloaded with
+    # `tests/regression/cmip7-scenariomip/download_cmip7_scenariomip_history.py`
     Path(__file__).parents[0]
     / "cmip7-scenariomip-workflow-inputs"
     / "history_cmip7_scenariomip.csv"
@@ -54,16 +57,13 @@ def test_individual_scenario_global(model, scenario):
     # Harmonise
     # Only works if aneris installed
     pytest.importorskip("aneris")
-    # Implement the harmoniser here.
-    # Follow the pattern used for the AR6Harmoniser.
-    # harmoniser = AR6Harmoniser.from_ar6_config(
-    #     ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
-    #     n_processes=None,  # not parallel
-    #     progress=False,
-    # )
-
-    #
-    # res = harmoniser(pre_processed)
+    harmoniser = CMIP7ScenarioMIPHarmoniser.from_cmip7_scenariomip_config(
+        cmip7_scenariomip_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE,
+        harmonisation_year=2023,
+        n_processes=None,  # not parallel
+        progress=False,
+    )
+    res = harmoniser(pre_processed)
 
     # Get expected result
     harmonised_all = get_cmip7_scenariomip_harmonised_emissions(
@@ -77,6 +77,19 @@ def test_individual_scenario_global(model, scenario):
     )
     if exp.empty:
         raise AssertionError
+
+    # Convert names to gcages naming before comparing
+    exp = update_index_levels_func(
+        exp,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+        copy=False,
+    )
 
     assert_frame_equal(res, exp)
 
