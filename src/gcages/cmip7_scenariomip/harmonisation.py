@@ -145,6 +145,7 @@ def create_cmip7_scenariomip_global_harmoniser(
     )
 
     aneris_overrides = load_aneris_overrides_file(aneris_global_overrides_file)
+    # Type juggling for mypy: from series to dataframe back to series
     aneris_overrides_df = aneris_overrides.to_frame(name="method")
     updated_df = update_index_levels_func(
         aneris_overrides_df,
