@@ -6,11 +6,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pandas_indexing  # noqa: F401
-import pooch
-
 
 def main() -> None:
+    import pandas_indexing  # noqa: F401
+    import pooch
+
     URL = "https://zenodo.org/records/17845154/files/global-workflow-history_202511261223_202511040855_202512032146_202512021030_7e32405ade790677a6022ff498395bff00d9792d_202511040855_202512071232_202511040855_202511040855_0002_0002.csv?download=1"
     KNOWN_HASH = "md5:19482df604f1dc746fb354ef66ef9047"
 
