@@ -145,9 +145,9 @@ def create_cmip7_scenariomip_global_harmoniser(
     )
 
     aneris_overrides = load_aneris_overrides_file(aneris_global_overrides_file)
-    aneris_overrides = aneris_overrides.to_frame()  # from Series to DataFrame
-    aneris_overrides = update_index_levels_func(
-        aneris_overrides,
+    aneris_overrides_df = aneris_overrides.to_frame(name="method")
+    updated_df = update_index_levels_func(
+        aneris_overrides_df,
         {
             "variable": lambda x: convert_variable_name(
                 x,
@@ -157,6 +157,7 @@ def create_cmip7_scenariomip_global_harmoniser(
         },
         copy=False,
     )
+    aneris_overrides = updated_df["method"]
 
     return AnerisHarmoniser(
         historical_emissions=historical_emissions,
