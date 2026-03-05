@@ -17,28 +17,34 @@
 #
 # Here we demonstrate how to run the workflow
 # that was used in CMIP7's ScenarioMIP.
+# <!--
 # If you want a simpler interface for doing this,
 # please see the
-# [climate-assessment](https://github.com/iiasa/climate-assessment) package,
-# which is a [facade](https://refactoring.guru/design-patterns/facade)
+# [climate-processor](https://github.com/iiasa/climate-processor) package,
+# which provides a [facade](https://refactoring.guru/design-patterns/facade)
 # around gcages.
+# -->
 #
 # Note: this is not yet complete, we will add further steps in future.
 
 # %% [markdown]
 # ## Imports
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 from functools import partial
 from pathlib import Path
 
 import openscm_units
+import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
 from pandas_openscm.io import load_timeseries_csv
 
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
+from gcages.cmip7_scenariomip.harmonisation import (
+    create_cmip7_scenariomip_global_harmoniser,
+)
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
 from gcages.index_manipulation import split_sectors
 
@@ -113,7 +119,7 @@ relplot_in_emms = partial(
     x="year",
     y="value",
     col="variable",
-    col_wrap=2,
+    col_wrap=3,
 )
 
 data = start.openscm.to_long_data(time_col_name="year")
@@ -325,20 +331,94 @@ res_pre_processed.assumed_zero_emissions
 # and the level used for gridding.
 #
 # Historical emissions aligned with the rest of the CMIP7 exercise are used for this.
-# These are processed in this repository:
+# These were processed in this repository:
 # https://github.com/iiasa/emissions_harmonization_historical
-# and are archived at [TODO Zenodo upload and link].
+# and are archived at https://zenodo.org/records/17845154.
 #
 # Under the hood, the harmonisation uses the
 # [aneris](https://github.com/iiasa/aneris) package.
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Global
 
-# %%
-# TBD
+# %% editable=true slideshow={"slide_type": ""}
+CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/history_cmip7_scenariomip.csv"
+)
+# TODO: move this file to inputs
+# (yes, we derived it as part of the process, but it's an input now)
+ANERIS_GLOBAL_OVERRIDES_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-output/aneris-overrides-global.csv"
+)
 
-# %% [markdown]
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if not CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE.exists():
+    CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = (
+        Path("../..") / CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE
+    )
+    if not CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE.exists():
+        raise AssertionError
+
+if not ANERIS_GLOBAL_OVERRIDES_FILE.exists():
+    ANERIS_GLOBAL_OVERRIDES_FILE = Path("../..") / ANERIS_GLOBAL_OVERRIDES_FILE
+    if not ANERIS_GLOBAL_OVERRIDES_FILE.exists():
+        raise AssertionError
+
+# %% editable=true slideshow={"slide_type": ""}
+harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    aneris_global_overrides_file=ANERIS_GLOBAL_OVERRIDES_FILE,
+    n_processes=None,  # run serially for this demo
+)
+
+# %% editable=true slideshow={"slide_type": ""}
+harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions)
+harmonised_global
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
+# You can see the modification to the pathways
+# as a result of the harmonisation in the plot below.
+
+# %% editable=true slideshow={"slide_type": ""}
+pdf = (
+    pix.concat(
+        [
+            res_pre_processed.global_workflow_emissions.pix.assign(
+                stage="pre_processed"
+            ),
+            harmonised_global.pix.assign(stage="harmonised"),
+            harmoniser_global.historical_emissions.pix.assign(
+                stage="history", scenario="history", model="history"
+            ).loc[
+                pix.isin(
+                    variable=res_pre_processed.global_workflow_emissions.pix.unique(
+                        "variable"
+                    )
+                )
+            ],
+        ]
+    )
+    .melt(ignore_index=False, var_name="year")
+    .reset_index()
+)
+
+fg = relplot_in_emms(
+    data=pdf,
+    hue="scenario",
+    style="stage",
+    dashes={
+        "history": (1, 1),
+        "pre_processed": (3, 3),
+        "harmonised": "",
+    },
+)
+
+fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
+fg.axes.flatten()[1].set_ylim(ymin=0.0)
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Region-sector (i.e. gridding level)
 
 # %%
@@ -568,7 +648,7 @@ res_pre_processed.assumed_zero_emissions
 # %% [markdown]
 # Assessed surface temperatures.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
 #     style_var="variable",
 #     quantiles_plumes=(
