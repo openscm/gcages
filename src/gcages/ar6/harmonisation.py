@@ -417,7 +417,7 @@ class AR6Harmoniser:
                     max_workers=self.n_processes,
                 ),
                 history=self.historical_emissions,
-                year=self.harmonisation_year,
+                harmonisation_year=self.harmonisation_year,
                 overrides=self.aneris_overrides,
                 calc_scaling_year=self.calc_scaling_year,
             )

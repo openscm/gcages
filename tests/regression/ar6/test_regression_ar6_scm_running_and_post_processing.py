@@ -248,7 +248,7 @@ def test_parallel(tmp_path):
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []
-    for model, scenario in KEY_TESTING_MODEL_SCENARIOS[:3]:
+    for model, scenario in KEY_AR6_TESTING_MODEL_SCENARIOS[:3]:
         infilled_l.append(
             get_ar6_infilled_emissions(
                 model=model,

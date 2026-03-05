@@ -149,7 +149,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
 
     harmonised_l = []
     exp_l = []
-    for model, scenario in KEY_TESTING_MODEL_SCENARIOS:
+    for model, scenario in KEY_AR6_TESTING_MODEL_SCENARIOS:
         harmonised_l.append(
             get_ar6_harmonised_emissions(
                 model=model,
