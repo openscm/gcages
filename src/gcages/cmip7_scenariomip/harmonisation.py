@@ -30,75 +30,6 @@ from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 
-def _get_remind_overrides(
-    in_emissions: pd.DataFrame, harmonisation_year: int
-) -> pd.Series[str] | None:
-    """
-    Get overrides required for REMIND scenarios.
-
-    This follows the CMIP7 rule:
-    use ``reduce_ratio_2050`` for all timeseries
-    that are non-zero in the harmonisation year.
-    """
-    model_values = in_emissions.index.get_level_values("model").unique()
-    if model_values.shape[0] != 1:
-        msg = (
-            "Expected to process one model at a time when creating "
-            f"REMIND overrides. {model_values=}"
-        )
-        raise AssertionError(msg)
-
-    model = model_values[0]
-    if not model.startswith("REMIND"):
-        return None
-
-    non_zero_in_harm_year = in_emissions[harmonisation_year] != 0.0
-    if not non_zero_in_harm_year.any():
-        return None
-
-    override_index = (
-        in_emissions.loc[non_zero_in_harm_year]
-        .reset_index()[["variable", "region"]]
-        .drop_duplicates()
-        .set_index(["variable", "region"])
-        .index
-    )
-    out = pd.Series(
-        "reduce_ratio_2050",
-        index=override_index,
-        name="method",
-    )
-
-    return out
-
-
-def _combine_overrides(
-    base: pd.Series[str] | None, addition: pd.Series[str] | None
-) -> pd.Series[str] | None:
-    """
-    Combine two overrides Series.
-
-    If entries overlap, ``addition`` takes precedence.
-    """
-    if addition is None:
-        return base
-
-    if base is None:
-        return addition
-
-    if base.index.names != addition.index.names:
-        msg = (
-            "Combining overrides is only supported when both use the same index "
-            f"structure. {base.index.names=} {addition.index.names=}"
-        )
-        raise NotImplementedError(msg)
-
-    out = pd.concat([base, addition])
-    out = out[~out.index.duplicated(keep="last")]
-
-    return out
-
-
 def harmonise_single_scenario(
     indf: pd.DataFrame,
     history: pd.DataFrame,
@@ -427,6 +358,17 @@ class CMIP7ScenarioMIPHarmoniser:
         # That's probably a sensible default,
         # but sensible defaults can be very hard to define...
         aneris_overrides = load_aneris_overrides_file(aneris_global_overrides_file)
+        aneris_overrides = update_index_levels_func(
+            aneris_overrides,
+            {
+                "variable": lambda x: convert_variable_name(
+                    x,
+                    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                    to_convention=SupportedNamingConventions.GCAGES,
+                )
+            },
+            copy=False,
+        )
 
         return cls(
             historical_emissions=historical_emissions,
