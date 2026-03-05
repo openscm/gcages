@@ -17,7 +17,9 @@ from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 
-def load_cmip7_scenariomip_historical_emissions(filepath: Path) -> pd.DataFrame:
+def load_cmip7_scenariomip_historical_emissions(
+    filepath: Path, check_hash: bool = False
+) -> pd.DataFrame:
     """
     Load historical emissions for CMIP7 ScenarioMIP harmonisation.
 
@@ -25,6 +27,9 @@ def load_cmip7_scenariomip_historical_emissions(filepath: Path) -> pd.DataFrame:
     ----------
     filepath
         Path from which to load the file
+
+    check_hash
+        Check file hash
 
     Returns
     -------
@@ -39,18 +44,19 @@ def load_cmip7_scenariomip_historical_emissions(filepath: Path) -> pd.DataFrame:
         We expect to be reading the file from
         https://zenodo.org/records/17845154/files/global-workflow-history_202511261223_202511040855_202512032146_202512021030_7e32405ade790677a6022ff498395bff00d9792d_202511040855_202512071232_202511040855_202511040855_0002_0002.csv?download=1
     """
-    fp_hash = get_file_hash(filepath, algorithm="md5")
-    if platform.system() == "Windows":
-        fp_hash_exp = "19482df604f1dc746fb354ef66ef9047"
-    else:
-        fp_hash_exp = "4aeb5e372df52b7beb54eedf5936d162"
+    if check_hash:
+        fp_hash = get_file_hash(filepath, algorithm="md5")
+        if platform.system() in "Windows":
+            fp_hash_exp = "4aeb5e372df52b7beb54eedf5936d162"
+        else:
+            fp_hash_exp = "19482df604f1dc746fb354ef66ef9047"
 
-    if fp_hash != fp_hash_exp:
-        msg = (
-            f"The md5 hash of {filepath} is {fp_hash}. "
-            f"This does not match what we expect {fp_hash_exp=}."
-        )
-        raise AssertionError(msg)
+        if fp_hash != fp_hash_exp:
+            msg = (
+                f"The md5 hash of {filepath} is {fp_hash}. "
+                f"This does not match what we expect {fp_hash_exp=}."
+            )
+            raise AssertionError(msg)
 
     res = load_timeseries_csv(
         filepath,
@@ -115,7 +121,8 @@ def create_cmip7_scenariomip_global_harmoniser(
         Harmoniser that will behave in line with CMIP7 ScenarioMIP's global workflow
     """
     historical_emissions = load_cmip7_scenariomip_historical_emissions(
-        cmip7_scenariomip_global_historical_emissions_file
+        filepath=cmip7_scenariomip_global_historical_emissions_file,
+        check_hash=True,
     )
 
     # Drop out the model and scenario levels
