@@ -903,7 +903,7 @@ wheels = [
 
 [[package]]
 name = "gcages"
-version = "0.14.1a1"
+version = "0.13.1a1"
 source = { editable = "." }
 dependencies = [
     { name = "backports-strenum", marker = "python_full_version < '3.11'" },
@@ -1042,7 +1042,6 @@ all-dev = [
     { name = "pip" },
     { name = "platformdirs" },
     { name = "pluggy" },
-    { name = "pooch" },
     { name = "pre-commit" },
     { name = "prometheus-client" },
     { name = "prompt-toolkit" },
@@ -1100,7 +1099,6 @@ dev = [
     { name = "pandas-stubs", version = "2.3.0.250703", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
     { name = "pint" },
     { name = "pip" },
-    { name = "pooch" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "setuptools" },
@@ -1373,7 +1371,6 @@ all-dev = [
     { name = "pip", specifier = "==24.3.1" },
     { name = "platformdirs", specifier = "==4.3.6" },
     { name = "pluggy", specifier = "==1.5.0" },
-    { name = "pooch", specifier = ">=1.9.0" },
     { name = "pre-commit", specifier = "==4.0.1" },
     { name = "prometheus-client", specifier = "==0.21.1" },
     { name = "prompt-toolkit", specifier = "==3.0.48" },
@@ -1431,7 +1428,6 @@ dev = [
     { name = "pandas-stubs", specifier = ">=2.2.2.240807" },
     { name = "pint", specifier = ">=0.24.4" },
     { name = "pip", specifier = "==24.3.1" },
-    { name = "pooch", specifier = ">=1.9.0" },
     { name = "pre-commit", specifier = "==4.0.1" },
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "setuptools", specifier = "==75.6.0" },
@@ -3692,20 +3688,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e5/69/882ee5c9d017149285cab114ebeab373308ef0f874fcdac9beb90e0ac4da/ply-3.11.tar.gz", hash = "sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3", size = 159130, upload-time = "2018-02-15T19:01:31.097Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a3/58/35da89ee790598a0700ea49b2a66594140f44dec458c07e8e3d4979137fc/ply-3.11-py2.py3-none-any.whl", hash = "sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce", size = 49567, upload-time = "2018-02-15T19:01:27.172Z" },
-]
-
-[[package]]
-name = "pooch"
-version = "1.9.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-    { name = "platformdirs" },
-    { name = "requests" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/83/43/85ef45e8b36c6a48546af7b266592dc32d7f67837a6514d111bced6d7d75/pooch-1.9.0.tar.gz", hash = "sha256:de46729579b9857ffd3e741987a2f6d5e0e03219892c167c6578c0091fb511ed", size = 61788, upload-time = "2026-01-30T19:15:09.649Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/2d/d4bf65e47cea8ff2c794a600c4fd1273a7902f268757c531e0ee9f18aa58/pooch-1.9.0-py3-none-any.whl", hash = "sha256:f265597baa9f760d25ceb29d0beb8186c243d6607b0f60b83ecf14078dbc703b", size = 67175, upload-time = "2026-01-30T19:15:08.36Z" },
 ]
 
 [[package]]
