@@ -5,6 +5,7 @@ Harmonisation helpers for the CMIP7 ScenarioMIP workflow
 from __future__ import annotations
 
 import multiprocessing
+import platform
 from pathlib import Path
 
 import pandas as pd
@@ -39,7 +40,10 @@ def load_cmip7_scenariomip_historical_emissions(filepath: Path) -> pd.DataFrame:
         https://zenodo.org/records/17845154/files/global-workflow-history_202511261223_202511040855_202512032146_202512021030_7e32405ade790677a6022ff498395bff00d9792d_202511040855_202512071232_202511040855_202511040855_0002_0002.csv?download=1
     """
     fp_hash = get_file_hash(filepath, algorithm="md5")
-    fp_hash_exp = "19482df604f1dc746fb354ef66ef9047"
+    if platform.system() == "Windows":
+        fp_hash_exp = "19482df604f1dc746fb354ef66ef9047"
+    else:
+        fp_hash_exp = "4aeb5e372df52b7beb54eedf5936d162"
 
     if fp_hash != fp_hash_exp:
         msg = (
