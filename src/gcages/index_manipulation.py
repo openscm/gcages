@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     P = TypeVar("P", pd.DataFrame, pd.Series[Any])
 
 
+# TODO: move to pandas-openscm
 def set_new_single_value_levels(  # noqa: D103
     pandas_obj: P,
     levels_to_set: dict[str, Any],  # indicate not a collection somehow
@@ -43,6 +44,7 @@ def set_new_single_value_levels(  # noqa: D103
     return pandas_obj
 
 
+# TODO: see if we can remove this and just use pandas-openscm functionality instead
 def create_levels_based_on_existing(  # noqa: D103
     ini: pd.MultiIndex,
     create_from: dict[Any, tuple[str, Callable[[Any], Any]]],
