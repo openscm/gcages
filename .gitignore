@@ -1,6 +1,6 @@
 # Binary files
 *.feather
-#TODO MZ clean 
+#TODO MZ clean
 tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/history_gridding_cdr.csv
 tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/country_history_cmip7_scenariomip.csv
 # MAGICC
