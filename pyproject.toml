@@ -1,6 +1,6 @@
 [project]
 name = "gcages"
-version = "0.14.1a1"
+version = "0.13.1a1"
 description = "Global Climate Assessment of Global Emission Scenarios, typically (but not always) produced by Integrated Assessment Models (IAMs)."
 authors = [
     { name = "Zebedee Nicholls", email = "zebedee.nicholls@climate-resource.com" },
@@ -109,6 +109,7 @@ docs = [
     "mkdocstrings-python==1.13.0",
     "pymdown-extensions==10.13",
     "ruff==0.8.6",
+    # Implied by the key dependencies above
     # Implied by the key dependencies above
     # -------------------------------------
     "babel==2.16.0",
@@ -403,7 +404,6 @@ type = [
     { directory = "deprecation", name = "🗑️ Deprecations", showcontent = true },
     { directory = "feature", name = "🆕 Features", showcontent = true },
     { directory = "improvement", name = "🎉 Improvements", showcontent = true },
-    { directory = "fix", name = "🐛 Bug Fixes", showcontent = true },
     { directory = "docs", name = "📚 Improved Documentation", showcontent = true },
     { directory = "trivial", name = "🔧 Trivial/Internal Changes", showcontent = false },
 ]

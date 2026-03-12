@@ -17,28 +17,39 @@
 #
 # Here we demonstrate how to run the workflow
 # that was used in CMIP7's ScenarioMIP.
+# <!--
 # If you want a simpler interface for doing this,
 # please see the
-# [climate-assessment](https://github.com/iiasa/climate-assessment) package,
-# which is a [facade](https://refactoring.guru/design-patterns/facade)
+# [climate-processor](https://github.com/iiasa/climate-processor) package,
+# which provides a [facade](https://refactoring.guru/design-patterns/facade)
 # around gcages.
+# -->
 #
 # Note: this is not yet complete, we will add further steps in future.
 
 # %% [markdown]
 # ## Imports
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 from functools import partial
 from pathlib import Path
 
 import openscm_units
+import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
 from pandas_openscm.io import load_timeseries_csv
 
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
+from gcages.cmip7_scenariomip.harmonisation import (
+    create_cmip7_scenariomip_global_harmoniser,
+)
+from gcages.cmip7_scenariomip.harmonisation_country import (
+    create_cmip7_scenariomip_country_harmoniser,
+    load_cmip7_scenariomip_country_historical_emissions,
+)
+from gcages.cmip7_scenariomip.infilling import create_cmip7_scenariomip_infilled_df
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
 from gcages.index_manipulation import split_sectors
 
@@ -83,7 +94,8 @@ pandas_openscm.register_pandas_accessor()
 
 # %% editable=true slideshow={"slide_type": ""}
 EXAMPLE_INPUT_FILE = Path(
-    "tests/regression/cmip7-scenariomip/test-data/salted-202507-scenariomip-input.csv"
+    # "tests/regression/cmip7-scenariomip/test-data/salted-202507-scenariomip-input.csv"
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/salted_REMIND.csv"
 )
 
 # %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
@@ -94,14 +106,21 @@ if not EXAMPLE_INPUT_FILE.exists():
     if not EXAMPLE_INPUT_FILE.exists():
         raise AssertionError
 
-# %% editable=true slideshow={"slide_type": ""}
-start = load_timeseries_csv(
+# %%
+start_raw = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_type=int,
 )
+
+# %% editable=true slideshow={"slide_type": ""}
+start = start_raw.loc[:, 2015:2100].dropna(how="all", axis="columns")
+if start.empty:
+    raise AssertionError
+
 start.columns.name = "year"
-start
+
+start = start.T.interpolate(method="index").T
 
 # %% editable=true slideshow={"slide_type": ""}
 relplot_in_emms = partial(
@@ -113,7 +132,7 @@ relplot_in_emms = partial(
     x="year",
     y="value",
     col="variable",
-    col_wrap=2,
+    col_wrap=3,
 )
 
 data = start.openscm.to_long_data(time_col_name="year")
@@ -177,15 +196,97 @@ for ax in fg.axes.flatten():
 
 # %% editable=true slideshow={"slide_type": ""}
 model_regions = [
-    r
-    for r in start.index.get_level_values("region").unique()
-    if r.startswith("model_1")
+    r for r in start.index.get_level_values("region").unique() if r.startswith("REMIND")
 ]
 reaggregator = (
     gcages.cmip7_scenariomip.pre_processing.reaggregation.basic.ReaggregatorBasic(
         model_regions=model_regions
     )
 )
+
+# %%
+# from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import get_required_timeseries_index
+# from gcages.completeness import get_missing_levels
+
+# required_index = get_required_timeseries_index(
+#     model_regions=model_regions,
+#     world_region=reaggregator.world_region,
+#     region_level=reaggregator.region_level,
+#     variable_level=reaggregator.variable_level,
+# )
+# mls = get_missing_levels(
+#     start.index,
+#     required_index,
+#     unit_col=reaggregator.unit_level,
+# )
+# mls
+import numpy as np
+import pandas as pd
+
+from gcages.cmip7_scenariomip.pre_processing.reaggregation import (
+    ReaggregatorBasic,
+)
+from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
+    get_required_timeseries_index,
+)
+from gcages.completeness import get_missing_levels
+from gcages.index_manipulation import (
+    create_levels_based_on_existing,
+    set_new_single_value_levels,
+)
+
+reaggregator = ReaggregatorBasic(model_regions=model_regions)
+
+required_index = get_required_timeseries_index(
+    model_regions=model_regions,
+    world_region=reaggregator.world_region,
+    region_level=reaggregator.region_level,
+    variable_level=reaggregator.variable_level,
+)
+
+variable_unit_map = {
+    "|".join(v.split("|")[:2]): u
+    for v, u in start.index.droplevel(
+        start.index.names.difference(["variable", "unit"])
+    )
+    .drop_duplicates()
+    .to_list()
+}
+
+
+def guess_unit(v_in: str) -> str:
+    """Guess the unit of a given variable"""
+    for k, v in variable_unit_map.items():
+        if v_in.startswith(f"{k}|") or v_in == k:
+            return v
+
+
+tmp_l = []
+for (model_l, scenario), sdf in start.groupby(["model", "scenario"]):
+    mls = get_missing_levels(
+        sdf.index,
+        required_index,
+        unit_col=reaggregator.unit_level,
+    )
+
+    zeros_hack = pd.DataFrame(
+        np.zeros((mls.shape[0], sdf.shape[1])),
+        columns=sdf.columns,
+        index=create_levels_based_on_existing(mls, {"unit": ("variable", guess_unit)}),
+    )
+    zeros_hack = set_new_single_value_levels(
+        zeros_hack,
+        {"model": model_l, "scenario": scenario},
+    ).reorder_levels(sdf.index.names)
+    sdf_full = pix.concat([sdf, zeros_hack])
+
+    tmp_l.append(sdf_full)
+
+tmp = pix.concat(tmp_l)
+tmp
+
+# %%
+start = tmp
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Pre-processor
@@ -209,25 +310,25 @@ res_pre_processed = pre_processor(start)
 # it's also more confusing when it goes wrong though.
 
 # %% editable=true slideshow={"slide_type": ""}
-pre_processor_guess_reaggregator = CMIP7ScenarioMIPPreProcessor(
-    # Don't specifiy the re-aggregator, let gcages guess
-    # reaggregator=reaggregator,
-    n_processes=None,  # run serially
-    run_checks=True,
-)
+# pre_processor_guess_reaggregator = CMIP7ScenarioMIPPreProcessor(
+#     # Don't specifiy the re-aggregator, let gcages guess
+#     # reaggregator=reaggregator,
+#     n_processes=None,  # run serially
+#     run_checks=True,
+# )
 
-# The guessing is not so intelligent
-# (it can't figure out which regions are model native and which aren't by itself),
-# so we need to give it a hand
-# by stripping out everything except 'World' data
-# and model-region data
-# (removing all other regional aggregations).
-start_guessable = start.loc[
-    (start.index.get_level_values("region") == "World")
-    | start.index.get_level_values("region").str.startswith("model_1")
-]
-# The result is the same as the above
-_ = pre_processor_guess_reaggregator(start_guessable)
+# # The guessing is not so intelligent
+# # (it can't figure out which regions are model native and which aren't by itself),
+# # so we need to give it a hand
+# # by stripping out everything except 'World' data
+# # and model-region data
+# # (removing all other regional aggregations).
+# start_guessable = start.loc[
+#     (start.index.get_level_values("region") == "World")
+#     | start.index.get_level_values("region").str.startswith("model_1")
+# ]
+# # The result is the same as the above
+# _ = pre_processor_guess_reaggregator(start_guessable)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # #### Results
@@ -313,9 +414,6 @@ fg.fig.suptitle(species_to_plot, y=1.02)
 # (Lots of assumptions are not an issue,
 # we simply include this for clarity and transparency.)
 
-# %% editable=true slideshow={"slide_type": ""}
-res_pre_processed.assumed_zero_emissions
-
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Harmonisation
 #
@@ -325,24 +423,197 @@ res_pre_processed.assumed_zero_emissions
 # and the level used for gridding.
 #
 # Historical emissions aligned with the rest of the CMIP7 exercise are used for this.
-# These are processed in this repository:
+# These were processed in this repository:
 # https://github.com/iiasa/emissions_harmonization_historical
-# and are archived at [TODO Zenodo upload and link].
+# and are archived at https://zenodo.org/records/17845154.
 #
 # Under the hood, the harmonisation uses the
 # [aneris](https://github.com/iiasa/aneris) package.
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Global
 
-# %%
-# TBD
+# %% editable=true slideshow={"slide_type": ""}
+CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/history_cmip7_scenariomip.csv"
+)
+# TODO: move this file to inputs
+# (yes, we derived it as part of the process, but it's an input now)
+ANERIS_GLOBAL_OVERRIDES_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-output/aneris-overrides-global.csv"
+)
 
-# %% [markdown]
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+# Some trickery to make sure we pick up files in the right path,
+# even when building the docs :)
+if not CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE.exists():
+    CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = (
+        Path("../..") / CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE
+    )
+    if not CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE.exists():
+        raise AssertionError
+
+if not ANERIS_GLOBAL_OVERRIDES_FILE.exists():
+    ANERIS_GLOBAL_OVERRIDES_FILE = Path("../..") / ANERIS_GLOBAL_OVERRIDES_FILE
+    if not ANERIS_GLOBAL_OVERRIDES_FILE.exists():
+        raise AssertionError
+
+# %% editable=true slideshow={"slide_type": ""}
+harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    aneris_global_overrides_file=ANERIS_GLOBAL_OVERRIDES_FILE,
+    n_processes=None,  # run serially for this demo
+)
+
+# %% editable=true slideshow={"slide_type": ""}
+harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions)
+# harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions_raw_names)
+harmonised_global
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
+# You can see the modification to the pathways as a result of the harmonisation in the plot below. #noqa: E501
+
+# %%
+pdf = (
+    pix.concat(
+        [
+            res_pre_processed.global_workflow_emissions.pix.assign(
+                stage="pre_processed"
+            ),
+            harmonised_global.pix.assign(stage="harmonised"),
+            harmoniser_global.historical_emissions.pix.assign(
+                stage="history", scenario="history", model="history"
+            ).loc[
+                pix.isin(
+                    variable=res_pre_processed.global_workflow_emissions.pix.unique(
+                        "variable"
+                    )
+                )
+            ],
+        ]
+    )
+    .melt(ignore_index=False, var_name="year")
+    .reset_index()
+)
+
+fg = relplot_in_emms(
+    data=pdf,
+    hue="scenario",
+    style="stage",
+    dashes={
+        "history": (1, 1),
+        "pre_processed": (3, 3),
+        "harmonised": "",
+    },
+)
+
+fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
+fg.axes.flatten()[1].set_ylim(ymin=0.0)
+
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Region-sector (i.e. gridding level)
 
 # %%
-# TBD
+CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE = Path(
+    # "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/country_history_cmip7_scenariomip.csv"
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/history_gridding_cdr.csv"
+)
+# TODO: move this file to inputs
+# (yes, we derived it as part of the process, but it's an input now)
+ANERIS_GRIDDING_OVERRIDES_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-output/aneris-overrides-gridding.csv"
+)
+
+if not CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE.exists():
+    CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE = (
+        Path("../..") / CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE
+    )
+    if not CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE.exists():
+        raise AssertionError
+
+if not ANERIS_GRIDDING_OVERRIDES_FILE.exists():
+    ANERIS_GRIDDING_OVERRIDES_FILE = Path("../..") / ANERIS_GRIDDING_OVERRIDES_FILE
+    if not ANERIS_GRIDDING_OVERRIDES_FILE.exists():
+        raise AssertionError
+
+gridding_history = load_cmip7_scenariomip_country_historical_emissions(
+    CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE
+)
+
+# %%
+model_pre_processed_for_gridding = res_pre_processed.gridding_workflow_emissions
+for y in range(2023, 2100 + 1):
+    if y not in model_pre_processed_for_gridding:
+        model_pre_processed_for_gridding[y] = np.nan
+
+model_pre_processed_for_gridding = model_pre_processed_for_gridding.sort_index(
+    axis="columns"
+)
+model_pre_processed_for_gridding = model_pre_processed_for_gridding.T.interpolate(
+    method="index"
+).T
+
+# %%
+df = model_pre_processed_for_gridding.copy()
+# df[df.index.get_level_values("region").str.contains("model_1")].replace
+import pandas as pd
+
+level_pos = df.index.names.index("region")
+arrays = [df.index.get_level_values(i) for i in range(df.index.nlevels)]
+arrays[level_pos] = df.index.get_level_values("region").str.replace(
+    "model_1", "REMIND-MAgPIE 3.5-4.11"
+)
+df.index = pd.MultiIndex.from_arrays(arrays, names=df.index.names)
+df = df.rename(index={"model_1": "REMIND-MAgPIE 3.5-4.11"}, level="model")
+df
+
+# %%
+from pandas_openscm.indexing import multi_index_lookup
+
+scenario_grouper_l = list(("model", "scenario"))
+
+# Only keep history relevant to the scenarios we're harmonising
+history_for_harmonisation = multi_index_lookup(
+    gridding_history, df.index.droplevel(scenario_grouper_l)
+)
+history_for_harmonisation
+
+# %%
+
+# %%
+harmoniser_country = create_cmip7_scenariomip_country_harmoniser(
+    cmip7_scenariomip_country_historical_emissions_file=history_for_harmonisation,
+    aneris_global_overrides_file=ANERIS_GRIDDING_OVERRIDES_FILE,
+    n_processes=None,  # run serially for this demo
+)
+
+# %%
+df[
+    df.index.get_level_values("variable").str.contains(
+        "Emissions|BC|International Shipping", regex=False
+    )
+]
+
+# %%
+from pandas_openscm.io import load_timeseries_csv
+
+res = load_timeseries_csv(
+    CMIP7_SCENARIOMIP_GRIDDING_HISTORICAL_EMISSIONS_FILE,
+    lower_column_names=True,
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_type=int,
+)
+res  # [(res.index.get_level_values('variable') == 'Emissions|BC|International Shipping') &
+# (res.index.get_level_values('region').str.contains('Canada, Australia, New Zealand'))]
+
+# %%
+# df = df.rename(index={'model_1': 'REMIND-MAgPIE 3.5-4.11'}, level='model')
+# df[df.index.get_level_values("variable")=="Emissions|BC|International Shipping"]
+
+# %%
+# harmonised_country = harmoniser_country(res_pre_processed.gridding_workflow_emissions)
+harmonised_country = harmoniser_country(df)
+harmonised_country
 
 # %% [markdown]
 # You can see the modification to the pathways
@@ -397,7 +668,91 @@ res_pre_processed.assumed_zero_emissions
 # [silicone](https://github.com/GranthamImperial/silicone) package.
 
 # %%
-# TBD - download infiller db
+CMIP7_SCENARIOMIP_INFILLING_FILE = Path(
+    "/home/zecchetto/Programmi/GIT/gcages/tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/infilling_cmip7_scenariomip.csv"
+)
+
+if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+    CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
+    if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+        raise AssertionError
+
+# %%
+WMO_2022_FILE = (
+    "/home/zecchetto/Programmi/GIT/gcages/tests/regression/"
+    "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/wmo_2022_smoothed_full.csv"
+)
+GHG_INVERSION_FILE = (
+    "/home/zecchetto/Programmi/GIT/gcages/tests/"
+    "regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/cmip7_ghg_inversions.csv"
+)
+
+files = [WMO_2022_FILE, GHG_INVERSION_FILE]
+
+for file in files:
+    CMIP7_SCENARIOMIP_FILE = Path(file)
+
+    if not CMIP7_SCENARIOMIP_FILE.exists():
+        CMIP7_SCENARIOMIP_FILE = Path("../..") / CMIP7_SCENARIOMIP_FILE
+        if not CMIP7_SCENARIOMIP_FILE.exists():
+            raise AssertionError
+
+# %%
+# from gcages.harmonisation.common import assert_harmonised
+# import openscm_units
+# ss=harmonised_global.loc[pix.isin(variable=harmonised_global.pix.unique("variable"))].reset_index(["model", "scenario"], drop=True)
+# assert_harmonised(
+#     defr,
+#     history=ss,
+#     harmonisation_time=2023,
+#     species_aware_cmip7=True,
+#     ur= openscm_units.unit_registry,
+#     )
+qwe = load_timeseries_csv(
+    CMIP7_SCENARIOMIP_INFILLING_FILE,
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_type=int,
+)
+hist = load_timeseries_csv(
+    CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_type=int,
+)
+harmonised_global.index.get_level_values("variable").unique()
+
+# %%
+hist.index.get_level_values("variable").unique()
+
+# %%
+hist.loc[pix.isin(variable=["Emissions|C3F8"])]
+
+# %%
+df_year_aligned, history_year_aligned = harmonised_global[2023].align(
+    hist[2023], join="left"
+)
+
+# %%
+df_year_aligned
+
+# %%
+harmonised_global = harmonised_global.rename(
+    index={
+        "Emissions|CO2|Fossil": "Emissions|CO2|Energy and Industrial Processes",
+        "Emissions|CO2|Biosphere": "Emissions|CO2|AFOLU",
+        "Emissions|SOx": "Emissions|Sulfur",
+        "Emissions|NMVOC": "Emissions|VOC",
+    },
+    level="variable",
+)
+
+# %%
+infilled_scenario = create_cmip7_scenariomip_infilled_df(
+    harmonised_emissions=harmonised_global,
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
+    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
+    # wmo_2022_smoothed_full_file=WMO_2022_FILE,
+)
 
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
@@ -568,7 +923,7 @@ res_pre_processed.assumed_zero_emissions
 # %% [markdown]
 # Assessed surface temperatures.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 # post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
 #     style_var="variable",
 #     quantiles_plumes=(

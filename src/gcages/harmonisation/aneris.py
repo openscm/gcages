@@ -10,6 +10,7 @@ from typing import Any
 import attr
 import pandas as pd
 from attrs import define, field
+from pandas_openscm.indexing import multi_index_lookup
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 import gcages.aneris_helpers
@@ -108,6 +109,8 @@ class AnerisHarmoniser:
         if not self.run_checks:
             return
 
+        # TODO: implement a `assert_aneris_overrides_align_with_historical` function
+
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame
@@ -175,8 +178,17 @@ class AnerisHarmoniser:
                     ).unique(),
                 )
             except NotAllowedMetadataValuesError as exc:
-                msg = "The input emissions contains values that aren't in history"
-                raise ValueError(msg) from exc
+                try:
+                    # breakpoint()
+                    self.historical_emissions = multi_index_lookup(
+                        self.historical_emissions,
+                        in_emissions.index.droplevel(["model", "scenario"]),
+                    )
+                    # print(self.historical_emissions)
+                    # breakpoint()
+                except Exception:
+                    msg = "The input emissions contains values that aren't in history"
+                    raise ValueError(msg) from exc
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
@@ -196,10 +208,16 @@ class AnerisHarmoniser:
         )
 
         if self.run_checks:
+            import openscm_units
+            import pint
+
+            pint.set_application_registry(openscm_units.unit_registry)
             assert_harmonised(
                 harmonised_df,
                 history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
+                ur=openscm_units.unit_registry,
+                species_aware_cmip7=True,
             )
 
             pd.testing.assert_index_equal(

@@ -18,7 +18,7 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
-    KEY_TESTING_MODEL_SCENARIOS,
+    KEY_AR6_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_ar6_harmonised_emissions,
     get_ar6_raw_emissions,
@@ -67,7 +67,7 @@ def add_ar6_prefix_and_convert_to_iamc(indf: pd.DataFrame) -> pd.DataFrame:
 
 
 @pytest.mark.skip_ci_default
-@get_key_testing_model_scenario_parameters()
+@get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
 def test_individual_scenario(model, scenario):
     raw = get_ar6_raw_emissions(
         model=model,
@@ -115,7 +115,7 @@ def test_individual_scenario(model, scenario):
 def test_key_testing_scenarios_all_at_once_parallel():
     raw_l = []
     exp_l = []
-    for model, scenario in KEY_TESTING_MODEL_SCENARIOS:
+    for model, scenario in KEY_AR6_TESTING_MODEL_SCENARIOS:
         raw_l.append(
             get_ar6_raw_emissions(
                 model=model,
