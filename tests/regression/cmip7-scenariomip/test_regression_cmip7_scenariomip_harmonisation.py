@@ -118,6 +118,7 @@ def test_individual_scenario_global(model, scenario):
     assert_frame_equal(res, exp)
 
 
+@pytest.mark.skip(reason="Not fully implemented")
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )

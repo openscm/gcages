@@ -67,7 +67,7 @@ def test_individual_scenario(model, scenario):
         )
 
         harmonised_df.columns.name = "year"
-        harmonised_df = harmonised_df.loc[pix.ismatch(workflow="global")].reset_index(
+        harmonised_df = harmonised_df.loc[pix.ismatch(workflow="for_scms")].reset_index(
             ["workflow"], drop=True
         )
 

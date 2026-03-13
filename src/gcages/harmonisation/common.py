@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 import pandas as pd
 import pandas_indexing as pix
 
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.testing import compare_close
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
 from gcages.units_helpers import convert_unit_like
@@ -196,6 +197,16 @@ def assert_harmonised(  # noqa: PLR0913
     species_aware = species_aware_cmip7 if species_aware_cmip7 is not None else False
 
     if species_aware:
+        if ur is None:
+            try:
+                import openscm_units
+
+                ur = openscm_units.unit_registry
+            except ImportError:
+                raise MissingOptionalDependencyError(  # noqa: TRY003
+                    "convert_unit_like(..., ur=None, ...)", "openscm_units"
+                )
+
         Q = ur.Quantity
         if species_tolerances is None:
             species_tolerances = {

@@ -140,13 +140,21 @@ def load_aneris_overrides_file(filepath: Path) -> pd.Series[str]:
         Aneris overrides
     """
     raw = pd.read_csv(filepath)
-    res = raw.set_index(list(raw.columns.difference(["method"])))["method"]
+
+    if "method" not in raw.columns:
+        msg = "'method' column is required in the overrides CSV"
+        raise KeyError(msg)
+
+    index_cols = raw.columns.difference(["method"])
+    res = raw.set_index(list(index_cols))["method"].astype(str)
 
     return res
 
 
 @dataclass(slots=True)
 class _HarmonisationConfig:
+    """Configuration object for CMIP7 ScenarioMIP harmonisation routines."""
+
     historical_emissions: pd.DataFrame
     """File containing CMIP7 ScenarioMIP historical emissions."""
     aneris_overrides: pd.Series
@@ -162,6 +170,41 @@ def create_cmip7_scenariomip_global_harmoniser(
     progress: bool = True,
     n_processes: int | None = multiprocessing.cpu_count(),
 ) -> AnerisHarmoniser:
+    """
+    Create an Aneris harmoniser configured for CMIP7 ScenarioMIP global emissions.
+
+    This function loads the global historical emissions dataset, converts variable
+    names to the GCAGES convention, applies harmonisation overrides, and returns an
+    ``AnerisHarmoniser`` instance that reflects the ScenarioMIP global workflow.
+
+    Parameters
+    ----------
+    cmip7_scenariomip_global_historical_emissions_file
+        Path to the CMIP7 ScenarioMIP global historical emissions dataset
+
+    aneris_global_overrides_file
+        Path to the Aneris overrides file specifying harmonisation methods per variable
+
+    run_checks
+        Whether to perform internal validation checks on inputs and outputs
+
+    progress
+        Whether to show progress indicators during harmonisation
+
+    n_processes
+        Number of parallel processes to use. Defaults to all available CPU cores.
+
+    Returns
+    -------
+    :
+        A fully configured harmoniser ready for ScenarioMIP global-level harmonisation.
+
+    Notes
+    -----
+    This function primarily prepares inputs and delegates construction to
+    ``_create_cmip7_scenariomip_harmoniser``. It ensures variables are translated
+    from the CMIP7 ScenarioMIP to the GCAGES naming convention.
+    """
     historical = load_cmip7_scenariomip_global_historical_emissions(
         filepath=cmip7_scenariomip_global_historical_emissions_file,
         check_hash=True,
@@ -207,6 +250,41 @@ def create_cmip7_scenariomip_country_harmoniser(
     progress: bool = True,
     n_processes: int | None = multiprocessing.cpu_count(),
 ) -> AnerisHarmoniser:
+    """
+    Create an Aneris harmoniser for CMIP7 ScenarioMIP country-level emissions.
+
+    This function loads a regionally resolved CMIP7 ScenarioMIP historical emissions
+    dataset and corresponding Aneris overrides, builds a harmonisation configuration,
+    and returns an ``AnerisHarmoniser`` for country-level.
+
+    Parameters
+    ----------
+    cmip7_scenariomip_country_historical_emissions_file
+        Path to the CMIP7 ScenarioMIP country-level historical emissions dataset
+
+    aneris_country_overrides_file
+        Path to the Aneris overrides file specifying harmonisation methods
+
+    run_checks
+        Whether to perform internal validation checks on inputs and outputs
+
+    progress
+        Whether to show progress indicators during harmonisation
+
+    n_processes
+        Number of parallel processes to use. Defaults to all available CPU cores.
+
+    Returns
+    -------
+    :
+        A fully configured harmoniser ready for ScenarioMIP country-level harmonisation.
+
+    Notes
+    -----
+    In contrast to ``create_cmip7_scenariomip_global_harmoniser``, this function
+    does not rename variable names as the country-level data already follow
+    expected conventions.
+    """
     historical_emissions = load_cmip7_scenariomip_country_historical_emissions(
         filepath=cmip7_scenariomip_country_historical_emissions_file,
         check_hash=False,  # TODO change this
@@ -234,26 +312,29 @@ def _create_cmip7_scenariomip_harmoniser(
     n_processes: int | None = multiprocessing.cpu_count(),
 ) -> AnerisHarmoniser:
     """
-    Create an harmoniser configured for CMIP7 ScenarioMIP's global workflow.
+    Create a CMIP7 ScenarioMIP harmoniser.
+
+    This internal function, optionally renames variables
+    to the GCAGES convention, and constructs the final ``AnerisHarmoniser`` instance.
 
     Parameters
     ----------
     config
-        Configuration parameters
+        Configuration object containing input data, overrides, and behaviour flags.
 
     run_checks
-        Should checks of input and output data be performed?
+        Whether to perform validation checks during harmonisation
 
     progress
-        Should progress bars be shown?
+        Whether to show progress indicators during execution
 
     n_processes
-        Number of processes to use for parallel processing.
+        Number of parallel worker processes
 
     Returns
     -------
     :
-        Harmoniser that will behave in line with CMIP7 ScenarioMIP's workflow
+        Harmoniser instance configured for CMIP7 ScenarioMIP's workflow.
     """
     historical_emissions = config.historical_emissions
 
@@ -284,89 +365,3 @@ def _create_cmip7_scenariomip_harmoniser(
         progress=progress,
         n_processes=n_processes,
     )
-
-
-# def create_cmip7_scenariomip_global_harmoniser(
-#     cmip7_scenariomip_global_historical_emissions_file: Path,
-#     aneris_global_overrides_file: Path,
-#     run_checks: bool = True,
-#     progress: bool = True,
-#     n_processes: int | None = multiprocessing.cpu_count(),
-# ) -> AnerisHarmoniser:
-#     """
-#     Create an a harmoniser configured for CMIP7 ScenarioMIP's global workflow.
-#
-#     Parameters
-#     ----------
-#     cmip7_scenariomip_global_historical_emissions_file
-#         File containing CMIP7 ScenarioMIP historical emissions.
-#
-#     aneris_global_overrides_file
-#         File containing aneris overrides for the global workflow.
-#
-#     run_checks
-#         Should checks of input and output data be performed?
-#
-#     progress
-#         Should progress bars be shown?
-#
-#     n_processes
-#         Number of processes to use for parallel processing.
-#
-#     Returns
-#     -------
-#     :
-#         Harmoniser that will behave in line with CMIP7 ScenarioMIP's global workflow
-#     """
-#     historical_emissions = load_cmip7_scenariomip_historical_emissions(
-#         filepath=cmip7_scenariomip_global_historical_emissions_file,
-#         check_hash=True,
-#     )
-#
-#     # Drop out the model and scenario levels
-#     historical_emissions = historical_emissions.reset_index(
-#         historical_emissions.index.names.difference(["variable", "region", "unit"]),  # type: ignore # pandas-stubs out of date
-#         drop=True,
-#     )
-#
-#     # Use gcages naming to match pre-processed outputs.
-#     historical_emissions = update_index_levels_func(
-#         historical_emissions,
-#         {
-#             "variable": lambda x: convert_variable_name(
-#                 x,
-#                 from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-#                 to_convention=SupportedNamingConventions.GCAGES,
-#             )
-#         },
-#         copy=False,
-#     )
-#
-#     aneris_overrides = load_aneris_overrides_file(aneris_global_overrides_file)
-#     # Type juggling for mypy: from series to dataframe back to series
-#     aneris_overrides_df = aneris_overrides.to_frame(name="method")
-#     updated_df = update_index_levels_func(
-#         aneris_overrides_df,
-#         {
-#             "variable": lambda x: convert_variable_name(
-#                 x,
-#                 from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-#                 to_convention=SupportedNamingConventions.GCAGES,
-#             )
-#         },
-#         copy=False,
-#     )
-#     aneris_overrides = updated_df["method"]
-#
-#     return AnerisHarmoniser(
-#         historical_emissions=historical_emissions,
-#         # Hard-coded as this was what was used.
-#         # If people want a different year, we can change the interface
-#         # but that requires thinking about historical emissions too
-#         # so we deliberately hard-code here.
-#         harmonisation_year=2023,
-#         aneris_overrides=aneris_overrides,
-#         run_checks=run_checks,
-#         progress=progress,
-#         n_processes=n_processes,
-#     )

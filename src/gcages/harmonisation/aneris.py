@@ -179,13 +179,10 @@ class AnerisHarmoniser:
                 )
             except NotAllowedMetadataValuesError as exc:
                 try:
-                    # breakpoint()
                     self.historical_emissions = multi_index_lookup(
                         self.historical_emissions,
                         in_emissions.index.droplevel(["model", "scenario"]),
                     )
-                    # print(self.historical_emissions)
-                    # breakpoint()
                 except Exception:
                     msg = "The input emissions contains values that aren't in history"
                     raise ValueError(msg) from exc

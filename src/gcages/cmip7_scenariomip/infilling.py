@@ -56,6 +56,16 @@ class CMIP7ScenarioMIPInfilledScenarios:
     """
 
     def add(self, name: str, df: pd.DataFrame):
+        """
+        Add an infilled emissions DataFrame as an attribute.
+
+        Parameters
+        ----------
+        name
+            Attribute name to assign.
+        df
+            Emissions dataset to attach.
+        """
         setattr(self, name, df)
 
 
@@ -187,7 +197,7 @@ def infill(
     indf: pd.DataFrame, infillers: Mapping[str, Callable[[pd.DataFrame], pd.DataFrame]]
 ) -> pd.DataFrame | None:
     """
-    Infill an emissions scenario using the provided infillers
+    Infill an emissions scenario using the provided infillers.
 
     Parameters
     ----------
@@ -401,6 +411,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     except ImportError:
         pass
 
+    # Still embargoed
     # infilling_db = load_cmip7_scenariomip_infilling_db(
     #         filepath=
     #         check_hash=True,
@@ -420,8 +431,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
         filepath=cmip7_ghg_inversions_file,
     )
-
-    # historical_emissions=harmonised_emissions.loc[pix.isin(variable=harmonised_emissions.pix.unique("variable"))].reset_index(["model", "scenario"], drop=True)
 
     ## Check that the infilling database and scenario data are harmonised the same
     assert_harmonised(
@@ -481,7 +490,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
 
     complete_vl_exception = get_complete(harmonised_emissions, infilled_vl_exception)
 
-    ### Silicone
+    # Silicone
 
     lead = "Emissions|CO2|Energy and Industrial Processes"
     infillers_silicone = {}
@@ -491,8 +500,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
             follower_variable=variable,
             lead_variables=[lead],
             silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
-            # silicone_db_cruncher=silicone.database_crunchers.QuantileRollingWindows,
-            # derive_relationship_kwargs=dict(quantile=0.5),
         )
 
     infilled_silicone = infill(
@@ -501,11 +508,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     )
     complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
 
-    # wmo_2022_smoothed_full = load_cmip7_scenariomip_wmo_2022(
-    #     filepath=wmo_2022_smoothed_full_file,
-    # )
-
-    #### Infill
+    # Infill
 
     infillers_wmo = {}
     for wmo_var in infilling_wmo.pix.unique("variable"):
@@ -517,7 +520,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     infilled_wmo = infill(complete_silicone, infillers_wmo)
     complete_wmo = get_complete(complete_silicone, infilled_wmo)
 
-    ### Scale timeseries
+    # Scale timeseries
     #
     # Surprisingly, this is the most mucking around of all.
     # The hard part here is that the scaling needs to be aware
@@ -648,7 +651,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
         if df is not None:
             years = [c for c in df.columns if isinstance(c, (int, float))]
             other_cols = [c for c in df.columns if c not in years]
-            df = df[other_cols + sorted(years)]
-            infilled.add(ids, df)
+            infilled.add(ids, df[other_cols + sorted(years)])
 
     return infilled
