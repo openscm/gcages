@@ -214,7 +214,6 @@ class AnerisHarmoniser:
                 history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
                 ur=openscm_units.unit_registry,
-                species_aware_cmip7=True,
             )
 
             pd.testing.assert_index_equal(

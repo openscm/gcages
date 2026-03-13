@@ -58,7 +58,7 @@ def _check_data(hist: pd.DataFrame, scen: pd.DataFrame, year: int) -> None:
     if not s.difference(h).empty:
         msg = (
             "Historical data does not match scenario data in harmonization "
-            f"year for\n {s.difference(h).to_list()}"
+            f"year for\n {s.difference(h)}"
         )
         raise MissingHistoricalError(msg)
 
