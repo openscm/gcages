@@ -47,7 +47,7 @@ from gcages.index_manipulation import split_sectors
 pint.set_application_registry(openscm_units.unit_registry)
 
 # %%
-pandas_openscm.register_pandas_accessor()
+pandas_openscm.register_pandas_accessors()
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Starting point
