@@ -204,7 +204,7 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
             *scenarios.index.codes,
             *([[0] * scenarios.index.shape[0]] * len(new_values)),
         ],
-        levels=[*scenarios.index.levels, *[pd.Index([value]) for value in new_values]],
+        levels=[*scenarios.index.levels, *[pd.Index([value]) for value in new_values]],  # type: ignore # pandas-stubs confused
         names=[*scenarios.index.names, *new_names],
     )
 

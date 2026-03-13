@@ -1106,7 +1106,7 @@ def to_complete(  # noqa: PLR0913
             missing_indexes_emissions_split = split_sectors(missing_indexes_emissions)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
             zeros_index_split = update_levels_from_other(
                 missing_indexes_emissions_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-                {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+                {unit_level: ("species", species_unit_map)},
             )
             zeros_index_emissions: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
                 zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
@@ -1288,7 +1288,7 @@ def to_gridding_sectors(
     # remove it from regional transport
     # and drop the levels we no longer use.
     domestic_aviation_sum = groupby_except(
-        emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION],  # type: ignore # issue in pandas-openscm
+        emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION],
         region_level,
     ).sum()
     emissions_sector_df["Aircraft"] = (

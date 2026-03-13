@@ -205,7 +205,7 @@ class AnerisHarmoniser:
             pd.testing.assert_index_equal(
                 harmonised_df.index,
                 in_emissions.index,
-                check_order=False,  # type: ignore # pandas-stubs out of date
+                check_order=False,
             )
             if harmonised_df.columns.dtype != in_emissions.columns.dtype:
                 msg = (

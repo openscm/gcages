@@ -174,7 +174,7 @@ def assert_harmonised(  # noqa: PLR0913
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
         df_unit_match, history=history, time=harmonisation_time
     )
-    comparison = df_harm_year_aligned.round(rounding).compare(  # type: ignore # pandas-stubs out of date
+    comparison = df_harm_year_aligned.round(rounding).compare(
         history_harm_year_aligned.round(rounding), result_names=("df", "history")
     )
     if not comparison.empty:

@@ -139,7 +139,7 @@ def _knead_overrides(
             scen.index.droplevel(
                 scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
             ).drop_duplicates(),
-        ).droplevel(check_cols)  # type: ignore # pandas-stubs confused
+        ).droplevel(check_cols)
 
         # None of the overrides relevant for this scenario
         if _overrides.empty:

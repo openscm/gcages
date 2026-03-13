@@ -148,7 +148,7 @@ def get_exceedance_probabilities(  # noqa: D103
     exceedance_probs_l = []
     for thresh in exceedance_thresholds_of_interest:
         exceedance_prob = update_index_levels_func(
-            groupby_except(peak_warming > thresh, groupby_except_levels)  # type: ignore # error in pandas-openscm
+            groupby_except(peak_warming > thresh, groupby_except_levels)
             .sum()
             .divide(n_runs_per_group)
             * 100,
@@ -165,14 +165,14 @@ def get_exceedance_probabilities(  # noqa: D103
 
         exceedance_probs_l.append(exceedance_prob)
 
-    exceedance_probs: pd.Series[float] = pd.concat(exceedance_probs_l)  # type: ignore # pandas-stubs out of date
+    exceedance_probs: pd.Series[float] = pd.concat(exceedance_probs_l)
 
     return exceedance_probs
 
 
 def categorise_scenarios(
-    peak_warming_quantiles: pd.DataFrame,
-    eoc_warming_quantiles: pd.DataFrame,
+    peak_warming_quantiles: pd.Series[float],
+    eoc_warming_quantiles: pd.Series[float],
     group_levels: list[str],
     quantile_level: str,
 ) -> pd.Series[str]:
@@ -249,7 +249,7 @@ def categorise_scenarios(
         category_names.apply(lambda x: x.split(":")[0]),
         {"metric": lambda x: "category"},
     )
-    out: pd.Series[str] = pd.concat([category_names, categories])  # type: ignore # pandas-stubs out of date
+    out: pd.Series[str] = pd.concat([category_names, categories])
 
     return out
 
@@ -394,21 +394,25 @@ class AR6PostProcessor:
         peak_warming = set_new_single_value_levels(
             temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
-        peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
-            new_name="quantile",
+        peak_warming_quantiles: pd.Series[float] = (
+            fix_index_name_after_groupby_quantile(
+                groupby_except(peak_warming, "run_id").quantile(
+                    self.quantiles_of_interest  # type: ignore # pandas-stubs confused
+                ),
+                new_name="quantile",
+            )
         )
 
         eoc_warming = set_new_single_value_levels(
             temperatures_in_line_with_assessment[2100], {"metric": 2100}
         )
-        eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
+        eoc_warming_quantiles: pd.Series[float] = fix_index_name_after_groupby_quantile(
             groupby_except(eoc_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
             new_name="quantile",
         )
         peak_warming_year = set_new_single_value_levels(
             update_index_levels_func(
-                temperatures_in_line_with_assessment.idxmax(axis="columns"),  # type: ignore # error in pandas-openscm
+                temperatures_in_line_with_assessment.idxmax(axis="columns"),
                 {"unit": lambda x: "yr"},
             ),
             {"metric": "max_year"},
@@ -443,10 +447,10 @@ class AR6PostProcessor:
             [exceedance_probabilities_over_time]
         )
 
-        metadata_run_id: pd.Series[float] = pd.concat(  # type: ignore # pandas-stubs out of date
+        metadata_run_id: pd.Series[float] = pd.concat(
             [peak_warming, eoc_warming, peak_warming_year]
         )
-        metadata_quantile: pd.Series[float] = pd.concat(  # type: ignore # pandas-stubs out of date
+        metadata_quantile: pd.Series[float] = pd.concat(
             [
                 peak_warming_quantiles,
                 eoc_warming_quantiles,
@@ -477,7 +481,7 @@ class AR6PostProcessor:
                 "metadata_exceedance_probabilities",
                 "metadata_categories",
             ]:
-                pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
+                pd.testing.assert_index_equal(
                     getattr(res, attr)
                     .index.droplevel(
                         getattr(res, attr).index.names.difference(comparison_levels)
