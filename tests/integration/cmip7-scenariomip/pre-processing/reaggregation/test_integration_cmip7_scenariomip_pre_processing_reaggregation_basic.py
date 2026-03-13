@@ -33,6 +33,7 @@ from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
     update_index_levels_from_other_func,
     update_index_levels_func,
+    update_levels_from_other,
 )
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
@@ -50,7 +51,6 @@ from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
-    create_levels_based_on_existing,
     set_new_single_value_levels,
     split_sectors,
 )
@@ -535,8 +535,8 @@ def get_df(  # noqa: PLR0913
         pd.DataFrame(
             RNG.random((base_index.shape[0], timepoints.size)),
             columns=pd.Index(timepoints, name=columns_name),
-            index=create_levels_based_on_existing(
-                base_index, create_from={"unit": ("variable", guess_unit)}
+            index=update_levels_from_other(
+                base_index, update_sources={"unit": ("variable", guess_unit)}
             ),
         ),
         {model_level: model, scenario_level: scenario},

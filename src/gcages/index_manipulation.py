@@ -5,7 +5,7 @@ Manipulation of the index of [pd.DataFrame][pandas.DataFrame]'s
 # TOOD: put all of this in pandas-openscm
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import pandas as pd
 
@@ -42,49 +42,6 @@ def set_new_single_value_levels(  # noqa: D103
     )
 
     return pandas_obj
-
-
-# TODO: see if we can remove this and just use pandas-openscm functionality instead
-def create_levels_based_on_existing(  # noqa: D103
-    ini: pd.MultiIndex,
-    create_from: dict[Any, tuple[str, Callable[[Any], Any]]],
-    remove_unused_levels: bool = True,
-) -> pd.MultiIndex:
-    # TODO: move to pandas-openscm
-    if remove_unused_levels:
-        ini = ini.remove_unused_levels()  # type: ignore
-
-    levels: list[pd.Index[Any]] = list(ini.levels)
-    codes: list[list[int]] = list(ini.codes)
-    names: list[str] = list(ini.names)
-
-    for level, (source, updater) in create_from.items():
-        if source not in ini.names:
-            msg = (
-                f"{source} is not available in the index. Available levels: {ini.names}"
-            )
-            raise KeyError(msg)
-
-        source_idx = ini.names.index(source)
-        new_level = ini.levels[source_idx].map(updater)
-        if not new_level.has_duplicates:
-            # Fast route: no clashes so no need to update the codes
-            # or do anything
-            new_codes = ini.codes[source_idx]
-
-        else:
-            # Slow route: have to update the codes too
-            dup_level = ini.get_level_values(source).map(updater)
-            new_level = new_level.unique()
-            new_codes = new_level.get_indexer(dup_level)  # type: ignore
-
-        levels.append(new_level)
-        codes.append(new_codes)
-        names.append(level)
-
-    res = pd.MultiIndex(levels=levels, codes=codes, names=names)
-
-    return res
 
 
 def split_sectors(  # noqa: PLR0913
