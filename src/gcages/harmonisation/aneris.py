@@ -10,7 +10,6 @@ from typing import Any
 import attr
 import pandas as pd
 from attrs import define, field
-from pandas_openscm.indexing import multi_index_lookup
 from pandas_openscm.parallelisation import ParallelOpConfig, apply_op_parallel_progress
 
 import gcages.aneris_helpers
@@ -178,14 +177,16 @@ class AnerisHarmoniser:
                     ).unique(),
                 )
             except NotAllowedMetadataValuesError as exc:
-                try:
-                    self.historical_emissions = multi_index_lookup(
-                        self.historical_emissions,
-                        in_emissions.index.droplevel(["model", "scenario"]),
-                    )
-                except Exception:
-                    msg = "The input emissions contains values that aren't in history"
-                    raise ValueError(msg) from exc
+                # TODO: delete?
+                # might be useful for gridding?
+                # try:
+                #     self.historical_emissions = multi_index_lookup(
+                #         self.historical_emissions,
+                #         in_emissions.index.droplevel(["model", "scenario"]),
+                #     )
+                # except Exception:
+                msg = "The input emissions contains values that aren't in history"
+                raise ValueError(msg) from exc
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
