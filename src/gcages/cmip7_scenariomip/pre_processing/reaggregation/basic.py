@@ -16,6 +16,7 @@ import pandas as pd
 from attrs import define, field
 from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
     set_levels,
     update_index_levels_func,
     update_levels_from_other,
@@ -34,7 +35,6 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.common import (
 from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
 from gcages.index_manipulation import (
     combine_sectors,
-    set_new_single_value_levels,
     split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
@@ -699,7 +699,7 @@ def get_example_input(  # noqa: PLR0913
         start, level="variable", on_clash="overwrite"
     )
     # Aggregate up the regions
-    start_sector_full_region_sum = set_new_single_value_levels(
+    start_sector_full_region_sum = set_index_levels_func(
         groupby_except(start_sector_full, region_level).sum(),
         {region_level: world_region},
     )
@@ -1157,7 +1157,7 @@ def to_complete(  # noqa: PLR0913
             level: value
             for level, value in zip(other_levels_deduped.names, other_levels_deduped[0])
         }
-        assumed_zero = set_new_single_value_levels(
+        assumed_zero = set_index_levels_func(
             pd.DataFrame(
                 np.zeros((zeros_index.shape[0], keep.shape[1])),
                 columns=keep.columns,
@@ -1396,7 +1396,7 @@ def to_gridding_sectors(
     )
 
     sector_df_gridding_like_input = combine_sectors(
-        set_new_single_value_levels(
+        set_index_levels_func(
             sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
             {region_level: world_region},
         ),

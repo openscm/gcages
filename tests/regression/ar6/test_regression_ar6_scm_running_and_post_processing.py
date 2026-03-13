@@ -19,10 +19,12 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
-from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
+    update_index_levels_func,
+)
 
 from gcages.ar6 import AR6PostProcessor, AR6SCMRunner, get_ar6_full_historical_emissions
-from gcages.ar6.post_processing import set_new_single_value_levels
 from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
@@ -127,7 +129,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
             res_pp.metadata_quantile.index.get_level_values("metric") == metric_id
         ]
         tmp_a = update_index_levels_func(start, {"quantile": get_out_quantile})
-        tmp_b = set_new_single_value_levels(tmp_a, {"v_str": v_str}, copy=False)
+        tmp_b = set_index_levels_func(tmp_a, {"v_str": v_str}, copy=False)
         tmp_c = tmp_b.pix.format(out_name="{quantile} {v_str} ({climate_model})")
         tmp_d = tmp_c.reset_index(
             tmp_a.index.names.difference([*out_index, "out_name"]), drop=True

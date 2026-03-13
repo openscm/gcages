@@ -15,35 +15,6 @@ if TYPE_CHECKING:
     P = TypeVar("P", pd.DataFrame, pd.Series[Any])
 
 
-# TODO: move to pandas-openscm
-def set_new_single_value_levels(  # noqa: D103
-    pandas_obj: P,
-    levels_to_set: dict[str, Any],  # indicate not a collection somehow
-    copy: bool = True,
-) -> P:
-    # TODO: move to pandas-openscm
-    # TODO: split out method that just works on MultiIndex
-    if copy:
-        pandas_obj = pandas_obj.copy()
-
-    new_names = levels_to_set.keys()
-    new_values = levels_to_set.values()
-
-    if not isinstance(pandas_obj.index, pd.MultiIndex):
-        raise TypeError(pandas_obj.index)
-
-    pandas_obj.index = pd.MultiIndex(
-        codes=[
-            *pandas_obj.index.codes,  # type: ignore #  not sure why check above isn't working
-            *([[0] * pandas_obj.index.shape[0]] * len(new_values)),  # type: ignore # fix when moving to pandas-openscm
-        ],
-        levels=[*pandas_obj.index.levels, *[pd.Index([value]) for value in new_values]],  # type: ignore # fix when moving to pandas-openscm
-        names=[*pandas_obj.index.names, *new_names],  # type: ignore # fix when moving to pandas-openscm
-    )
-
-    return pandas_obj
-
-
 def split_sectors(  # noqa: PLR0913
     indf: pd.DataFrame,
     dropna: bool = True,
