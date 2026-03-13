@@ -128,7 +128,6 @@ def convert_variable_name(
     return cast(str, res_l[0])
 
 
-# TODO: apply this throughout and remove use of convert_variable_name
 def rename_variables(
     pandas_obj: P,
     from_convention: SupportedNamingConventions,
