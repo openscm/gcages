@@ -194,6 +194,9 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
         existing_metadata.names.difference(check_levels)  # type: ignore # pandas-stubs out of date
     ).unique()
 
+    if not isinstance(scenarios.index, pd.MultiIndex):
+        raise TypeError(type(scenarios.index))
+
     batch_output_exp_index = set_levels(
         scenarios.index, {climate_model_level: climate_model}
     )
