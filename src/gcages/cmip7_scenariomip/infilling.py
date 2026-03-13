@@ -55,7 +55,7 @@ class CMIP7ScenarioMIPInfilledScenarios:
     Complete infilled emissions
     """
 
-    def add(self, name: str, df: pd.DataFrame):
+    def _add(self, name: str, df: pd.DataFrame):
         """
         Add an infilled emissions DataFrame as an attribute.
 
@@ -375,7 +375,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     cmip7_scenariomip_global_historical_emissions_file: Path,
     cmip7_scenariomip_infilling_leader_emissions_file: Path,
     cmip7_ghg_inversions_file: Path,
-    # wmo_2022_smoothed_full_file: Path,
     ur: UnitRegistry | None = None,
 ) -> CMIP7ScenarioMIPInfilledScenarios:
     """
@@ -421,18 +420,18 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
         filepath=cmip7_scenariomip_infilling_leader_emissions_file,
     )
 
-    ### History
+    # History
     historical_emissions = load_cmip7_scenariomip_global_historical_emissions(
         filepath=cmip7_scenariomip_global_historical_emissions_file,
         check_hash=True,
     )
 
-    ### CMIP7 GHG inversions
+    # CMIP7 GHG inversions
     cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
         filepath=cmip7_ghg_inversions_file,
     )
 
-    ## Check that the infilling database and scenario data are harmonised the same
+    # Check that the infilling database and scenario data are harmonised the same
     assert_harmonised(
         harmonised_emissions,
         history=historical_emissions,
@@ -452,7 +451,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     infilling_wmo = infilling_db.loc[wmo_locator]
 
     velders_locator = pix.ismatch(model="Velders**")
-    # infilling_velders = infilling_db.loc[velders_locator]
 
     infilling_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
 
@@ -651,6 +649,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
         if df is not None:
             years = [c for c in df.columns if isinstance(c, (int, float))]
             other_cols = [c for c in df.columns if c not in years]
-            infilled.add(ids, df[other_cols + sorted(years)])
+            infilled._add(ids, df[other_cols + sorted(years)])
 
     return infilled

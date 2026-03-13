@@ -92,7 +92,7 @@ def align_history_to_data_at_time(
                 "(usually dropping everything except variable and unit (or similar)). "
             )
 
-        # # Might be useful, pandas might handle it
+        # Might be useful, pandas might handle it
         # names_only_in_hist = history.index.names.difference(df.index.names)
 
         for unit_col_guess in ["unit", "units"]:

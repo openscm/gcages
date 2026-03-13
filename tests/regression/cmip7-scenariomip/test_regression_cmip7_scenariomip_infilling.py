@@ -12,20 +12,9 @@ from pandas_openscm.io import load_timeseries_csv
 from gcages.cmip7_scenariomip.infilling import (
     create_cmip7_scenariomip_infilled_df,
 )
-
-# from gcages.completeness import get_missing_levels
-# from gcages.index_manipulation import (
-# create_levels_based_on_existing,
-# set_new_single_value_levels,
-# )
-# from pandas_openscm.index_manipulation import update_index_levels_func
-# from gcages.ar6 import AR6Harmoniser, AR6PreProcessor
-# from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
-    #     get_ar6_harmonised_emissions,
-    #     get_ar6_raw_emissions,
     get_key_testing_model_scenario_parameters,
 )
 
