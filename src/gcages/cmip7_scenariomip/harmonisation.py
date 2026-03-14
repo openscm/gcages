@@ -151,14 +151,14 @@ def load_aneris_overrides_file(filepath: Path) -> pd.Series[str]:
     return res
 
 
-@dataclass(slots=True)
+@dataclass
 class _HarmonisationConfig:
     """Configuration object for CMIP7 ScenarioMIP harmonisation routines."""
 
     historical_emissions: pd.DataFrame
-    """File containing CMIP7 ScenarioMIP historical emissions."""
+    """CMIP7 ScenarioMIP historical emissions."""
     aneris_overrides: pd.Series
-    """File containing aneris overrides for the global workflow."""
+    """Aneris overrides for the global workflow."""
     rename_variables: bool = False
     """On global level variables might need some renaming."""
 
