@@ -23,7 +23,7 @@ from pint import UnitRegistry
 from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_global_historical_emissions,
 )
-from gcages.cmip7_scenariomip.scm_running import complete_index_reporting_names
+from gcages.cmip7_scenariomip.scm_running_aux import complete_index_reporting_names
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation.common import assert_harmonised

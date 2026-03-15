@@ -31,6 +31,8 @@
 # ## Imports
 
 # %% editable=true slideshow={"slide_type": ""}
+import multiprocessing
+import os
 from functools import partial
 from pathlib import Path
 
@@ -39,15 +41,24 @@ import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
 from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
+    load_cmip7_scenariomip_global_historical_emissions,
 )
 from gcages.cmip7_scenariomip.infilling import create_cmip7_scenariomip_infilled_df
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
+from gcages.cmip7_scenariomip.scm_running_aux import (
+    CMIP7_SCENARIOMIP_SCMRunner,
+    get_complete_scenarios_for_magicc,
+    load_magicc_cfgs,
+)
 from gcages.index_manipulation import split_sectors
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.scm_running import run_scms
 
 # %%
 # Setup pint
@@ -611,22 +622,105 @@ display(fg.fig)
 # complete_scenarios
 
 # %%
-# MAGICC_EXE_PATH = Path("tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin")
-# MAGICC_AR6_PROBABILISTIC_CONFIG_FILE = Path(
-#     "tests/regression/ar6/ar6-workflow-inputs/magicc-ar6-0fd0f62-f023edb-drawnset/0fd0f62-derived-metrics-id-f023edb-drawnset.json"  # noqa: E501
-# )
+output_variables = (
+    # GSAT
+    "Surface Air Temperature Change",
+    # # GMST
+    "Surface Air Ocean Blended Temperature Change",
+    # # ERFs
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|Tropospheric Ozone",
+    "Effective Radiative Forcing|Stratospheric Ozone",
+    "Effective Radiative Forcing|Solar",
+    "Effective Radiative Forcing|Volcanic",
+    # # Heat uptake
+    "Heat Uptake",
+    "Heat Uptake|Ocean",
+    # # Atmospheric concentrations
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|N2O",
+    # # Carbon cycle
+    # "Net Atmosphere to Land Flux|CO2",
+    # "Net Atmosphere to Ocean Flux|CO2",
+    # "CO2_CURRENT_NPP",
+    # # Permafrost
+    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
+    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
+    "Sea Level Rise",
+)
 
 # %%
-# if platform.system() == "Darwin":
-#     if platform.processor() == "arm":
-#         MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
-#         os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"  # noqa: E501
+mpath = (
+    "tests/regression/cmip7-scenariomip"
+    / "cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin"
+)
+MAGICC_EXE_PATH = BASE_DIR / mpath
+cpath = (
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+    / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
+)
+MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = BASE_DIR / cpath
 
-# elif platform.system() == "Linux":
-#     MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
+os.environ["MAGICC_EXECUTABLE_7"] = str(MAGICC_EXE_PATH / "magicc")
 
-# elif platform.system() == "Windows":
-#     MAGICC_EXE = MAGICC_EXE_PATH / "magicc.exe"
+# %%
+history = load_cmip7_scenariomip_global_historical_emissions(
+    CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE
+)
+history.iloc[:5]
+
+# %%
+climate_models_cfgs = load_magicc_cfgs(
+    prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
+    output_variables=output_variables,
+    startyear=1750,
+)
+
+# %%
+climate_models_cfgs["MAGICC7"][0]["out_dynamic_vars"]
+
+# %%
+complete_scm = get_complete_scenarios_for_magicc(
+    # scenarios=complete_scenarios,
+    scenarios=infilled.complete,
+    history=history,
+)
+
+# Convert year columns from float to int to avoid MAGICC namelist errors
+# MAGICC's Fortran namelist reader expects integer years, not floats
+complete_scm.columns = complete_scm.columns.astype(int)
+complete_scm.iloc[:5]
+
+# %% [markdown]
+# Loading configurations
+
+# %%
+complete_openscm_runner = update_index_levels_func(
+    complete_scm,
+    {
+        "variable": partial(
+            convert_variable_name,
+            from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+        )
+    },
+)
+# complete_openscm_runner
 
 # %% [markdown]
 # With the set up done, we can initialise our SCM runner.
@@ -661,21 +755,61 @@ display(fg.fig)
 # %%
 # scm_results = scm_runner(complete_scenarios)
 # scm_results
+scm_results = run_scms(
+    scenarios=complete_openscm_runner,
+    climate_models_cfgs=climate_models_cfgs,
+    output_variables=output_variables,
+    scenario_group_levels=["model", "scenario"],
+    n_processes=multiprocessing.cpu_count(),
+    # db=db,
+    verbose=True,
+    progress=True,
+    batch_size_scenarios=15,
+    force_rerun=False,
+)
 
 # %% [markdown]
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
 
 # %%
-# scm_results.loc[
-#     pix.isin(variable=["Effective Radiative Forcing"])
-# ].openscm.plot_plume_after_calculating_quantiles(
-#     style_var="variable",
-#     quantile_over="run_id",
-#     quantiles_plumes=(
-#         (0.5, 0.8),
-#         ((0.05, 0.95), 0.3),
-#     ),
-# )
+scm_results
+
+# %%
+scm_results.loc[
+    pix.isin(variable=["Effective Radiative Forcing"])
+].openscm.plot_plume_after_calculating_quantiles(
+    style_var="variable",
+    quantile_over="run_id",
+    quantiles_plumes=(
+        (0.5, 0.8),
+        ((0.05, 0.95), 0.3),
+    ),
+)
+ax.grid()
+
+# %%
+executable = MAGICC_EXE_PATH / "magicc"
+
+# %%
+run_scm_obj = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+    magicc_exe_path=executable,
+    magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
+    output_variables=output_variables,
+    batch_size_scenarios=15,
+    historical_emissions=history,
+    harmonisation_year=2023,
+    n_processes=multiprocessing.cpu_count(),
+)
+
+# %%
+run = run_scm_obj(infilled.complete)
+
+# %%
+run[
+    run.index.get_level_values("variable").str.contains(
+        "Surface Air Temperature Change"
+    )
+]
 
 # %% [markdown]
 # ## Post-processing
