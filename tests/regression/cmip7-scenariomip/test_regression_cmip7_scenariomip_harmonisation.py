@@ -27,15 +27,16 @@ from gcages.testing import (
 
 pix = pytest.importorskip("pandas_indexing")
 
+PROCESSED_CMIP7_SCENARIOMIP_OUTPUT_DIR = (
+    Path(__file__).parents[0] / "cmip7-scenariomip-output"
+)
+PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
+    Path(__file__).parents[0] / "cmip7-scenariomip-workflow-inputs"
+)
 CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE = (
     # Downloaded with
     # `tests/regression/cmip7-scenariomip/download_cmip7_scenariomip_history.py`
-    Path(__file__).parents[0]
-    / "cmip7-scenariomip-workflow-inputs"
-    / "history_cmip7_scenariomip.csv"
-)
-PROCESSED_CMIP7_SCENARIOMIP_OUTPUT_DIR = (
-    Path(__file__).parents[0] / "cmip7-scenariomip-output"
+    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 
 
@@ -71,7 +72,7 @@ def test_individual_scenario_global(model, scenario):
     pytest.importorskip("aneris")
     harmoniser = create_cmip7_scenariomip_global_harmoniser(
         cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE,
-        aneris_global_overrides_file=PROCESSED_CMIP7_SCENARIOMIP_OUTPUT_DIR
+        aneris_global_overrides_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
         / "aneris-overrides-global.csv",
         n_processes=None,  # not parallel
         progress=False,
@@ -152,7 +153,7 @@ def test_key_testing_scenarios_all_at_once_parallel():
     pytest.importorskip("aneris")
     harmoniser = create_cmip7_scenariomip_global_harmoniser(
         cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_EMISSIONS_FILE,
-        aneris_global_overrides_file=PROCESSED_CMIP7_SCENARIOMIP_OUTPUT_DIR
+        aneris_global_overrides_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
         / "aneris-overrides-global.csv",
         run_checks=False,
         # run in parallel is the default
