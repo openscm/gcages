@@ -51,6 +51,29 @@ KEY_AR6_TESTING_MODEL_SCENARIOS = tuple(
 def get_key_testing_model_scenario_parameters(
     model_scenarios: tuple[tuple[str, str]],
 ) -> pytest.MarkDecorator:
+    """
+    Create a pytest parameterization decorator for model-scenario pairs.
+
+    Parameters
+    ----------
+    model_scenarios
+        Tuples of (model, scenario) pairs to parameterize.
+
+    Returns
+    -------
+    :
+        A pytest decorator that runs a test for each (model, scenario) pair.
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        If pytest is not installed.
+
+    Examples
+    --------
+    >>> @get_key_testing_model_scenario_parameters((("m1", "s1"), ("m2", "s2")))
+    ... def test_func(model, scenario): ...
+    """
     try:
         import pytest
     except ImportError as exc:
