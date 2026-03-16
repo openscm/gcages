@@ -348,7 +348,7 @@ CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = Path(
 # TODO: move this file to inputs
 # (yes, we derived it as part of the process, but it's an input now)
 ANERIS_GLOBAL_OVERRIDES_FILE = Path(
-    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-output/aneris-overrides-global.csv"
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/aneris-overrides-global.csv"
 )
 
 # %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
