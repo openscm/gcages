@@ -69,6 +69,26 @@ class CMIP7ScenarioMIPInfilledScenarios:
         setattr(self, name, df)
 
 
+@dataclass
+class InfillingSources:
+    """
+    Source needed for infilling
+    """
+
+    infilling_db: pd.DataFrame
+    """
+    Infilling database
+    """
+    historical_emissions: pd.DataFrame
+    """
+    Historical emissions
+    """
+    cmip7_ghg_inversions: pd.DataFrame
+    """
+    Green house gasses inversions
+    """
+
+
 def get_silicone_based_infiller(
     infilling_db: pd.DataFrame,
     follower_variable: str,
@@ -259,7 +279,7 @@ def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFr
 
 
 def load_cmip7_scenariomip_infilling_db(
-    filepath: Path, check_hash: bool = False
+    filepath: Path, check_hash: bool = True
 ) -> pd.DataFrame:
     """
     Load infilling emissions for CMIP7 ScenarioMIP harmonisation.
@@ -310,9 +330,6 @@ def load_cmip7_scenariomip_infilling_db(
     return res
 
 
-#################### 5190
-
-
 def load_cmip7_scenariomip_ghg_inversions(
     filepath: Path,
 ) -> pd.DataFrame:
@@ -327,8 +344,7 @@ def load_cmip7_scenariomip_ghg_inversions(
     Returns
     -------
     :
-
-
+        Green house gases inversion data frame
     """
     res = load_timeseries_csv(
         filepath,
@@ -341,35 +357,150 @@ def load_cmip7_scenariomip_ghg_inversions(
     return res
 
 
-def load_cmip7_scenariomip_infilling_db_temp(
-    filepath: Path,
-) -> pd.DataFrame:
+def load_infill_sources(
+    cmip7_scenariomip_infilling_leader_emissions_file: Path,
+    cmip7_scenariomip_global_historical_emissions_file: Path,
+    cmip7_ghg_inversions_file: Path,
+) -> InfillingSources:
+    """Load all infill files: infilling_db, historical, ghg_inversions."""
+    # Still embargoed
+    infilling_db = load_cmip7_scenariomip_infilling_db(
+        filepath=cmip7_scenariomip_infilling_leader_emissions_file,
+        check_hash=False,  # TODO: update when available
+    )
+
+    # History
+    historical_emissions = load_cmip7_scenariomip_historical_emissions(
+        filepath=cmip7_scenariomip_global_historical_emissions_file,
+        check_hash=True,
+    )
+
+    # CMIP7 GHG inversions
+    cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
+        filepath=cmip7_ghg_inversions_file,
+    )
+
+    return InfillingSources(
+        infilling_db=infilling_db,
+        historical_emissions=historical_emissions,
+        cmip7_ghg_inversions=cmip7_ghg_inversions,
+    )
+
+
+def get_pre_industrial_aware_direct_scaling_infiller(
+    *,
+    historical_emissions: pd.DataFrame,
+    cmip7_ghg_inversions_reporting_names: pd.DataFrame,
+    scaling_leaders: dict[str, str],
+    harmonisation_year: int | None = 2023,
+    pre_industrial_year: int | None = 1750,
+) -> dict[str, Any]:
     """
-    Load historical emissions for CMIP7 ScenarioMIP harmonisation.
+    Build pre-industrial-aware direct scaling infillers for follower/leader pairs.
+
+    This constructs scaling factors that preserve both pre-industrial baselines and
+    harmonisation-year values when scaling follower emissions based on leader emissions.
+
+    The scaling preserves two key properties::
+
+        f_future(l_harmonisation) = f_harmonisation
+        f_future(l_pre_industrial) = f_pre_industrial
+
+    with linear interpolation between these anchor points.
 
     Parameters
     ----------
-    filepath
-        Path from which to load the file
+    historical_emissions
+        Historical emissions data with MultiIndex including 'variable' level.
+        Must contain harmonisation-year values for all leader/follower variables.
+
+    cmip7_ghg_inversions_reporting_names
+        CMIP7 GHG inversion data with pre-industrial (PI) year values.
+        Must contain PI-year values for all leader/follower variables.
+
+    scaling_leaders
+        Mapping of follower variable names to leader variable names.
+
+    harmonisation_year
+        Primary harmonisation reference year
+
+    pre_industrial_year
+        Pre-industrial reference year
 
     Returns
     -------
     :
-        Historical emissions
+        Mapping of follower variable into direct scaling infiller callable.
 
+    Raises
+    ------
+    AssertionError
+        If multiple units found for a variable, no valid harmonisation year data,
+        or scaling factor computation yields NaN.
     """
-    res = load_timeseries_csv(
-        filepath,
-        lower_column_names=True,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_columns_type=int,
-    )
-    res.columns.name = "year"
+    infillers_scaling = {}
 
-    return res
+    for follower, leader in scaling_leaders.items():
+        lead_df = historical_emissions.loc[pix.isin(variable=[leader])]
+        follow_df = historical_emissions.loc[pix.isin(variable=[follower])]
+        lead_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
+            pix.isin(variable=[leader])
+        ]
+        follow_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
+            pix.isin(variable=[follower])
+        ]
+
+        f_unit = follow_df.pix.unique("unit")
+        if len(f_unit) != 1:
+            msg = f"Multiple units for {follower=}: {f_unit}"
+            raise AssertionError(msg)
+        f_unit = f_unit[0].replace("-", "")
+
+        l_unit = lead_df.pix.unique("unit")
+        if len(l_unit) != 1:
+            msg = f"Multiple units for {leader=}: {l_unit}"
+            raise AssertionError(msg)
+        l_unit = l_unit[0].replace("-", "")
+
+        for harmonisation_yr_use in [harmonisation_year, 2021]:
+            l_harmonisation_year = lead_df[harmonisation_yr_use].values.squeeze()
+
+            f_harmonisation_year = follow_df[harmonisation_yr_use].values.squeeze()
+
+            if not (pd.isnull(l_harmonisation_year) or pd.isnull(f_harmonisation_year)):
+                break
+        else:
+            msg = f"No valid harmonisation year for {follower=}/{leader=}"
+            raise AssertionError(msg)
+
+        f_0 = follow_cmip7_inverse_df[pre_industrial_year].values.squeeze()
+        l_0 = lead_cmip7_inverse_df[pre_industrial_year].values.squeeze()
+
+        scaling_factor = (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
+
+        if np.isnan(scaling_factor):
+            msg = (
+                f"NaN scaling_factor for {follower=}/{leader=}: "
+                f"{f_harmonisation_year=} {l_harmonisation_year=} "
+                f"{f_0=} {l_0=}"
+            )
+            raise AssertionError(msg)
+
+        infillers_scaling[follower] = get_direct_scaling_infiller(
+            leader=leader,
+            follower=follower,
+            scaling_factor=scaling_factor,
+            l_0=l_0,
+            f_0=f_0,
+            f_unit=f_unit,
+            calculation_year=harmonisation_yr_use,
+            f_calculation_year=f_harmonisation_year,
+        )
+
+    return infillers_scaling
 
 
-def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
+def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     harmonised_emissions: pd.DataFrame,
     *,
     cmip7_scenariomip_global_historical_emissions_file: Path,
@@ -410,26 +541,15 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     except ImportError:
         pass
 
-    # Still embargoed
-    # infilling_db = load_cmip7_scenariomip_infilling_db(
-    #         filepath=
-    #         check_hash=True,
-    #         )
-
-    infilling_db = load_cmip7_scenariomip_infilling_db_temp(
-        filepath=cmip7_scenariomip_infilling_leader_emissions_file,
+    infilling_sources = load_infill_sources(
+        cmip7_scenariomip_infilling_leader_emissions_file,
+        cmip7_scenariomip_global_historical_emissions_file,
+        cmip7_ghg_inversions_file,
     )
 
-    # History
-    historical_emissions = load_cmip7_scenariomip_historical_emissions(
-        filepath=cmip7_scenariomip_global_historical_emissions_file,
-        check_hash=True,
-    )
-
-    # CMIP7 GHG inversions
-    cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
-        filepath=cmip7_ghg_inversions_file,
-    )
+    infilling_db = infilling_sources.infilling_db
+    historical_emissions = infilling_sources.historical_emissions
+    cmip7_ghg_inversions = infilling_sources.cmip7_ghg_inversions
 
     # Check that the infilling database and scenario data are harmonised the same
     assert_harmonised(
@@ -446,7 +566,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
         species_aware_cmip7=True,
         ur=ur,
     )
-
     wmo_locator = pix.ismatch(model="WMO**")
     infilling_wmo = infilling_db.loc[wmo_locator]
 
@@ -454,7 +573,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
 
     infilling_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
 
-    ## Infill
+    # Infill
 
     ### Very low marker should use F-gas emissions in line with Kigali
     # We get these from [Velders et al., 2022](https://zenodo.org/records/6520707)
@@ -555,83 +674,13 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
         cmip7_ghg_inversions, {"variable": to_reporting_names}
     )
 
-    # We considered breaking the following out,
-    # but for now it's better to see the logic.
-    # We can move it later if we need
-    # into a function like `get_pre_industrial_aware_direct_scaling_infiller`.
-    # TODO: time has come??
-    infillers_scaling = {}
-    for follower, leader in scaling_leaders.items():
-        # For each follower, leader pair we need:
-        # - f_harmonisation_year: The value of the follower in the harmonisation year
-        # - l_harmonisation_year: The value of the leader in the harmonisation year
-        # - f_0: The value of the follower at pre-industrial
-        # - l_0: The value of the leader at pre-industrial
-        #
-        # We can then do 'pre-industrial aware scaling' with
-        # f_future =  (l_future - l_0) *
-        #             (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
-        #             + f_0
-        #
-        # so that:
-        #
-        # - f_future(l_0) = f_0 i.e. if the lead goes to its pre-industrial value,
-        #   the result is the follower's pre-industrial value
-        #
-        # - f_future(l_harmonisation_year) = f_harmonisation_year
-        #   i.e. we preserve harmonisation of the follower
-        #
-        # - there is a linear transition between these two points
-        #   as the lead variable's emissions change
-
-        lead_df = historical_emissions.loc[pix.isin(variable=[leader])]
-        follow_df = historical_emissions.loc[pix.isin(variable=[follower])]
-        lead_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
-            pix.isin(variable=[leader])
-        ]
-        follow_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
-            pix.isin(variable=[follower])
-        ]
-
-        f_unit = follow_df.pix.unique("unit")
-        if len(f_unit) != 1:
-            raise AssertionError
-        f_unit = f_unit[0].replace("-", "")
-
-        l_unit = lead_df.pix.unique("unit")
-        if len(l_unit) != 1:
-            raise AssertionError
-        l_unit = l_unit[0].replace("-", "")
-
-        for harmonisation_yr_use in [HARMONISATION_YEAR, 2021]:
-            l_harmonisation_year = float(lead_df[harmonisation_yr_use].values.squeeze())
-            f_harmonisation_year = float(
-                follow_df[harmonisation_yr_use].values.squeeze()
-            )
-            if not (pd.isnull(l_harmonisation_year) or pd.isnull(f_harmonisation_year)):
-                break
-        else:
-            raise AssertionError
-
-        f_0 = float(follow_cmip7_inverse_df[PI_YEAR].values.squeeze())
-        l_0 = float(lead_cmip7_inverse_df[PI_YEAR].values.squeeze())
-
-        scaling_factor = (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
-
-        if np.isnan(scaling_factor):
-            msg = f"{f_harmonisation_year=} {l_harmonisation_year=} {f_0=} {l_0=}"
-            raise AssertionError(msg)
-
-        infillers_scaling[follower] = get_direct_scaling_infiller(
-            leader=leader,
-            follower=follower,
-            scaling_factor=scaling_factor,
-            l_0=l_0,
-            f_0=f_0,
-            f_unit=f_unit,
-            calculation_year=harmonisation_yr_use,
-            f_calculation_year=f_harmonisation_year,
-        )
+    infillers_scaling = get_pre_industrial_aware_direct_scaling_infiller(
+        historical_emissions=historical_emissions,
+        cmip7_ghg_inversions_reporting_names=cmip7_ghg_inversions_reporting_names,
+        scaling_leaders=scaling_leaders,
+        harmonisation_year=HARMONISATION_YEAR,
+        pre_industrial_year=PI_YEAR,
+    )
 
     infilled_scaling = infill(complete_wmo, infillers_scaling)
     complete = get_complete(complete_wmo, infilled_scaling)
