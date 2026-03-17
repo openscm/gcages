@@ -101,15 +101,15 @@ if not EXAMPLE_INPUT_FILE.exists():
     if not EXAMPLE_INPUT_FILE.exists():
         raise AssertionError
 
-# %%
-start_raw = load_timeseries_csv(
+# %% editable=true slideshow={"slide_type": ""}
+start = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_type=int,
 )
 
 # %% editable=true slideshow={"slide_type": ""}
-start = start_raw.loc[:, 2015:2100].dropna(how="all", axis="columns")
+start = start.loc[:, 2015:2100].dropna(how="all", axis="columns")
 if start.empty:
     raise AssertionError
 
