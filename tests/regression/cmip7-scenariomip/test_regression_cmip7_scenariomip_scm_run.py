@@ -72,7 +72,7 @@ def test_individual_scenario(model, scenario):
         ]
 
     # Loading expected results
-    file = next(CMIP7_SCENARIOMIP_OUT_DIR.glob(f"{model}_GSAT.csv"), None)
+    file = next(CMIP7_SCENARIOMIP_OUT_DIR.glob(f"{model}_{scenario}_GSAT.csv"), None)
     with open(file) as f:
         exp_temperature = load_timeseries_csv(
             f,

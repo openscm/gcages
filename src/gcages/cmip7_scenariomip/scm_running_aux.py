@@ -446,6 +446,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             scenarios=in_emissions,
             history=self.historical_emissions,
         )
+        complete_emissions.columns = complete_emissions.columns.astype(int)
 
         openscm_runner_emissions = update_index_levels_func(
             complete_emissions,
@@ -472,6 +473,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         #         .T.interpolate("index")
         #         .T
         #     )
+
         scm_results_maybe = run_scms(
             scenarios=openscm_runner_emissions,
             climate_models_cfgs=self.climate_models_cfgs,
@@ -481,7 +483,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             db=self.db,
             verbose=self.verbose,
             batch_size_scenarios=self.batch_size_scenarios,
-            force_rerun=force_rerun,
+            force_rerun=True,
         )
 
         if self.db is not None:
@@ -602,7 +604,11 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
         # check_ar6_magicc7_version()
 
-        magicc_prob_cfg = load_magicc_cfgs(magicc_prob_distribution_path)
+        magicc_prob_cfg = load_magicc_cfgs(
+            prob_distribution_path=magicc_prob_distribution_path,
+            output_variables=output_variables,
+            startyear=1750,
+        )
 
         return cls(
             climate_models_cfgs=magicc_prob_cfg,

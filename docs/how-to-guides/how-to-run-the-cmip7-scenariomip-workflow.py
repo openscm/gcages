@@ -665,16 +665,17 @@ output_variables = (
 )
 
 # %%
-mpath = (
-    "tests/regression/cmip7-scenariomip"
+MAGICC_EXE_PATH = (
+    BASE_DIR
+    / "tests/regression/cmip7-scenariomip"
     / "cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin"
 )
-MAGICC_EXE_PATH = BASE_DIR / mpath
-cpath = (
-    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+
+MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
+    BASE_DIR
+    / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
-MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = BASE_DIR / cpath
 
 os.environ["MAGICC_EXECUTABLE_7"] = str(MAGICC_EXE_PATH / "magicc")
 
@@ -720,7 +721,7 @@ complete_openscm_runner = update_index_levels_func(
         )
     },
 )
-# complete_openscm_runner
+complete_openscm_runner
 
 # %% [markdown]
 # With the set up done, we can initialise our SCM runner.
@@ -772,7 +773,11 @@ scm_results = run_scms(
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
 
 # %%
-scm_results
+scm_results[
+    scm_results.index.get_level_values("variable").str.contains(
+        "Surface Air Temperature Change"
+    )
+]
 
 # %%
 scm_results.loc[
