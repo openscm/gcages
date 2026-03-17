@@ -21,7 +21,7 @@ from pandas_openscm.io import load_timeseries_csv
 from pint import UnitRegistry
 
 from gcages.cmip7_scenariomip.harmonisation import (
-    load_cmip7_scenariomip_global_historical_emissions,
+    load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.cmip7_scenariomip.scm_running import complete_index_reporting_names
 from gcages.completeness import assert_all_groups_are_complete
@@ -421,7 +421,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915,PLR0912
     )
 
     # History
-    historical_emissions = load_cmip7_scenariomip_global_historical_emissions(
+    historical_emissions = load_cmip7_scenariomip_historical_emissions(
         filepath=cmip7_scenariomip_global_historical_emissions_file,
         check_hash=True,
     )
