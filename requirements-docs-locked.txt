@@ -35,6 +35,7 @@ executing==2.1.0
 f90nml==1.4.5
 fastapi==0.116.1 ; python_full_version >= '3.10'
 fastjsonschema==2.21.1
+filelock==3.18.0
 flexcache==0.3
 flexparser==0.4
 fonttools==4.59.0
@@ -52,7 +53,7 @@ hyperframe==6.1.0
 iam-units==2023.9.12
 idna==3.10
 importlib-metadata==8.7.0 ; python_full_version < '3.10'
-importlib-resources==6.5.2 ; python_full_version < '3.10'
+importlib-resources==6.5.2 ; python_full_version < '3.12'
 ipykernel==6.29.5
 ipython==8.18.1 ; python_full_version < '3.10'
 ipython==8.37.0 ; python_full_version == '3.10.*'
@@ -171,7 +172,7 @@ ruff==0.8.6
 scipy==1.13.1 ; python_full_version < '3.10'
 scipy==1.15.3 ; python_full_version == '3.10.*'
 scipy==1.16.0 ; python_full_version >= '3.11'
-scmdata==0.17.0
+scmdata==0.18.0
 seaborn==0.13.2
 send2trash==1.8.3
 setuptools==75.6.0
