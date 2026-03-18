@@ -237,7 +237,7 @@ def assert_harmonised(  # noqa: PLR0913
                 rtol = float(species_tolerances[species]["rtol"])
                 # atol = species_tolerances[species]["atol"].to(unit).m
 
-                atol_q = cast(ur.Quantity, species_tolerances[species]["atol"])
+                atol_q = cast("pint.Quantity", species_tolerances[species]["atol"])
                 atol = atol_q.to(unit).m
 
             else:

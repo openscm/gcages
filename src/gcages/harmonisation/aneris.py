@@ -209,7 +209,7 @@ class AnerisHarmoniser:
             import openscm_units
             import pint
 
-            pint.set_application_registry(openscm_units.unit_registry)
+            pint.set_application_registry(openscm_units.unit_registry)  # type: ignore[no-untyped-call]
             assert_harmonised(
                 harmonised_df,
                 history=self.historical_emissions,
