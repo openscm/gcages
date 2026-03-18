@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 from pandas_openscm.indexing import multi_index_lookup
@@ -251,13 +251,14 @@ def get_complete_scenarios_for_magicc(
         ) from exc
 
     scenarios_start_year = scenarios.columns.min()
-
+    index_df = cast(
+        pd.MultiIndex,
+        scenarios.reset_index(["model", "scenario"], drop=True).drop_duplicates().index,
+    )
     history_to_add = (
         multi_index_lookup(
             history,
-            scenarios.reset_index(["model", "scenario"], drop=True)
-            .drop_duplicates()
-            .index,
+            index_df,
         )
         .reset_index(["model", "scenario"], drop=True)
         .align(scenarios)[0]

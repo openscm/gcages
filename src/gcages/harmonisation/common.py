@@ -4,7 +4,7 @@ Common tools across different approaches
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pandas as pd
 
@@ -235,7 +235,10 @@ def assert_harmonised(  # noqa: PLR0913
                 unit = unit_l[0]
 
                 rtol = float(species_tolerances[species]["rtol"])
-                atol = species_tolerances[species]["atol"].to(unit).m
+                # atol = species_tolerances[species]["atol"].to(unit).m
+
+                atol_q = cast(Q, species_tolerances[species]["atol"])
+                atol = atol_q.to(unit).m
 
             else:
                 rtol = 1e-4
