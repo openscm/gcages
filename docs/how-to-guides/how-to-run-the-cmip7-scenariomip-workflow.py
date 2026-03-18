@@ -487,21 +487,15 @@ display(fg.fig)
 # [silicone](https://github.com/GranthamImperial/silicone) package.
 
 # %%
-CMIP7_SCENARIOMIP_INFILLING_FILE = Path(
-    "tests/regression"
-    / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
-    / "infilling_cmip7_scenariomip.csv"
-)
+BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
+
+CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_cmip7_scenariomip.csv"
 if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
     CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
     if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
         raise AssertionError
 
-GHG_INVERSION_FILE = Path(
-    "tests/regression"
-    / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
-    / "cmip7_ghg_inversions.csv"
-)
+GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
 if not GHG_INVERSION_FILE.exists():
     GHG_INVERSION_FILE = Path("../..") / GHG_INVERSION_FILE
     if not GHG_INVERSION_FILE.exists():

@@ -9,12 +9,11 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
-import silicone.database_crunchers
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 from pint import UnitRegistry
@@ -28,6 +27,9 @@ from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation.common import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
+
+if TYPE_CHECKING:
+    import silicone
 
 
 @dataclass
@@ -88,7 +90,7 @@ class InfillingSources:
     """
 
 
-def get_silicone_based_infiller(
+def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
     infilling_db: pd.DataFrame,
     follower_variable: str,
     lead_variables: list[str],
@@ -548,6 +550,13 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         pandas_openscm.register_pandas_accessor()
     except ImportError:
         pass
+
+    try:
+        import silicone.database_crunchers  # type: ignore # silicone has no type hints
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_silicone_based_infiller", requirement="silicone"
+        ) from exc
 
     infilling_sources = load_infill_sources(
         cmip7_scenariomip_infilling_leader_emissions_file,
