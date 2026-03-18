@@ -234,8 +234,8 @@ def assert_harmonised(  # noqa: PLR0913
                     raise AssertionError(unit_l)
                 unit = unit_l[0]
 
-                rtol = species_tolerances[species]["rtol"]
-                atol = species_tolerances[species]["atol"].to(unit).m
+                rtol = float(species_tolerances[species]["rtol"])
+                atol = float(species_tolerances[species]["atol"].to(unit).m)
 
             else:
                 rtol = 1e-4

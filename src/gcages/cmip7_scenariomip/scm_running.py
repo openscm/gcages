@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import pandas_indexing as pix
 from pandas_openscm.indexing import multi_index_lookup
 
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
     convert_openscm_runner_output_names_to_magicc_output_names,
@@ -220,7 +220,7 @@ def load_magicc_cfgs(
 
 def get_complete_scenarios_for_magicc(
     scenarios: pd.DataFrame,
-    history: pd.DataFrame,
+    history: pd.MultiIndex,
     magicc_start_year: int = 2015,
 ) -> pd.DataFrame:
     """
@@ -242,6 +242,14 @@ def get_complete_scenarios_for_magicc(
     :
         Complete scenario to use with MAGICC
     """
+    try:
+        from pandas_indexing.core import concat as pix_concat
+    except ImportError as exc:
+        msg = "get_complete_scenarios_for_magicc"
+        raise MissingOptionalDependencyError(
+            msg, requirement="pandas_indexing"
+        ) from exc
+
     scenarios_start_year = scenarios.columns.min()
 
     history_to_add = (
@@ -256,7 +264,7 @@ def get_complete_scenarios_for_magicc(
         .loc[:, magicc_start_year : scenarios_start_year - 1]
     )
 
-    complete_magicc = pix.concat(
+    complete_magicc = pix_concat(
         [
             history_to_add.reorder_levels(scenarios.index.names),
             scenarios,

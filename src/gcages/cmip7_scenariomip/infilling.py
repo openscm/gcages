@@ -9,10 +9,9 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
-import openscm_units
 import pandas as pd
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
@@ -29,6 +28,7 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
     import silicone
+    from pint import UnitRegistry
 
 
 @dataclass
@@ -144,7 +144,7 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
         # The fact that this is needed suggests there's a bug in silicone
         res_h = res_h.loc[:, inp.dropna(axis="columns", how="all").columns]
 
-        return res_h
+        return cast(pd.DataFrame, res_h)
 
     return res
 
@@ -191,7 +191,7 @@ def get_direct_copy_infiller(
             model=model, scenario=scenario
         )
 
-        return res
+        return cast(pd.DataFrame, res)
 
     return infiller
 
@@ -223,7 +223,7 @@ def get_direct_scaling_infiller(  # noqa: PLR0913
         if not np.isclose(follow_df[calculation_year], f_calculation_year).all():
             raise AssertionError
 
-        return follow_df
+        return cast(pd.DataFrame, follow_df)
 
     return infiller
 
@@ -492,7 +492,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         if len(f_unit) != 1:
             msg = f"Multiple units for {follower=}: {f_unit}"
             raise AssertionError(msg)
-        f_unit = str(f_unit[0]).replace("-", "")
+        f_unit = str(f_unit[0].replace("-", ""))
 
         l_unit = lead_df.index.get_level_values("unit").unique()
         if len(l_unit) != 1:
@@ -548,7 +548,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     cmip7_scenariomip_global_historical_emissions_file: Path,
     cmip7_scenariomip_infilling_leader_emissions_file: Path,
     cmip7_ghg_inversions_file: Path,
-    ur: openscm_units.unit_registry | None = None,
+    ur: UnitRegistry | None = None,
 ) -> CMIP7ScenarioMIPInfilledScenarios:
     """
     Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
@@ -563,24 +563,24 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     :
         Infilled DataFrame
     """
+    if ur is None:
+        try:
+            import openscm_units
+
+            ur = openscm_units.unit_registry
+        except ImportError:
+            msg = "convert_unit_like(..., ur=None, ...)", "openscm_units"
+            raise MissingOptionalDependencyError(msg)
+
     # try:
-    #     import openscm_units
+    #     import pandas_openscm
     #
-    #     ur = openscm_units.unit_registry
-    # except ImportError:
+    #     pandas_openscm.register_pandas_accessor()
+    # except ImportError as exc:
     #     raise MissingOptionalDependencyError(
-    #         "convert_unit_like(..., ur=None, ...)", "openscm_units"
-    #     )
-
-    try:
-        import pandas_openscm
-
-        pandas_openscm.register_pandas_accessor()
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "get_silicone_based_infiller", requirement="pandas_openscm"
-        ) from exc
-
+    #         "get_silicone_based_infiller", requirement="pandas_openscm"
+    #     ) from exc
+    #
     try:
         import silicone.database_crunchers  # type: ignore # silicone has no type hints
     except ImportError as exc:
