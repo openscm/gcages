@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
-import silicone  # type: ignore[import-untyped]
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
@@ -28,6 +27,7 @@ from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
+    import silicone  # type: ignore[import-untyped]
     from pint import UnitRegistry
 
 
@@ -569,9 +569,9 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
 
             ur = openscm_units.unit_registry
         except ImportError as exc:
-            msg = "convert_unit_like(..., ur=None, ...)", "openscm_units"
             raise MissingOptionalDependencyError(
-                msg, requirement="openscm_units"
+                "openscm_units",
+                requirement="openscm_units",
             ) from exc
 
     # try:
