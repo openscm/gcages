@@ -220,7 +220,7 @@ def load_magicc_cfgs(
 
 def get_complete_scenarios_for_magicc(
     scenarios: pd.DataFrame,
-    history: pd.MultiIndex,
+    history: pd.DataFrame,
     magicc_start_year: int = 2015,
 ) -> pd.DataFrame:
     """

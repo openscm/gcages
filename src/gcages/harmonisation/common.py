@@ -235,11 +235,11 @@ def assert_harmonised(  # noqa: PLR0913
                 unit = unit_l[0]
 
                 rtol = float(species_tolerances[species]["rtol"])
-                atol = float(species_tolerances[species]["atol"].to(unit).m)
+                atol = species_tolerances[species]["atol"].to(unit).m
 
             else:
                 rtol = 1e-4
-                atol = 1e-6
+                atol = Q(1e-6, "unit").m
 
             comparison = compare_close(
                 scen_a_vdf.unstack("region"),

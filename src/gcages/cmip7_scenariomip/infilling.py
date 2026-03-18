@@ -122,7 +122,7 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
         Function which can be used to infill `follower_variable` in scenarios
     """
     try:
-        import pyam
+        import pyam  # type: ignore
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_silicone_based_infiller", requirement="pyam"
@@ -492,7 +492,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         if len(f_unit) != 1:
             msg = f"Multiple units for {follower=}: {f_unit}"
             raise AssertionError(msg)
-        f_unit = str(f_unit[0].replace("-", ""))
+        f_unit_str = str(f_unit[0]).replace("-", "")
 
         l_unit = lead_df.index.get_level_values("unit").unique()
         if len(l_unit) != 1:
@@ -534,7 +534,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
             scaling_factor=scaling_factor,
             l_0=l_0,
             f_0=f_0,
-            f_unit=f_unit,
+            f_unit=f_unit_str,
             calculation_year=harmonisation_yr_use,
             f_calculation_year=f_harmonisation_year,
         )
@@ -570,7 +570,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
             ur = openscm_units.unit_registry
         except ImportError:
             msg = "convert_unit_like(..., ur=None, ...)", "openscm_units"
-            raise MissingOptionalDependencyError(msg)
+            raise MissingOptionalDependencyError(msg, requirement="openscm_units")
 
     # try:
     #     import pandas_openscm
