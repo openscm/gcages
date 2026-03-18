@@ -12,11 +12,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+import openscm_units
 import pandas as pd
 import pandas_indexing as pix
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
-from pint import UnitRegistry
 
 from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
@@ -180,8 +180,7 @@ def get_direct_copy_infiller(
         if len(scenario_l) != 1:
             raise AssertionError(scenario_l)
         scenario = scenario_l[0]
-
-        res = copy_from.loc[pix.isin(variable=variable)].pix.assign(
+        res = copy_from[pix.isin(variable=variable)].pix.assign(
             model=model, scenario=scenario
         )
 
@@ -449,14 +448,23 @@ def get_pre_industrial_aware_direct_scaling_infiller(
     infillers_scaling = {}
 
     for follower, leader in scaling_leaders.items():
-        lead_df = historical_emissions.loc[pix.isin(variable=[leader])]
-        follow_df = historical_emissions.loc[pix.isin(variable=[follower])]
-        lead_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
-            pix.isin(variable=[leader])
-        ]
-        follow_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names.loc[
-            pix.isin(variable=[follower])
-        ]
+        lead_mask = historical_emissions.index.get_level_values(
+            "variable"
+        ).str.contains(leader, regex=False)
+        lead_df = historical_emissions[lead_mask]
+        follow_mask = historical_emissions.index.get_level_values(
+            "variable"
+        ).str.contains(follower, regex=False)
+        follow_df = historical_emissions[follow_mask]
+
+        lead_mask = cmip7_ghg_inversions_reporting_names.index.get_level_values(
+            "variable"
+        ).str.contains(leader, regex=False)
+        lead_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names[lead_mask]
+        follow_mask = cmip7_ghg_inversions_reporting_names.index.get_level_values(
+            "variable"
+        ).str.contains(follower, regex=False)
+        follow_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names[follow_mask]
 
         f_unit = follow_df.pix.unique("unit")
         if len(f_unit) != 1:
@@ -514,7 +522,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     cmip7_scenariomip_global_historical_emissions_file: Path,
     cmip7_scenariomip_infilling_leader_emissions_file: Path,
     cmip7_ghg_inversions_file: Path,
-    ur: UnitRegistry | None = None,
+    ur: openscm_units.unit_registry | None = None,
 ) -> CMIP7ScenarioMIPInfilledScenarios:
     """
     Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
@@ -529,25 +537,24 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     :
         Infilled DataFrame
     """
-    PI_YEAR = 1750
-    HARMONISATION_YEAR = 2023
+    # if ur is None:
+    try:
+        import openscm_units
 
-    if ur is None:
-        try:
-            import openscm_units
-
-            ur = openscm_units.unit_registry
-        except ImportError:
-            raise MissingOptionalDependencyError(  # noqa: TRY003
-                "convert_unit_like(..., ur=None, ...)", "openscm_units"
-            )
+        ur = openscm_units.unit_registry
+    except ImportError:
+        raise MissingOptionalDependencyError(  # noqa: TRY003
+            "convert_unit_like(..., ur=None, ...)", "openscm_units"
+        )
 
     try:
         import pandas_openscm
 
         pandas_openscm.register_pandas_accessor()
-    except ImportError:
-        pass
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_silicone_based_infiller", requirement="pandas_openscm"
+        ) from exc
 
     try:
         import silicone.database_crunchers  # type: ignore # silicone has no type hints
@@ -555,6 +562,9 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         raise MissingOptionalDependencyError(
             "get_silicone_based_infiller", requirement="silicone"
         ) from exc
+
+    PI_YEAR = 1750
+    HARMONISATION_YEAR = 2023
 
     infilling_sources = load_infill_sources(
         cmip7_scenariomip_infilling_leader_emissions_file,
