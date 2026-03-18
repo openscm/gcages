@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import openscm_units
 import pandas as pd
-import pandas_indexing as pix
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
@@ -171,6 +170,13 @@ def get_direct_copy_infiller(
     """
 
     def infiller(inp: pd.DataFrame) -> pd.DataFrame:
+        try:
+            from pandas_indexing.selectors import isin as pix_isin
+        except ImportError as exc:
+            raise MissingOptionalDependencyError(
+                "get_direct_copy_infiller", requirement="pandas_indexing"
+            ) from exc
+
         model_l = inp.index.get_level_values("model").unique()
         if len(model_l) != 1:
             raise AssertionError(model_l)
@@ -180,8 +186,10 @@ def get_direct_copy_infiller(
         if len(scenario_l) != 1:
             raise AssertionError(scenario_l)
         scenario = scenario_l[0]
-        mask = copy_from.index.get_level_values("variable") == variable
-        res = copy_from[mask].pix.assign(model=model, scenario=scenario)
+
+        res = copy_from.loc[pix_isin(variable=variable)].pix.assign(
+            model=model, scenario=scenario
+        )
 
         return res
 
@@ -192,11 +200,11 @@ def get_direct_scaling_infiller(  # noqa: PLR0913
     leader: str,
     follower: str,
     scaling_factor: float,
-    l_0: np.ndarray[float],
-    f_0: np.ndarray[float],
+    l_0: float,
+    f_0: float,
     f_unit: str,
     calculation_year: int,
-    f_calculation_year: np.ndarray[int],
+    f_calculation_year: int,
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
     """
     Get an infiller which just scales one set of emissions to create the next set
@@ -206,7 +214,8 @@ def get_direct_scaling_infiller(  # noqa: PLR0913
     """
 
     def infiller(inp: pd.DataFrame) -> pd.DataFrame:
-        lead_df = inp.loc[pix.isin(variable=[leader])]
+        mask = inp.index.get_level_values("variable").str.contains(leader, regex=False)
+        lead_df = inp[mask]
 
         follow_df = (scaling_factor * (lead_df - l_0) + f_0).pix.assign(
             variable=follower, unit=f_unit
@@ -243,6 +252,13 @@ def infill(
 
         If nothing was infilled, `None` is returned
     """
+    try:
+        from pandas_indexing.core import concat
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "infill", requirement="pandas_indexing"
+        ) from exc
+
     infilled_l = []
     for variable in infillers:
         for (model, scenario), msdf in indf.groupby(["model", "scenario"]):
@@ -252,7 +268,7 @@ def infill(
     if not infilled_l:
         return None
 
-    return pix.concat(infilled_l)
+    return concat(infilled_l)
 
 
 def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFrame:
@@ -275,8 +291,15 @@ def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFr
     :
         Complete data i.e. the combination of `indf` and `infilled`
     """
+    try:
+        from pandas_indexing.core import concat
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "infill", requirement="pandas_indexing"
+        ) from exc
+
     if infilled is not None:
-        complete = pix.concat([indf, infilled])
+        complete = concat([indf, infilled])
 
     else:
         complete = indf
@@ -469,7 +492,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         if len(f_unit) != 1:
             msg = f"Multiple units for {follower=}: {f_unit}"
             raise AssertionError(msg)
-        f_unit = f_unit[0].replace("-", "")
+        f_unit = str(f_unit[0]).replace("-", "")
 
         l_unit = lead_df.index.get_level_values("unit").unique()
         if len(l_unit) != 1:
@@ -488,8 +511,8 @@ def get_pre_industrial_aware_direct_scaling_infiller(
             msg = f"No valid harmonisation year for {follower=}/{leader=}"
             raise AssertionError(msg)
 
-        f_0 = follow_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze()
-        l_0 = lead_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze()
+        f_0 = follow_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze().item()
+        l_0 = lead_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze().item()
 
         scaling_factor = (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
 
@@ -536,7 +559,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     :
         Infilled DataFrame
     """
-    # if ur is None:
     try:
         import openscm_units
 
