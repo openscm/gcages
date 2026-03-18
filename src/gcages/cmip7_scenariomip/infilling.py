@@ -481,7 +481,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         for harmonisation_yr_use in [harmonisation_year, 2021]:
             l_harmonisation_year = lead_df[harmonisation_yr_use].to_numpy().squeeze()
 
-            f_harmonisation_year = follow_df[harmonisation_yr_use].values.squeeze()
+            f_harmonisation_year = follow_df[harmonisation_yr_use].to_numpy().squeeze()
 
             if not (pd.isnull(l_harmonisation_year) or pd.isnull(f_harmonisation_year)):
                 break
@@ -489,8 +489,8 @@ def get_pre_industrial_aware_direct_scaling_infiller(
             msg = f"No valid harmonisation year for {follower=}/{leader=}"
             raise AssertionError(msg)
 
-        f_0 = follow_cmip7_inverse_df[pre_industrial_year].values.squeeze()
-        l_0 = lead_cmip7_inverse_df[pre_industrial_year].values.squeeze()
+        f_0 = follow_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze()
+        l_0 = lead_cmip7_inverse_df[pre_industrial_year].to_numpy().squeeze()
 
         scaling_factor = (f_harmonisation_year - f_0) / (l_harmonisation_year - l_0)
 
