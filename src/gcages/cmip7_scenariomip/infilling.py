@@ -171,18 +171,17 @@ def get_direct_copy_infiller(
     """
 
     def infiller(inp: pd.DataFrame) -> pd.DataFrame:
-        model_l = inp.pix.unique("model")
+        model_l = inp.index.get_level_values("model").unique()
         if len(model_l) != 1:
             raise AssertionError(model_l)
         model = model_l[0]
 
-        scenario_l = inp.pix.unique("scenario")
+        scenario_l = inp.index.get_level_values("scenario").unique()
         if len(scenario_l) != 1:
             raise AssertionError(scenario_l)
         scenario = scenario_l[0]
-        res = copy_from[pix.isin(variable=variable)].pix.assign(
-            model=model, scenario=scenario
-        )
+        mask = copy_from.index.get_level_values("variable") == variable
+        res = copy_from[mask].pix.assign(model=model, scenario=scenario)
 
         return res
 
@@ -261,7 +260,7 @@ def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFr
     Get a complete set of timeseries
 
     This is just a convenience function to help deal with the fact
-    that [infill][] can return `None`.
+    that [infill][gcages.cmip7_scenariomip.infilling.infill] can return `None`.
 
     Parameters
     ----------
@@ -269,7 +268,7 @@ def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFr
         Input data
 
     infilled
-        Results of infilling using [infill][]
+        Results of infilling using [infill][gcages.cmip7_scenariomip.infilling.infill]
 
     Returns
     -------
@@ -466,13 +465,13 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         ).str.contains(follower, regex=False)
         follow_cmip7_inverse_df = cmip7_ghg_inversions_reporting_names[follow_mask]
 
-        f_unit = follow_df.pix.unique("unit")
+        f_unit = follow_df.index.get_level_values("unit").unique()
         if len(f_unit) != 1:
             msg = f"Multiple units for {follower=}: {f_unit}"
             raise AssertionError(msg)
         f_unit = f_unit[0].replace("-", "")
 
-        l_unit = lead_df.pix.unique("unit")
+        l_unit = lead_df.index.get_level_values("unit").unique()
         if len(l_unit) != 1:
             msg = f"Multiple units for {leader=}: {l_unit}"
             raise AssertionError(msg)

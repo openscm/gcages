@@ -229,7 +229,7 @@ def assert_harmonised(  # noqa: PLR0913
             history_a_vdf = history_harm_year_aligned.loc[mask]
             species = str(variable).split("|")[1]
             if species in species_tolerances:
-                unit_l = scen_a_vdf.pix.unique("unit").tolist()
+                unit_l = scen_a_vdf.index.get_level_values("unit").unique()
                 if len(unit_l) != 1:
                     raise AssertionError(unit_l)
                 unit = unit_l[0]
