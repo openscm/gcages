@@ -196,11 +196,11 @@ def get_direct_scaling_infiller(  # noqa: PLR0913
     leader: str,
     follower: str,
     scaling_factor: float,
-    l_0: float,
-    f_0: float,
+    l_0: np.ndarray,
+    f_0: np.ndarray,
     f_unit: str,
     calculation_year: int,
-    f_calculation_year: float,
+    f_calculation_year: np.ndarray,
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
     """
     Get an infiller which just scales one set of emissions to create the next set
@@ -402,8 +402,8 @@ def get_pre_industrial_aware_direct_scaling_infiller(
     historical_emissions: pd.DataFrame,
     cmip7_ghg_inversions_reporting_names: pd.DataFrame,
     scaling_leaders: dict[str, str],
-    harmonisation_year: int | None = 2023,
-    pre_industrial_year: int | None = 1750,
+    harmonisation_year: int = 2023,
+    pre_industrial_year: int = 1750,
 ) -> dict[str, Any]:
     """
     Build pre-industrial-aware direct scaling infillers for follower/leader pairs.
@@ -583,12 +583,12 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         species_aware_cmip7=True,
         ur=ur,
     )
-    wmo_locator = pix.ismatch(model="WMO**")
-    infilling_wmo = infilling_db.loc[wmo_locator]
+    wmo_mask = infilling_db.index.get_level_values("model").str.contains("WMO")
+    infilling_wmo = infilling_db[wmo_mask]
 
-    velders_locator = pix.ismatch(model="Velders**")
+    velders_mask = infilling_db.index.get_level_values("model").str.contains("Velders")
 
-    infilling_silicone = infilling_db.loc[~wmo_locator & ~velders_locator]
+    infilling_silicone = infilling_db[~wmo_mask & ~velders_mask]
 
     # Infill
 
@@ -597,9 +597,13 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
 
     vl_model, vl_scenario = ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions")
 
-    vl_marker = harmonised_emissions.loc[
-        pix.isin(model=vl_model) & pix.isin(scenario=vl_scenario)
-    ]
+    mask = harmonised_emissions.index.get_level_values("model").str.contains(
+        vl_model
+    ) & harmonised_emissions.index.get_level_values("scenario").str.contains(
+        vl_scenario
+    )
+
+    vl_marker = harmonised_emissions[mask]
 
     if not vl_marker.empty:
         lead_vl_marker = "Emissions|CO2|Energy and Industrial Processes"
