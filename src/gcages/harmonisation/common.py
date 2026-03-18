@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
-import pandas_indexing as pix
 
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.testing import compare_close
@@ -178,7 +177,10 @@ def assert_harmonised(  # noqa: PLR0913
     NotHarmonisedError
         `df` is not harmonised to `history`
     """
-    history = history.loc[pix.isin(variable=df.pix.unique("variable"))].reset_index(
+    variables_df = df.index.get_level_values("variable").unique()
+    history = history.loc[
+        history.index.get_level_values("variable").isin(variables_df)
+    ].reset_index(
         level=[lvl for lvl in ["model", "scenario"] if lvl in history.index.names],
         drop=True,
     )
@@ -223,7 +225,8 @@ def assert_harmonised(  # noqa: PLR0913
             }
         diffs = []
         for variable, scen_a_vdf in df_harm_year_aligned.groupby("variable"):
-            history_a_vdf = history_harm_year_aligned.loc[pix.isin(variable=variable)]
+            mask = df.index.get_level_values("variable") == variable
+            history_a_vdf = history_harm_year_aligned.loc[mask]
             species = variable.split("|")[1]
             if species in species_tolerances:
                 unit_l = scen_a_vdf.pix.unique("unit").tolist()

@@ -487,29 +487,25 @@ display(fg.fig)
 # [silicone](https://github.com/GranthamImperial/silicone) package.
 
 # %%
-BASE_DIR = Path.cwd().parent.parent
-
-CMIP7_SCENARIOMIP_INFILLING_FILE = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+CMIP7_SCENARIOMIP_INFILLING_FILE = Path(
+    "tests/regression"
+    / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
     / "infilling_cmip7_scenariomip.csv"
 )
-GHG_INVERSION_FILE = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip"
-    / "cmip7-scenariomip-workflow-inputs/cmip7_ghg_inversions.csv"
+if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+    CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
+    if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+        raise AssertionError
+
+GHG_INVERSION_FILE = Path(
+    "tests/regression"
+    / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+    / "cmip7_ghg_inversions.csv"
 )
-
-files = [CMIP7_SCENARIOMIP_INFILLING_FILE, GHG_INVERSION_FILE]
-
-for file in files:
-    CMIP7_SCENARIOMIP_FILE = Path(file)
-
-    if not CMIP7_SCENARIOMIP_FILE.exists():
-        CMIP7_SCENARIOMIP_FILE = Path("../..") / CMIP7_SCENARIOMIP_FILE
-        if not CMIP7_SCENARIOMIP_FILE.exists():
-            raise AssertionError
-
+if not GHG_INVERSION_FILE.exists():
+    GHG_INVERSION_FILE = Path("../..") / GHG_INVERSION_FILE
+    if not GHG_INVERSION_FILE.exists():
+        raise AssertionError
 # %%
 harmonised_global = harmonised_global.rename(
     index={

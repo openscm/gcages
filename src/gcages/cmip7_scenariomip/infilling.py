@@ -14,7 +14,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pandas_indexing as pix
-import pyam
 import silicone.database_crunchers
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
@@ -121,6 +120,15 @@ def get_silicone_based_infiller(
     :
         Function which can be used to infill `follower_variable` in scenarios
     """
+    try:
+        import pyam
+    except ImportError:
+        msg = (
+            "pyam required for CMIP7 ScenarioMIP infilling. "
+            "Install with: poetry install --with test"
+        )
+        raise ImportError(msg) from None
+
     if derive_relationship_kwargs is None:
         derive_relationship_kwargs = {}
 
