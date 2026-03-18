@@ -56,7 +56,7 @@ class CMIP7ScenarioMIPInfilledScenarios:
     Complete infilled emissions
     """
 
-    def _add(self, name: str, df: pd.DataFrame):
+    def _add(self, name: str, df: pd.DataFrame) -> None:
         """
         Add an infilled emissions DataFrame as an attribute.
 
@@ -124,12 +124,10 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
     """
     try:
         import pyam
-    except ImportError:
-        msg = (
-            "pyam required for CMIP7 ScenarioMIP infilling. "
-            "Install with: poetry install --with test"
-        )
-        raise ImportError(msg) from None
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_silicone_based_infiller", requirement="pyam"
+        ) from exc
 
     if derive_relationship_kwargs is None:
         derive_relationship_kwargs = {}
@@ -604,13 +602,12 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     )
 
     vl_marker = harmonised_emissions[mask]
+    unique_var = infilling_silicone.index.get_level_values("variable").unique()
 
     if not vl_marker.empty:
         lead_vl_marker = "Emissions|CO2|Energy and Industrial Processes"
         infillers_silicone_vl_marker = {}
-        for variable in [
-            v for v in infilling_silicone.pix.unique("variable") if v != lead_vl_marker
-        ]:
+        for variable in [v for v in unique_var if v != lead_vl_marker]:
             infillers_silicone_vl_marker[variable] = get_silicone_based_infiller(
                 infilling_db=infilling_silicone,
                 follower_variable=variable,
@@ -632,7 +629,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
 
     lead = "Emissions|CO2|Energy and Industrial Processes"
     infillers_silicone = {}
-    for variable in [v for v in infilling_silicone.pix.unique("variable") if v != lead]:
+    for variable in [v for v in unique_var if v != lead]:
         infillers_silicone[variable] = get_silicone_based_infiller(
             infilling_db=infilling_silicone,
             follower_variable=variable,
@@ -649,7 +646,8 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     # Infill
 
     infillers_wmo = {}
-    for wmo_var in infilling_wmo.pix.unique("variable"):
+    unique_var = infilling_wmo.index.get_level_values("variable").unique()
+    for wmo_var in unique_var:
         infillers_wmo[wmo_var] = get_direct_copy_infiller(
             variable=wmo_var,
             copy_from=infilling_wmo,
@@ -717,7 +715,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         ("complete", complete),
     ):
         if df is not None:
-            years = [c for c in df.columns if isinstance(c, (int, float))]
+            years = [c for c in df.columns if pd.api.types.is_numeric_dtype([c])]
             other_cols = [c for c in df.columns if c not in years]
             infilled._add(ids, df[other_cols + sorted(years)])
 
