@@ -227,7 +227,7 @@ def assert_harmonised(  # noqa: PLR0913
         for variable, scen_a_vdf in df_harm_year_aligned.groupby("variable"):
             mask = df.index.get_level_values("variable") == variable
             history_a_vdf = history_harm_year_aligned.loc[mask]
-            species = variable.split("|")[1]
+            species = str(variable).split("|")[1]
             if species in species_tolerances:
                 unit_l = scen_a_vdf.pix.unique("unit").tolist()
                 if len(unit_l) != 1:

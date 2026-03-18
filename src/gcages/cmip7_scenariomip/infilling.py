@@ -193,11 +193,11 @@ def get_direct_scaling_infiller(  # noqa: PLR0913
     leader: str,
     follower: str,
     scaling_factor: float,
-    l_0: np.ndarray,
-    f_0: np.ndarray,
+    l_0: np.ndarray[float],
+    f_0: np.ndarray[float],
     f_unit: str,
     calculation_year: int,
-    f_calculation_year: np.ndarray,
+    f_calculation_year: np.ndarray[int],
 ) -> Callable[[pd.DataFrame], pd.DataFrame]:
     """
     Get an infiller which just scales one set of emissions to create the next set
@@ -479,7 +479,7 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         l_unit = l_unit[0].replace("-", "")
 
         for harmonisation_yr_use in [harmonisation_year, 2021]:
-            l_harmonisation_year = lead_df[harmonisation_yr_use].values.squeeze()
+            l_harmonisation_year = lead_df[harmonisation_yr_use].to_numpy().squeeze()
 
             f_harmonisation_year = follow_df[harmonisation_yr_use].values.squeeze()
 
