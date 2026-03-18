@@ -501,9 +501,13 @@ def get_pre_industrial_aware_direct_scaling_infiller(
         l_unit = l_unit[0].replace("-", "")
 
         for harmonisation_yr_use in [harmonisation_year, 2021]:
-            l_harmonisation_year = lead_df[harmonisation_yr_use].to_numpy().squeeze()
+            l_harmonisation_year = (
+                lead_df[harmonisation_yr_use].to_numpy().squeeze().item()
+            )
 
-            f_harmonisation_year = follow_df[harmonisation_yr_use].to_numpy().squeeze()
+            f_harmonisation_year = (
+                follow_df[harmonisation_yr_use].to_numpy().squeeze().item()
+            )
 
             if not (pd.isnull(l_harmonisation_year) or pd.isnull(f_harmonisation_year)):
                 break
@@ -559,14 +563,14 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     :
         Infilled DataFrame
     """
-    try:
-        import openscm_units
-
-        ur = openscm_units.unit_registry
-    except ImportError:
-        raise MissingOptionalDependencyError(  # noqa: TRY003
-            "convert_unit_like(..., ur=None, ...)", "openscm_units"
-        )
+    # try:
+    #     import openscm_units
+    #
+    #     ur = openscm_units.unit_registry
+    # except ImportError:
+    #     raise MissingOptionalDependencyError(
+    #         "convert_unit_like(..., ur=None, ...)", "openscm_units"
+    #     )
 
     try:
         import pandas_openscm
