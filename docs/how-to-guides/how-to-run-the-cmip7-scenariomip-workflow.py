@@ -106,16 +106,8 @@ start = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_type=int,
+    out_columns_name="year",
 )
-
-# %% editable=true slideshow={"slide_type": ""}
-start = start.loc[:, 2015:2100].dropna(how="all", axis="columns")
-if start.empty:
-    raise AssertionError
-
-start.columns.name = "year"
-
-start = start.T.interpolate(method="index").T
 
 # %% editable=true slideshow={"slide_type": ""}
 relplot_in_emms = partial(
@@ -378,8 +370,6 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
 
 # %% editable=true slideshow={"slide_type": ""}
 harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions)
-# harmonised_global = harmoniser_global(
-#                     res_pre_processed.global_workflow_emissions_raw_names)
 harmonised_global
 
 # %% [markdown]
@@ -422,11 +412,6 @@ fg = relplot_in_emms(
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
-
-# %%
-from IPython.display import display
-
-display(fg.fig)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Region-sector (i.e. gridding level)
@@ -488,28 +473,19 @@ display(fg.fig)
 
 # %%
 BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
+CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_db_cmip7_scenariomip.csv"
+GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
 
-CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_cmip7_scenariomip.csv"
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
 if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
     CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
     if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
         raise AssertionError
 
-GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
 if not GHG_INVERSION_FILE.exists():
     GHG_INVERSION_FILE = Path("../..") / GHG_INVERSION_FILE
     if not GHG_INVERSION_FILE.exists():
         raise AssertionError
-# %%
-harmonised_global = harmonised_global.rename(
-    index={
-        "Emissions|CO2|Fossil": "Emissions|CO2|Energy and Industrial Processes",
-        "Emissions|CO2|Biosphere": "Emissions|CO2|AFOLU",
-        "Emissions|SOx": "Emissions|Sulfur",
-        "Emissions|NMVOC": "Emissions|VOC",
-    },
-    level="variable",
-)
 
 # %%
 infilled = create_cmip7_scenariomip_infilled_df(
@@ -518,9 +494,6 @@ infilled = create_cmip7_scenariomip_infilled_df(
     cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
     cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
 )
-
-# %%
-infilled.complete.iloc[0:11]
 
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
@@ -574,9 +547,6 @@ fg = relplot_in_emms(
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
-
-# %%
-display(fg.fig)
 
 # %% [markdown]
 # ## SCM Running

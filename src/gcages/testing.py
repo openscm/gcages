@@ -409,7 +409,55 @@ def get_cmip7_scenariomip_harmonised_emissions(
         / f"{model}_{scenario}_harmonised.csv",
         index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
         out_columns_type=int,
+        out_columns_name="year",
     )
+
+    return res
+
+
+@functools.cache
+def get_cmip7_scenariomip_infilled_emissions(
+    model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get infilled emissions from CMIP7 ScenarioMIP outputs
+
+    Parameters
+    ----------
+    model
+        Model for which to retrieve outputs
+
+    scenario
+        Scenario for which to retrieve outputs
+
+    processed_cmip7_scenariomip_output_data_dir
+        Directory in which the CMIP7 ScenarioMIP output was saved
+
+    Returns
+    -------
+    :
+        All infilled emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+    """
+    try:
+        from pandas_indexing.selectors import ismatch as pix_ismatch
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_ar6_infilled_emissions", requirement="pandas_indexing"
+        ) from exc
+
+    res = load_timeseries_csv(
+        processed_cmip7_scenariomip_output_data_dir
+        / f"{model}_{scenario}_infilled.csv",
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_columns_type=int,
+        out_columns_name="year",
+    )
+    res = res.loc[:, 2023:2100]
+    # Select scenario and drop aggregated/cumulative rows
+    res = res.loc[
+        pix_ismatch(scenario=scenario)
+        & ~pix_ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
+    ]
 
     return res
 

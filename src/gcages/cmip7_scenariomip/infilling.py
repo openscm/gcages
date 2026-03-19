@@ -6,13 +6,13 @@ from __future__ import annotations
 
 import platform
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
+from attrs import define, field
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
@@ -31,45 +31,32 @@ if TYPE_CHECKING:
     from pint import UnitRegistry
 
 
-@dataclass
+@define
 class CMIP7ScenarioMIPInfilledScenarios:
     """
     Result of infilling
 
     """
 
-    silicone: pd.DataFrame | None = None
+    silicone: pd.DataFrame = field()
     """
     Emissions silicone infilled
     """
-    wmo: pd.DataFrame | None = None
+    wmo: pd.DataFrame = field()
     """
     Emissions wmo infilled
     """
-    scaled: pd.DataFrame | None = None
+    scaled: pd.DataFrame = field()
     """
     Emissions scaled infilled
     """
-    complete: pd.DataFrame | None = None
+    complete: pd.DataFrame = field()
     """
     Complete infilled emissions
     """
 
-    def _add(self, name: str, df: pd.DataFrame) -> None:
-        """
-        Add an infilled emissions DataFrame as an attribute.
 
-        Parameters
-        ----------
-        name
-            Attribute name to assign.
-        df
-            Emissions dataset to attach.
-        """
-        setattr(self, name, df)
-
-
-@dataclass
+@define
 class InfillingSources:
     """
     Source needed for infilling
@@ -311,7 +298,7 @@ def load_cmip7_scenariomip_infilling_db(
     filepath: Path, check_hash: bool = True
 ) -> pd.DataFrame:
     """
-    Load infilling emissions for CMIP7 ScenarioMIP harmonisation.
+    Load infilling database for CMIP7 ScenarioMIP harmonisation.
 
     Parameters
     ----------
@@ -380,8 +367,8 @@ def load_cmip7_scenariomip_ghg_inversions(
         lower_column_names=True,
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
+        out_columns_name="year",
     )
-    res.columns.name = "year"
 
     return res
 
@@ -574,15 +561,6 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
                 requirement="openscm_units",
             ) from exc
 
-    # try:
-    #     import pandas_openscm
-    #
-    #     pandas_openscm.register_pandas_accessor()
-    # except ImportError as exc:
-    #     raise MissingOptionalDependencyError(
-    #         "get_silicone_based_infiller", requirement="pandas_openscm"
-    #     ) from exc
-    #
     try:
         import silicone.database_crunchers  # type: ignore # silicone has no type hints
     except ImportError as exc:
@@ -590,6 +568,9 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
             "get_silicone_based_infiller", requirement="silicone"
         ) from exc
 
+    # Hardcode as we are matching CMIP7 ScenarioMIP exactly.
+    # Users can copy and modify themselves if they wish
+    # (or we can introduce a lower layer if lots of users want it)
     PI_YEAR = 1750
     HARMONISATION_YEAR = 2023
 
@@ -599,34 +580,39 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         cmip7_ghg_inversions_file,
     )
 
-    infilling_db = infilling_sources.infilling_db
-    historical_emissions = infilling_sources.historical_emissions
-    cmip7_ghg_inversions = infilling_sources.cmip7_ghg_inversions
-
     # Check that the infilling database and scenario data are harmonised the same
     assert_harmonised(
         harmonised_emissions,
-        history=historical_emissions,
+        history=infilling_sources.historical_emissions,
         harmonisation_time=HARMONISATION_YEAR,
         species_aware_cmip7=True,
         ur=ur,
     )
     assert_harmonised(
-        infilling_db,
-        history=historical_emissions,
+        infilling_sources.infilling_db,
+        history=infilling_sources.historical_emissions,
         harmonisation_time=HARMONISATION_YEAR,
         species_aware_cmip7=True,
         ur=ur,
     )
-    wmo_mask = infilling_db.index.get_level_values("model").str.contains("WMO")
-    infilling_wmo = infilling_db[wmo_mask]
+    infilling_wmo = infilling_sources.infilling_db[
+        infilling_sources.infilling_db.index.get_level_values("model").str.contains(
+            "WMO"
+        )
+    ]
 
-    velders_mask = infilling_db.index.get_level_values("model").str.contains("Velders")
-
-    infilling_silicone = infilling_db[~wmo_mask & ~velders_mask]
+    infilling_silicone = infilling_sources.infilling_db[
+        ~infilling_sources.infilling_db.index.get_level_values("model").str.contains(
+            "WMO"
+        )
+        & ~infilling_sources.infilling_db.index.get_level_values("model").str.contains(
+            "Velders"
+        )
+    ]
 
     # Infill
 
+    # TODO: split this out somehow
     ### Very low marker should use F-gas emissions in line with Kigali
     # We get these from [Velders et al., 2022](https://zenodo.org/records/6520707)
 
@@ -727,11 +713,11 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     }
 
     cmip7_ghg_inversions_reporting_names = update_index_levels_func(
-        cmip7_ghg_inversions, {"variable": to_reporting_names}
+        infilling_sources.cmip7_ghg_inversions, {"variable": to_reporting_names}
     )
 
     infillers_scaling = get_pre_industrial_aware_direct_scaling_infiller(
-        historical_emissions=historical_emissions,
+        historical_emissions=infilling_sources.historical_emissions,
         cmip7_ghg_inversions_reporting_names=cmip7_ghg_inversions_reporting_names,
         scaling_leaders=scaling_leaders,
         harmonisation_year=HARMONISATION_YEAR,
@@ -744,7 +730,7 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
     ## Check completeness
     assert_all_groups_are_complete(complete, complete_index_reporting_names)
 
-    infilled = CMIP7ScenarioMIPInfilledScenarios()
+    data_store = {}
     for ids, df in (
         ("silicone", infilled_silicone),
         ("wmo", infilled_wmo),
@@ -754,6 +740,10 @@ def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
         if df is not None:
             years = [c for c in df.columns if pd.api.types.is_numeric_dtype([c])]
             other_cols = [c for c in df.columns if c not in years]
-            infilled._add(ids, df[other_cols + sorted(years)])
+            data_store[ids] = df[other_cols + sorted(years)]
+        else:
+            data_store[ids] = None
+
+    infilled = CMIP7ScenarioMIPInfilledScenarios(**data_store)
 
     return infilled

@@ -177,14 +177,6 @@ class AnerisHarmoniser:
                     ).unique(),
                 )
             except NotAllowedMetadataValuesError as exc:
-                # TODO: delete?
-                # might be useful for gridding?
-                # try:
-                #     self.historical_emissions = multi_index_lookup(
-                #         self.historical_emissions,
-                #         in_emissions.index.droplevel(["model", "scenario"]),
-                #     )
-                # except Exception:
                 msg = "The input emissions contains values that aren't in history"
                 raise ValueError(msg) from exc
 
@@ -206,15 +198,10 @@ class AnerisHarmoniser:
         )
 
         if self.run_checks:
-            import openscm_units
-            import pint
-
-            pint.set_application_registry(openscm_units.unit_registry)  # type: ignore[no-untyped-call]
             assert_harmonised(
                 harmonised_df,
                 history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
-                ur=openscm_units.unit_registry,
             )
 
             pd.testing.assert_index_equal(

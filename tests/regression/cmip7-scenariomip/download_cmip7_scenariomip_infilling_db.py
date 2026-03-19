@@ -1,5 +1,5 @@
 """
-Download CMIP7 ScenarioMIP global-workflow history and save it as CSV.
+Download CMIP7 ScenarioMIP infilling database and save it as CSV.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def main() -> None:
     pooch.retrieve(
         url=URL,
         known_hash=KNOWN_HASH,
-        fname="infilled_cmip7_scenariomip.csv",
+        fname="infilling_db_cmip7_scenariomip.csv",
         path=output_dir,
         progressbar=True,
     )

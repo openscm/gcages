@@ -85,12 +85,12 @@ def load_aneris_overrides_file(filepath: Path) -> pd.Series[str]:
     """
     raw = pd.read_csv(filepath)
 
+    # TODO: better function for validating our overrides will work with the data
     if "method" not in raw.columns:
         msg = "'method' column is required in the overrides CSV"
         raise KeyError(msg)
 
-    index_cols = raw.columns.difference(["method"])
-    res = raw.set_index(list(index_cols))["method"].astype(str)
+    res = raw.set_index(list(raw.columns.difference(["method"])))["method"].astype(str)
 
     return res
 
@@ -105,26 +105,22 @@ def create_cmip7_scenariomip_global_harmoniser(
     """
     Create an Aneris harmoniser configured for CMIP7 ScenarioMIP global emissions.
 
-    This function loads the global historical emissions dataset, converts variable
-    names to the GCAGES convention, applies harmonisation overrides, and returns an
-    ``AnerisHarmoniser`` instance that reflects the ScenarioMIP global workflow.
-
     Parameters
     ----------
     cmip7_scenariomip_global_historical_emissions_file
-        Path to the CMIP7 ScenarioMIP global historical emissions dataset
+        File containing CMIP7 ScenarioMIP historical emissions.
 
     aneris_global_overrides_file
-        Path to the Aneris overrides file specifying harmonisation methods per variable
+        File containing aneris overrides for the global workflow.
 
     run_checks
-        Whether to perform internal validation checks on inputs and outputs
+        Should checks of input and output data be performed?
 
     progress
-        Whether to show progress indicators during harmonisation
+        Should progress bars be shown?
 
     n_processes
-        Number of parallel processes to use. Defaults to all available CPU cores.
+        Number of processes to use for parallel processing.
 
     Returns
     -------
