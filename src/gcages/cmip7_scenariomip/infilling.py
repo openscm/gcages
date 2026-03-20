@@ -548,11 +548,11 @@ class CMIP7ScenarioMIPInfiller:
     """
     Historical emissions used for harmonisation
     """
-    harmonisation_year: int | None = 2023
+    harmonisation_year: int = 2023
     """
     Year in which the data was harmonised
     """
-    pre_industrial_year: int | None = 1750
+    pre_industrial_year: int = 1750
     """
     Pre-Industrial year
     """
@@ -566,7 +566,7 @@ class CMIP7ScenarioMIPInfiller:
     are confident about what you're doing).
     """
 
-    ur: UnitRegistry | None = (None,)
+    ur: UnitRegistry | None = None
     """
     UnitRegistry
     """
@@ -576,7 +576,7 @@ class CMIP7ScenarioMIPInfiller:
     Output equivalent to CMIP7 ScenarioMIP
     """
 
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:  # noqa: PLR0915, PLR0912
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:  # noqa: PLR0915
         """
         Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
 
@@ -758,14 +758,6 @@ class CMIP7ScenarioMIPInfiller:
 
         if self.run_checks:
             pd.testing.assert_index_equal(infilled.columns, in_emissions.columns)
-
-            if self.historical_emissions is None:
-                msg = "`self.historical_emissions` must be set to check the infilling"
-                raise AssertionError(msg)
-
-            if self.harmonisation_year is None:
-                msg = "`self.harmonisation_year` must be set to check the infilling"
-                raise AssertionError(msg)
 
             assert_harmonised(
                 infilled,
