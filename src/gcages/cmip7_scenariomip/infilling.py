@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import platform
 from collections.abc import Callable, Mapping
-from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -24,7 +23,6 @@ from gcages.assertions import (
 from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
-from gcages.cmip7_scenariomip.scm_running import complete_index_reporting_names
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation.common import assert_harmonised
@@ -34,6 +32,74 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 if TYPE_CHECKING:
     import silicone  # type: ignore[import-untyped]
     from pint import UnitRegistry
+
+
+COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES = [
+    "Emissions|CO2|Biosphere",
+    "Emissions|CO2|Fossil",
+    "Emissions|BC",
+    "Emissions|CH4",
+    "Emissions|CO",
+    "Emissions|N2O",
+    "Emissions|NH3",
+    "Emissions|NMVOC",
+    "Emissions|NOx",
+    "Emissions|OC",
+    "Emissions|SOx",
+    "Emissions|C2F6",
+    "Emissions|C6F14",
+    "Emissions|CF4",
+    "Emissions|SF6",
+    "Emissions|HFC125",
+    "Emissions|HFC134a",
+    "Emissions|HFC143a",
+    "Emissions|HFC227ea",
+    "Emissions|HFC23",
+    "Emissions|HFC245fa",
+    "Emissions|HFC32",
+    "Emissions|HFC4310mee",
+    "Emissions|CCl4",
+    "Emissions|CFC11",
+    "Emissions|CFC113",
+    "Emissions|CFC114",
+    "Emissions|CFC115",
+    "Emissions|CFC12",
+    "Emissions|CH3CCl3",
+    "Emissions|HCFC141b",
+    "Emissions|HCFC142b",
+    "Emissions|HCFC22",
+    "Emissions|Halon1202",
+    "Emissions|Halon1211",
+    "Emissions|Halon1301",
+    "Emissions|Halon2402",
+    "Emissions|C3F8",
+    "Emissions|C4F10",
+    "Emissions|C5F12",
+    "Emissions|C7F16",
+    "Emissions|C8F18",
+    "Emissions|cC4F8",
+    "Emissions|SO2F2",
+    "Emissions|HFC236fa",
+    "Emissions|HFC152a",
+    "Emissions|HFC365mfc",
+    "Emissions|CH2Cl2",
+    "Emissions|CHCl3",
+    "Emissions|CH3Br",
+    "Emissions|CH3Cl",
+    "Emissions|NF3",
+]
+"""
+Complete set of input emissions using gcages' naming
+"""
+
+
+complete_index_gcages_names = pd.MultiIndex.from_product(
+    [COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES, ["World"]],
+    names=["variable", "region"],
+)
+"""
+Complete index using gcages' names
+"""
 
 
 @define
@@ -534,226 +600,6 @@ def get_pre_industrial_aware_direct_scaling_infiller(
     return infillers_scaling
 
 
-def create_cmip7_scenariomip_infilled_df(  # noqa: PLR0915
-    harmonised_emissions: pd.DataFrame,
-    *,
-    cmip7_scenariomip_global_historical_emissions_file: Path,
-    cmip7_scenariomip_infilling_leader_emissions_file: Path,
-    cmip7_ghg_inversions_file: Path,
-    ur: UnitRegistry | None = None,
-) -> CMIP7ScenarioMIPInfilledScenarios:
-    """
-    Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
-
-    Parameters
-    ----------
-    cmip7_scenariomip_infilling_leader_emissions_file
-        File containing CMIP7 ScenarioMIP historical emissions.
-
-    Returns
-    -------
-    :
-        Infilled DataFrame
-    """
-    if ur is None:
-        try:
-            import openscm_units
-
-            ur = openscm_units.unit_registry
-        except ImportError as exc:
-            raise MissingOptionalDependencyError(
-                "openscm_units",
-                requirement="openscm_units",
-            ) from exc
-
-    try:
-        import silicone.database_crunchers  # type: ignore # silicone has no type hints
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "get_silicone_based_infiller", requirement="silicone"
-        ) from exc
-
-    # Hardcode as we are matching CMIP7 ScenarioMIP exactly.
-    # Users can copy and modify themselves if they wish
-    # (or we can introduce a lower layer if lots of users want it)
-    PI_YEAR = 1750
-    HARMONISATION_YEAR = 2023
-
-    infilling_sources = load_infill_sources(
-        cmip7_scenariomip_infilling_leader_emissions_file,
-        cmip7_scenariomip_global_historical_emissions_file,
-        cmip7_ghg_inversions_file,
-    )
-
-    # Check that the infilling database and scenario data are harmonised the same
-    assert_harmonised(
-        harmonised_emissions,
-        history=infilling_sources.historical_emissions,
-        harmonisation_time=HARMONISATION_YEAR,
-        species_aware_cmip7=True,
-        ur=ur,
-    )
-    assert_harmonised(
-        infilling_sources.infilling_db,
-        history=infilling_sources.historical_emissions,
-        harmonisation_time=HARMONISATION_YEAR,
-        species_aware_cmip7=True,
-        ur=ur,
-    )
-    infilling_wmo = infilling_sources.infilling_db[
-        infilling_sources.infilling_db.index.get_level_values("model").str.contains(
-            "WMO"
-        )
-    ]
-
-    infilling_silicone = infilling_sources.infilling_db[
-        ~infilling_sources.infilling_db.index.get_level_values("model").str.contains(
-            "WMO"
-        )
-        & ~infilling_sources.infilling_db.index.get_level_values("model").str.contains(
-            "Velders"
-        )
-    ]
-
-    # Infill
-
-    # TODO: split this out somehow
-    ### Very low marker should use F-gas emissions in line with Kigali
-    # We get these from [Velders et al., 2022](https://zenodo.org/records/6520707)
-
-    vl_model, vl_scenario = ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions")
-
-    mask = harmonised_emissions.index.get_level_values("model").str.contains(
-        vl_model
-    ) & harmonised_emissions.index.get_level_values("scenario").str.contains(
-        vl_scenario
-    )
-
-    vl_marker = harmonised_emissions[mask]
-    unique_var = infilling_silicone.index.get_level_values("variable").unique()
-
-    if not vl_marker.empty:
-        lead_vl_marker = "Emissions|CO2|Energy and Industrial Processes"
-        infillers_silicone_vl_marker = {}
-        for variable in [v for v in unique_var if v != lead_vl_marker]:
-            infillers_silicone_vl_marker[variable] = get_silicone_based_infiller(
-                infilling_db=infilling_silicone,
-                follower_variable=variable,
-                lead_variables=[lead_vl_marker],
-                silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
-            )
-
-        infilled_vl_exception = infill(
-            vl_marker,
-            infillers_silicone_vl_marker,
-        )
-
-    else:
-        infilled_vl_exception = None
-
-    complete_vl_exception = get_complete(harmonised_emissions, infilled_vl_exception)
-
-    # Silicone
-
-    lead = "Emissions|CO2|Energy and Industrial Processes"
-    infillers_silicone = {}
-    for variable in [v for v in unique_var if v != lead]:
-        infillers_silicone[variable] = get_silicone_based_infiller(
-            infilling_db=infilling_silicone,
-            follower_variable=variable,
-            lead_variables=[lead],
-            silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
-        )
-
-    infilled_silicone = infill(
-        complete_vl_exception,
-        infillers_silicone,
-    )
-    complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
-
-    # Infill
-
-    infillers_wmo = {}
-    unique_var = infilling_wmo.index.get_level_values("variable").unique()
-    for wmo_var in unique_var:
-        infillers_wmo[wmo_var] = get_direct_copy_infiller(
-            variable=wmo_var,
-            copy_from=infilling_wmo,
-        )
-
-    infilled_wmo = infill(complete_silicone, infillers_wmo)
-    complete_wmo = get_complete(complete_silicone, infilled_wmo)
-
-    # Scale timeseries
-    #
-    # Surprisingly, this is the most mucking around of all.
-    # The hard part here is that the scaling needs to be aware
-    # of the fact that the pre-industrial value is different for each tiemseries.
-    # The naming mucking around also adds to the fun of course.
-
-    to_reporting_names = partial(
-        convert_variable_name,
-        from_convention=SupportedNamingConventions.GCAGES,
-        to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-    )
-
-    scaling_leaders_gcages = {
-        "Emissions|C3F8": "Emissions|C2F6",
-        "Emissions|C4F10": "Emissions|C2F6",
-        "Emissions|C5F12": "Emissions|C2F6",
-        "Emissions|C7F16": "Emissions|C2F6",
-        "Emissions|C8F18": "Emissions|C2F6",
-        "Emissions|cC4F8": "Emissions|CF4",
-        "Emissions|SO2F2": "Emissions|CF4",
-        "Emissions|HFC236fa": "Emissions|HFC245fa",
-        "Emissions|HFC152a": "Emissions|HFC4310mee",
-        "Emissions|HFC365mfc": "Emissions|HFC134a",
-        "Emissions|CH2Cl2": "Emissions|HFC134a",
-        "Emissions|CHCl3": "Emissions|C2F6",
-        "Emissions|NF3": "Emissions|SF6",
-    }
-    scaling_leaders = {
-        to_reporting_names(k): to_reporting_names(v)
-        for k, v in scaling_leaders_gcages.items()
-    }
-
-    cmip7_ghg_inversions_reporting_names = update_index_levels_func(
-        infilling_sources.cmip7_ghg_inversions, {"variable": to_reporting_names}
-    )
-
-    infillers_scaling = get_pre_industrial_aware_direct_scaling_infiller(
-        historical_emissions=infilling_sources.historical_emissions,
-        cmip7_ghg_inversions_reporting_names=cmip7_ghg_inversions_reporting_names,
-        scaling_leaders=scaling_leaders,
-        harmonisation_year=HARMONISATION_YEAR,
-        pre_industrial_year=PI_YEAR,
-    )
-
-    infilled_scaling = infill(complete_wmo, infillers_scaling)
-    complete = get_complete(complete_wmo, infilled_scaling)
-
-    ## Check completeness
-    assert_all_groups_are_complete(complete, complete_index_reporting_names)
-
-    data_store = {}
-    for ids, df in (
-        ("silicone", infilled_silicone),
-        ("wmo", infilled_wmo),
-        ("scaled", infilled_scaling),
-        ("complete", complete),
-    ):
-        if df is not None:
-            years = [c for c in df.columns if pd.api.types.is_numeric_dtype([c])]
-            other_cols = [c for c in df.columns if c not in years]
-            data_store[ids] = df[other_cols + sorted(years)]
-        else:
-            data_store[ids] = None
-
-    infilled = CMIP7ScenarioMIPInfilledScenarios(**data_store)
-
-    return infilled
-
-
 @define
 class CMIP7ScenarioMIPInfiller:
     """
@@ -890,7 +736,6 @@ class CMIP7ScenarioMIPInfiller:
         vl_marker = in_emissions[mask]
         unique_var = infilling_silicone.index.get_level_values("variable").unique()
         if not vl_marker.empty:
-            # lead_vl_marker = "Emissions|CO2|Energy and Industrial Processes"
             lead_vl_marker = "Emissions|CO2|Fossil"
             infillers_silicone_vl_marker = {}
             for variable in [v for v in unique_var if v != lead_vl_marker]:
@@ -912,8 +757,6 @@ class CMIP7ScenarioMIPInfiller:
         complete_vl_exception = get_complete(in_emissions, infilled_vl_exception)
 
         # Silicone
-
-        # lead = "Emissions|CO2|Energy and Industrial Processes"
         lead = "Emissions|CO2|Fossil"
         infillers_silicone = {}
         for variable in [v for v in unique_var if v != lead]:
@@ -995,7 +838,7 @@ class CMIP7ScenarioMIPInfiller:
                 rounding=5,  # level of data storage in historical data often
             )
             ## Check completeness
-            assert_all_groups_are_complete(infilled, complete_index_reporting_names)
+            assert_all_groups_are_complete(infilled, complete_index_gcages_names)
 
         if self.cmip7_scenariomip_output:
             # Use revert to cmip7 ScenatioMIP naming convention.

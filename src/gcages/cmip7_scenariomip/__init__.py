@@ -9,7 +9,6 @@ from gcages.cmip7_scenariomip.harmonisation import (
 )
 from gcages.cmip7_scenariomip.infilling import (
     CMIP7ScenarioMIPInfiller,
-    create_cmip7_scenariomip_infilled_df,
 )
 from gcages.cmip7_scenariomip.pre_processing import (
     CMIP7ScenarioMIPPreProcessingResult,
@@ -25,5 +24,4 @@ __all__ = [
     "ReaggregatorBasic",
     "ReaggregatorLike",
     "create_cmip7_scenariomip_global_harmoniser",
-    "create_cmip7_scenariomip_infilled_df",
 ]
