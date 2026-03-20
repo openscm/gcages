@@ -409,7 +409,6 @@ def get_cmip7_scenariomip_harmonised_emissions(
         / f"{model}_{scenario}_harmonised.csv",
         index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
         out_columns_type=int,
-        out_columns_name="year",
     )
 
     return res
