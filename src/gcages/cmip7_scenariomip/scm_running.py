@@ -157,11 +157,18 @@ Complete index using gcages' names
 
 complete_index_reporting_names = pd.MultiIndex.from_product(
     [
-        [to_reporting_names(v) for v in COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES],
+        [v for v in COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES],
         ["World"],
     ],
     names=["variable", "region"],
 )
+# complete_index_reporting_names = pd.MultiIndex.from_product(
+#     [
+#         [to_reporting_names(v) for v in COMPLETE_EMISSIONS_INPUT_VARIABLES_GCAGES],
+#         ["World"],
+#     ],
+#     names=["variable", "region"],
+# )
 """
 Complete index using reporting names
 """

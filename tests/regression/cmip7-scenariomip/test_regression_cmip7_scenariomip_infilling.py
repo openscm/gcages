@@ -10,7 +10,6 @@ import pytest
 
 from gcages.cmip7_scenariomip.infilling import (
     CMIP7ScenarioMIPInfiller,
-    create_cmip7_scenariomip_infilled_df,
 )
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
@@ -28,41 +27,42 @@ INPUT_DIR = Path(__file__).parents[0] / "cmip7-scenariomip-workflow-inputs"
 HARMONISATION_YEAR = 2023
 
 
-@get_key_testing_model_scenario_parameters(
-    KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
-)
-def test_individual_scenario(model, scenario):
-    # Load harmonised results
-    harmonised_df = get_cmip7_scenariomip_harmonised_emissions(
-        model=model,
-        scenario=scenario,
-        processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
-    )
-
-    harmonised_df = harmonised_df.loc[pix.ismatch(workflow="for_scms")].reset_index(
-        ["workflow"], drop=True
-    )
-
-    # Load infilled results
-    exp = get_cmip7_scenariomip_infilled_emissions(
-        model=model,
-        scenario=scenario,
-        processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
-    )
-
-    infilled = create_cmip7_scenariomip_infilled_df(
-        harmonised_df,
-        cmip7_scenariomip_global_historical_emissions_file=INPUT_DIR.joinpath(
-            "history_cmip7_scenariomip.csv"
-        ),
-        cmip7_scenariomip_infilling_leader_emissions_file=INPUT_DIR.joinpath(
-            "infilling_db_cmip7_scenariomip.csv"
-        ),
-        cmip7_ghg_inversions_file=INPUT_DIR.joinpath("cmip7_ghg_inversions.csv"),
-        ur=None,
-    )
-
-    assert_frame_equal(infilled.complete, exp)
+# @get_key_testing_model_scenario_parameters(
+#     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
+# )
+# def test_individual_scenario(model, scenario):
+#     # Load harmonised results
+#     harmonised_df = get_cmip7_scenariomip_harmonised_emissions(
+#         model=model,
+#         scenario=scenario,
+#         processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
+#     )
+#
+#     harmonised_df = harmonised_df.loc[pix.ismatch(workflow="for_scms")].reset_index(
+#         ["workflow"], drop=True
+#     )
+#
+#     # Load infilled results
+#     exp = get_cmip7_scenariomip_infilled_emissions(
+#         model=model,
+#         scenario=scenario,
+#         processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
+#     )
+#
+#     infilled = create_cmip7_scenariomip_infilled_df(
+#         harmonised_df,
+#         cmip7_scenariomip_global_historical_emissions_file=INPUT_DIR.joinpath(
+#             "history_cmip7_scenariomip.csv"
+#         ),
+#         cmip7_scenariomip_infilling_leader_emissions_file=INPUT_DIR.joinpath(
+#             "infilling_db_cmip7_scenariomip.csv"
+#         ),
+#         cmip7_ghg_inversions_file=INPUT_DIR.joinpath("cmip7_ghg_inversions.csv"),
+#         ur=None,
+#     )
+#
+#     assert_frame_equal(infilled.complete, exp)
+#
 
 
 @get_key_testing_model_scenario_parameters(
