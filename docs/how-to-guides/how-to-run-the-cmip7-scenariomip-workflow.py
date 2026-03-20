@@ -45,7 +45,7 @@ import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
 from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
 )
-from gcages.cmip7_scenariomip.infilling import create_cmip7_scenariomip_infilled_df
+from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
 from gcages.index_manipulation import split_sectors
 
@@ -487,25 +487,22 @@ if not GHG_INVERSION_FILE.exists():
     if not GHG_INVERSION_FILE.exists():
         raise AssertionError
 
-# %%
-infilled = create_cmip7_scenariomip_infilled_df(
-    harmonised_emissions=harmonised_global,
-    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
-    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
-    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
-)
-
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
 
 # %%
-# TBD
+infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
+    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
+    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+)
 
 # %% [markdown]
 # And infill
 
 # %%
-# TBD
+infilled = infiller(harmonised_global)
+infilled
 
 # %% [markdown]
 # You can see infilled pathways compared to raw pathways in the below.
@@ -522,7 +519,7 @@ pdf = (
                 stage="pre_processed"
             ),
             harmonised_global.pix.assign(stage="harmonised"),
-            infilled.complete.pix.assign(stage="infilled"),
+            infilled,
         ]
     )
     .loc[

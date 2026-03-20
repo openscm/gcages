@@ -24,7 +24,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.exceptions import MissingOptionalDependencyError
+from gcages.exceptions import MissingOptionalDependencyError, UnrecognisedValueError
 from gcages.harmonisation.common import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
@@ -608,18 +608,23 @@ class CMIP7ScenarioMIPInfiller:
                 "get_silicone_based_infiller", requirement="silicone"
             ) from exc
 
-        # Use gcages naming convention.
-        in_emissions = update_index_levels_func(
-            in_emissions,
-            {
-                "variable": lambda x: convert_variable_name(
-                    x,
-                    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                    to_convention=SupportedNamingConventions.GCAGES,
-                )
-            },
-            copy=False,
-        )
+        try:
+            # Use gcages naming convention.
+            in_emissions = update_index_levels_func(
+                in_emissions,
+                {
+                    "variable": lambda x: convert_variable_name(
+                        x,
+                        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                        to_convention=SupportedNamingConventions.GCAGES,
+                    )
+                },
+                copy=False,
+            )
+        # TODO does this make any sense?
+        except UnrecognisedValueError:
+            msg = "Assuming input data follows CMIP7_SCENARIOMIP naming convention."
+            print(msg)
 
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
