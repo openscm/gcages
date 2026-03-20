@@ -519,7 +519,7 @@ pdf = (
                 stage="pre_processed"
             ),
             harmonised_global.pix.assign(stage="harmonised"),
-            infilled,
+            infilled.pix.assign(stage="infilled"),
         ]
     )
     .loc[
