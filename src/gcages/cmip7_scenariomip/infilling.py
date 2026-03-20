@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pandas as pd
-from attrs import define, field
+from attrs import define
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
@@ -100,51 +100,6 @@ complete_index_gcages_names = pd.MultiIndex.from_product(
 """
 Complete index using gcages' names
 """
-
-
-@define
-class CMIP7ScenarioMIPInfilledScenarios:
-    """
-    Result of infilling
-
-    """
-
-    silicone: pd.DataFrame = field()
-    """
-    Emissions silicone infilled
-    """
-    wmo: pd.DataFrame = field()
-    """
-    Emissions wmo infilled
-    """
-    scaled: pd.DataFrame = field()
-    """
-    Emissions scaled infilled
-    """
-    complete: pd.DataFrame = field()
-    """
-    Complete infilled emissions
-    """
-
-
-@define
-class InfillingSources:
-    """
-    Source needed for infilling
-    """
-
-    infilling_db: pd.DataFrame
-    """
-    Infilling database
-    """
-    historical_emissions: pd.DataFrame
-    """
-    Historical emissions
-    """
-    cmip7_ghg_inversions: pd.DataFrame
-    """
-    Green house gasses inversions
-    """
 
 
 def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
@@ -444,36 +399,6 @@ def load_cmip7_scenariomip_ghg_inversions(
     return res
 
 
-def load_infill_sources(
-    cmip7_scenariomip_infilling_leader_emissions_file: Path,
-    cmip7_scenariomip_global_historical_emissions_file: Path,
-    cmip7_ghg_inversions_file: Path,
-) -> InfillingSources:
-    """Load all infill files: infilling_db, historical, ghg_inversions."""
-    # Still embargoed
-    infilling_db = load_cmip7_scenariomip_infilling_db(
-        filepath=cmip7_scenariomip_infilling_leader_emissions_file,
-        check_hash=False,  # TODO: update when available
-    )
-
-    # History
-    historical_emissions = load_cmip7_scenariomip_historical_emissions(
-        filepath=cmip7_scenariomip_global_historical_emissions_file,
-        check_hash=True,
-    )
-
-    # CMIP7 GHG inversions
-    cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
-        filepath=cmip7_ghg_inversions_file,
-    )
-
-    return InfillingSources(
-        infilling_db=infilling_db,
-        historical_emissions=historical_emissions,
-        cmip7_ghg_inversions=cmip7_ghg_inversions,
-    )
-
-
 def get_pre_industrial_aware_direct_scaling_infiller(
     *,
     historical_emissions: pd.DataFrame,
@@ -704,12 +629,18 @@ class CMIP7ScenarioMIPInfiller:
             )
             # Check that the infilling database and
             # scenario data are harmonised the same
+            history = self.historical_emissions.reset_index(
+                level=[
+                    lvl
+                    for lvl in ["model", "scenario"]
+                    if lvl in self.historical_emissions.index.names
+                ],
+                drop=True,
+            )
             assert_harmonised(
                 in_emissions,
-                history=self.historical_emissions,
+                history=history,
                 harmonisation_time=self.harmonisation_year,
-                species_aware_cmip7=True,
-                ur=self.ur,
             )
 
         infilling_wmo = self.infilling_db[
@@ -833,7 +764,7 @@ class CMIP7ScenarioMIPInfiller:
 
             assert_harmonised(
                 infilled,
-                history=self.historical_emissions,
+                history=history,
                 harmonisation_time=self.harmonisation_year,
                 rounding=5,  # level of data storage in historical data often
             )
@@ -963,9 +894,16 @@ class CMIP7ScenarioMIPInfiller:
         if run_checks:
             assert_harmonised(
                 infilling_db,
-                history=historical_emissions,
+                history=historical_emissions.reset_index(
+                    level=[
+                        lvl
+                        for lvl in ["model", "scenario"]
+                        if lvl in historical_emissions.index.names
+                    ],
+                    drop=True,
+                ),
                 harmonisation_time=HARMONISATION_YEAR,
-                species_aware_cmip7=True,
+                history_unit_level="unit",
                 ur=ur,
             )
         # TODO not sure here

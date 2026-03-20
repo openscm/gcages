@@ -4,19 +4,15 @@ Common tools across different approaches
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
-from gcages.exceptions import MissingOptionalDependencyError
-from gcages.testing import compare_close
 from gcages.typing import NUMERIC_DATA, TIME_POINT, TimeseriesDataFrame
 from gcages.units_helpers import convert_unit_like
 
 if TYPE_CHECKING:
     import pint
-
-    from gcages.typing import PINT_SCALAR
 
 
 class NotHarmonisedError(ValueError):
@@ -126,8 +122,6 @@ def assert_harmonised(  # noqa: PLR0913
     df_unit_level: str = "unit",
     history_unit_level: str | None = None,
     ur: pint.UnitRegistry | None = None,
-    species_aware_cmip7: bool | None = None,
-    species_tolerances: dict[str, dict[str, float | PINT_SCALAR]] | None = None,
 ) -> None:
     """
     Assert that the input is harmonised
@@ -165,26 +159,11 @@ def assert_harmonised(  # noqa: PLR0913
 
         Only used if unit conversion is required
 
-    species_aware_cmip7
-        Tolerances between historical and harmonised prescribed individually
-        to each species
-
-    species_tolerances
-        Tolerance to apply while checking harmonisation of different species
-
     Raises
     ------
     NotHarmonisedError
         `df` is not harmonised to `history`
     """
-    variables_df = df.index.get_level_values("variable").unique()
-    history = history.loc[
-        history.index.get_level_values("variable").isin(variables_df)
-    ].reset_index(
-        level=[lvl for lvl in ["model", "scenario"] if lvl in history.index.names],
-        drop=True,
-    )
-
     df_unit_match = convert_unit_like(
         df,
         target=history,
@@ -195,71 +174,9 @@ def assert_harmonised(  # noqa: PLR0913
     df_harm_year_aligned, history_harm_year_aligned = align_history_to_data_at_time(
         df_unit_match, history=history, time=harmonisation_time
     )
-
-    species_aware = species_aware_cmip7 if species_aware_cmip7 is not None else False
-
-    if species_aware:
-        if ur is None:
-            try:
-                import openscm_units
-
-                ur = openscm_units.unit_registry
-            except ImportError:
-                raise MissingOptionalDependencyError(  # noqa: TRY003
-                    "convert_unit_like(..., ur=None, ...)", "openscm_units"
-                )
-
-        Q = ur.Quantity
-        if species_tolerances is None:
-            species_tolerances = {
-                "BC": dict(rtol=1e-3, atol=Q(1e-3, "Mt BC/yr")),
-                "CH4": dict(rtol=1e-3, atol=Q(1e-2, "Mt CH4/yr")),
-                "CO": dict(rtol=1e-3, atol=Q(1e-1, "Mt CO/yr")),
-                "CO2": dict(rtol=1e-3, atol=Q(1e-3, "Gt CO2/yr")),
-                "NH3": dict(rtol=1e-3, atol=Q(1e-2, "Mt NH3/yr")),
-                "NOx": dict(rtol=1e-3, atol=Q(1e-2, "Mt NO2/yr")),
-                "OC": dict(rtol=1e-3, atol=Q(1e-3, "Mt OC/yr")),
-                "Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
-                "VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
-                "N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
-            }
-        diffs = []
-        for variable, scen_a_vdf in df_harm_year_aligned.groupby("variable"):
-            mask = df.index.get_level_values("variable") == variable
-            history_a_vdf = history_harm_year_aligned.loc[mask]
-            species = str(variable).split("|")[1]
-            if species in species_tolerances:
-                unit_l = scen_a_vdf.index.get_level_values("unit").unique()
-                if len(unit_l) != 1:
-                    raise AssertionError(unit_l)
-                unit = unit_l[0]
-
-                rtol = float(species_tolerances[species]["rtol"])
-                # atol = species_tolerances[species]["atol"].to(unit).m
-
-                atol_q = cast("pint.Quantity", species_tolerances[species]["atol"])
-                atol = atol_q.to(unit).m
-
-            else:
-                rtol = 1e-4
-                atol = Q(1e-6, "unit").m
-
-            comparison = compare_close(
-                scen_a_vdf.unstack("region"),
-                history_a_vdf.unstack("region"),
-                left_name="scenario",
-                right_name="history",
-                rtol=rtol,
-                atol=atol,
-            )
-            if not comparison.empty:
-                diffs.append(comparison)
-        comparison = pd.concat(diffs) if diffs else pd.DataFrame()
-    else:
-        comparison = df_harm_year_aligned.round(rounding).compare(  # type: ignore # pandas-stubs out of date
-            history_harm_year_aligned.round(rounding), result_names=("df", "history")
-        )
-
+    comparison = df_harm_year_aligned.round(rounding).compare(  # type: ignore # pandas-stubs out of date
+        history_harm_year_aligned.round(rounding), result_names=("df", "history")
+    )
     if not comparison.empty:
         raise NotHarmonisedError(
             comparison=comparison, harmonisation_time=harmonisation_time
