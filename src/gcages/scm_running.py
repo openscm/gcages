@@ -10,6 +10,7 @@ from typing import Any, Optional, cast
 
 import pandas as pd
 from pandas_openscm.db import EmptyDBError, OpenSCMDB
+from pandas_openscm.index_manipulation import set_levels
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from pandas_openscm.parallelisation import ParallelOpConfig
 
@@ -193,19 +194,11 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
         existing_metadata.names.difference(check_levels)  # type: ignore # pandas-stubs out of date
     ).unique()
 
-    # TODO: set_new_single_value_levels into pandas-openscm's index_manipulation
-    new_values = [climate_model]
-    new_names = [climate_model_level]
     if not isinstance(scenarios.index, pd.MultiIndex):
-        raise TypeError(scenarios.index)
+        raise TypeError(type(scenarios.index))
 
-    batch_output_exp_index = pd.MultiIndex(
-        codes=[
-            *scenarios.index.codes,
-            *([[0] * scenarios.index.shape[0]] * len(new_values)),
-        ],
-        levels=[*scenarios.index.levels, *[pd.Index([value]) for value in new_values]],
-        names=[*scenarios.index.names, *new_names],
+    batch_output_exp_index = set_levels(
+        scenarios.index, {climate_model_level: climate_model}
     )
 
     already_run_idx = multi_index_match(batch_output_exp_index, db_already_run)

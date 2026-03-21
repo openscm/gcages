@@ -31,8 +31,10 @@ import pytest
 from attrs import define
 from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
     update_index_levels_from_other_func,
     update_index_levels_func,
+    update_levels_from_other,
 )
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
@@ -50,8 +52,6 @@ from gcages.completeness import NotCompleteError, assert_all_groups_are_complete
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
-    create_levels_based_on_existing,
-    set_new_single_value_levels,
     split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
@@ -531,12 +531,12 @@ def get_df(  # noqa: PLR0913
     variable_level: str = "variable",
     columns_name: str = "year",
 ) -> pd.DataFrame:
-    res = set_new_single_value_levels(
+    res = set_index_levels_func(
         pd.DataFrame(
             RNG.random((base_index.shape[0], timepoints.size)),
             columns=pd.Index(timepoints, name=columns_name),
-            index=create_levels_based_on_existing(
-                base_index, create_from={"unit": ("variable", guess_unit)}
+            index=update_levels_from_other(
+                base_index, update_sources={"unit": ("variable", guess_unit)}
             ),
         ),
         {model_level: model, scenario_level: scenario},
@@ -701,7 +701,7 @@ def get_aggregate_df(
     df_regional = indf.loc[indf.index.get_level_values("region") != world_region]
     df_region_sum = groupby_except(indf, "region").sum()
 
-    df_region_sum_aggregated = set_new_single_value_levels(
+    df_region_sum_aggregated = set_index_levels_func(
         aggregate_df_level(df_region_sum, level="variable", on_clash=on_clash_variable),
         {"region": world_region},
     )
@@ -1515,7 +1515,7 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
 def test_complete_to_gridding_sectors_totals_preserved(complete_to_gridding_res):
     internally_consistent, _, res = complete_to_gridding_res
 
-    res_totals = set_new_single_value_levels(
+    res_totals = set_index_levels_func(
         combine_species(
             groupby_except(split_sectors(res), ["region", "sectors"]).sum()
         ),

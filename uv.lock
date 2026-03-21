@@ -1034,7 +1034,8 @@ all-dev = [
     { name = "paginate" },
     { name = "pandas-indexing" },
     { name = "pandas-stubs", version = "2.2.2.240807", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pandas-stubs", version = "2.3.0.250703", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pandas-stubs", version = "2.3.3.260113", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
+    { name = "pandas-stubs", version = "3.0.0.260204", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandocfilters" },
     { name = "parso" },
     { name = "pathspec" },
@@ -1096,7 +1097,8 @@ dev = [
     { name = "mypy" },
     { name = "pandas-indexing" },
     { name = "pandas-stubs", version = "2.2.2.240807", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "pandas-stubs", version = "2.3.0.250703", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "pandas-stubs", version = "2.3.3.260113", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
+    { name = "pandas-stubs", version = "3.0.0.260204", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pint" },
     { name = "pip" },
     { name = "pre-commit" },
@@ -1269,8 +1271,8 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pandas-indexing", marker = "extra == 'cmip7scenariomip'", specifier = ">=0.6.3" },
     { name = "pandas-indexing", extras = ["units"], marker = "extra == 'ar6'", specifier = ">=0.6.3" },
-    { name = "pandas-openscm", specifier = ">=0.5.1" },
-    { name = "pandas-openscm", extras = ["db"], marker = "extra == 'ar6'", specifier = ">=0.5.1" },
+    { name = "pandas-openscm", specifier = ">=0.8.1" },
+    { name = "pandas-openscm", extras = ["db"], marker = "extra == 'ar6'", specifier = ">=0.8.1" },
     { name = "pycountry", marker = "python_full_version >= '3.10' and extra == 'ar6'", specifier = ">=24.0" },
     { name = "pymagicc", marker = "extra == 'ar6'", specifier = ">=2.1.5" },
     { name = "scipy", marker = "extra == 'ar6'", specifier = ">=1.13.0" },
@@ -3398,7 +3400,7 @@ units = [
 
 [[package]]
 name = "pandas-openscm"
-version = "0.6.0"
+version = "0.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
@@ -3407,9 +3409,9 @@ dependencies = [
     { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pandas" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/41/4b/235f18e4ce6c2edf7bc9a3f1482eedb4cb52bc5d7d9a3cef39fcebd994cd/pandas_openscm-0.6.0.tar.gz", hash = "sha256:d2a5bcf00841ad2d3d5b9e87eb819e86cf7c16076f9a1e4a884c6ae2fc110087", size = 1495015, upload-time = "2025-07-16T11:59:46.887Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d3/e8/fbd63eb3a43f4e09f87fef1e32acb8cc3d23615ec76a49321d5a882c4466/pandas_openscm-0.9.1.tar.gz", hash = "sha256:81a77474ed37d0093ad407f533892c1a445e110a344a4cebf4db8408050e5a56", size = 62228, upload-time = "2026-03-05T11:25:24.551Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/e3/be392f15bd48eb8a734334c548fec6ed3ba1e1cf72f5c35bb9e682a351ec/pandas_openscm-0.6.0-py3-none-any.whl", hash = "sha256:b8481fe46d04c46ace2fe527d20e264b367380f2ab8da1461eaad15c87753728", size = 69096, upload-time = "2025-07-16T11:59:45.495Z" },
+    { url = "https://files.pythonhosted.org/packages/9a/c2/b77c792237a9ddb7bf9f41bc055120e28c8e57963aabba1be550c2d114d4/pandas_openscm-0.9.1-py3-none-any.whl", hash = "sha256:b557526aa0a7d999905fa48133224b3d930eb68dae538cf31b5cc381bd034c69", size = 80550, upload-time = "2026-03-05T11:25:23.065Z" },
 ]
 
 [package.optional-dependencies]
@@ -3436,26 +3438,39 @@ wheels = [
 
 [[package]]
 name = "pandas-stubs"
-version = "2.3.0.250703"
+version = "2.3.3.260113"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version == '3.10.*' and sys_platform == 'win32'",
+    "python_full_version == '3.10.*' and sys_platform != 'win32'",
+]
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
+    { name = "types-pytz", marker = "python_full_version == '3.10.*'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/92/5d/be23854a73fda69f1dbdda7bc10fbd6f930bd1fa87aaec389f00c901c1e8/pandas_stubs-2.3.3.260113.tar.gz", hash = "sha256:076e3724bcaa73de78932b012ec64b3010463d377fa63116f4e6850643d93800", size = 116131, upload-time = "2026-01-13T22:30:16.704Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/c6/df1fe324248424f77b89371116dab5243db7f052c32cc9fe7442ad9c5f75/pandas_stubs-2.3.3.260113-py3-none-any.whl", hash = "sha256:ec070b5c576e1badf12544ae50385872f0631fc35d99d00dc598c2954ec564d3", size = 168246, upload-time = "2026-01-13T22:30:15.244Z" },
+]
+
+[[package]]
+name = "pandas-stubs"
+version = "3.0.0.260204"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'win32'",
     "python_full_version == '3.12.*' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
-    "python_full_version == '3.10.*' and sys_platform == 'win32'",
     "python_full_version >= '3.13' and sys_platform != 'win32'",
     "python_full_version == '3.12.*' and sys_platform != 'win32'",
     "python_full_version == '3.11.*' and sys_platform != 'win32'",
-    "python_full_version == '3.10.*' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "numpy", version = "2.3.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "types-pytz", marker = "python_full_version >= '3.10'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/df/c1c51c5cec087b8f4d04669308b700e9648745a77cdd0c8c5e16520703ca/pandas_stubs-2.3.0.250703.tar.gz", hash = "sha256:fb6a8478327b16ed65c46b1541de74f5c5947f3601850caf3e885e0140584717", size = 103910, upload-time = "2025-07-02T17:49:11.667Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/1d/297ff2c7ea50a768a2247621d6451abb2a07c0e9be7ca6d36ebe371658e5/pandas_stubs-3.0.0.260204.tar.gz", hash = "sha256:bf9294b76352effcffa9cb85edf0bed1339a7ec0c30b8e1ac3d66b4228f1fbc3", size = 109383, upload-time = "2026-02-04T15:17:17.247Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/75/cb/09d5f9bf7c8659af134ae0ffc1a349038a5d0ff93e45aedc225bde2872a3/pandas_stubs-2.3.0.250703-py3-none-any.whl", hash = "sha256:a9265fc69909f0f7a9cabc5f596d86c9d531499fed86b7838fd3278285d76b81", size = 154719, upload-time = "2025-07-02T17:49:10.697Z" },
+    { url = "https://files.pythonhosted.org/packages/7c/2f/f91e4eee21585ff548e83358332d5632ee49f6b2dcd96cb5dca4e0468951/pandas_stubs-3.0.0.260204-py3-none-any.whl", hash = "sha256:5ab9e4d55a6e2752e9720828564af40d48c4f709e6a2c69b743014a6fcb6c241", size = 168540, upload-time = "2026-02-04T15:17:15.615Z" },
 ]
 
 [[package]]

@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from pandas_openscm.grouping import groupby_except
+from pandas_openscm.index_manipulation import set_index_levels_func
 
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
-    set_new_single_value_levels,
     split_sectors,
 )
 
@@ -307,7 +307,7 @@ def to_global_workflow_emissions(  # noqa: PLR0913
         co2_name=co2_name,
     )
 
-    gw_sector_df_input_like = set_new_single_value_levels(
+    gw_sector_df_input_like = set_index_levels_func(
         combine_sectors(
             gw_sector_df,  # type: ignore # fix when moving to pandas-openscm
             middle_level=species_level,
@@ -315,7 +315,7 @@ def to_global_workflow_emissions(  # noqa: PLR0913
         ),
         {region_level: world_region},
     ).unstack(time_name)
-    gw_total_df_input_like = set_new_single_value_levels(
+    gw_total_df_input_like = set_index_levels_func(
         combine_species(gw_total_df, bottom_level=species_level),  # type: ignore # fix when moving to pandas-openscm
         {region_level: world_region},
     ).unstack(time_name)
@@ -416,11 +416,11 @@ def to_global_workflow_emissions_from_stacked(  # noqa: PLR0913
         )
         raise AssertionError(msg)
 
-    co2_fossil = set_new_single_value_levels(
+    co2_fossil = set_index_levels_func(
         sector_df_full.loc[co2_locator, list(co2_fossil_sectors)].sum(axis="columns"),
         {sectors_level: global_workflow_co2_fossil_sector},
     )
-    co2_biosphere = set_new_single_value_levels(
+    co2_biosphere = set_index_levels_func(
         sector_df_full.loc[co2_locator, list(co2_biosphere_sectors)].sum(
             axis="columns"
         ),

@@ -204,10 +204,10 @@ class AnerisHarmoniser:
                 harmonisation_time=self.harmonisation_year,
             )
 
-            pd.testing.assert_index_equal(
+            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs doesn't know about check_order
                 harmonised_df.index,
                 in_emissions.index,
-                check_order=False,  # type: ignore # pandas-stubs out of date
+                check_order=False,
             )
             if harmonised_df.columns.dtype != in_emissions.columns.dtype:
                 msg = (

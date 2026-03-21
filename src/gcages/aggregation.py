@@ -10,11 +10,12 @@ from typing import Callable
 
 import pandas as pd
 from pandas_openscm.grouping import groupby_except
+from pandas_openscm.index_manipulation import set_index_levels_func
 from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 
 import gcages.index_manipulation
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.index_manipulation import combine_species, set_new_single_value_levels
+from gcages.index_manipulation import combine_species
 from gcages.testing import compare_close
 
 
@@ -223,7 +224,7 @@ def get_region_sector_sum(
     # Can't avoid double counting as that is defined by data model,
     # not by "|" separation rules
     # Implicitly assumes that `split_sectors` will work
-    res = set_new_single_value_levels(
+    res = set_index_levels_func(
         combine_species(
             groupby_except(split_sectors(indf), [region_level, sectors_level]).sum()
         ),

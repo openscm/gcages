@@ -9,9 +9,11 @@ to help clarify this, but have not done so yet.
 from __future__ import annotations
 
 import sys
-from typing import cast
+from functools import partial
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import pandas as pd
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 import gcages.databases
 from gcages.exceptions import UnrecognisedValueError
@@ -20,6 +22,9 @@ if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
     from backports.strenum import StrEnum
+
+if TYPE_CHECKING:
+    P = TypeVar("P", pd.DataFrame, pd.Series[Any])
 
 
 class SupportedNamingConventions(StrEnum):
@@ -121,3 +126,53 @@ def convert_variable_name(
         raise AssertionError(res_l)
 
     return cast(str, res_l[0])
+
+
+def rename_variables(
+    pandas_obj: P,
+    from_convention: SupportedNamingConventions,
+    to_convention: SupportedNamingConventions,
+    index_level: str = "variable",
+    copy: bool = True,
+) -> P:
+    """
+    Rename variables
+
+    This is just a convenience function that provides a slightly simpler,
+    if less flexible interface than using [convert_variable_name][(m).] directly.
+
+    Parameters
+    ----------
+    pandas_obj
+        Pandas object in which to rename variables
+
+    from_convention
+        Naming convention to convert from
+
+    to_convention
+        Naming convention to convert to
+
+    index_level
+        Index level in which variable information is stored in `pandas_obj`
+
+    copy
+        If `True` a copy of `pandas_obj` is made.
+        Otherwise, `pandas_obj` is manipulated directly.
+
+    Returns
+    -------
+    :
+        `pandas_obj` with `index_level` updated
+        to use the naming convention specified by `to_convention`.
+    """
+    return update_index_levels_func(
+        pandas_obj,
+        {
+            index_level: partial(
+                convert_variable_name,
+                from_convention=from_convention,
+                to_convention=to_convention,
+            )
+        },
+        copy=copy,
+    )

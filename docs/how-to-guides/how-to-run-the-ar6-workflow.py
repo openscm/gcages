@@ -55,7 +55,7 @@ from gcages.ar6 import (
 pint.set_application_registry(openscm_units.unit_registry)
 
 # %%
-pandas_openscm.register_pandas_accessor()
+pandas_openscm.register_pandas_accessors()
 
 # %% [markdown]
 # ## Starting point
