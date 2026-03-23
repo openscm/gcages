@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import pandas_indexing as pix
 from attrs import define, field
 from pandas_openscm.db import OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
@@ -187,12 +186,12 @@ def get_complete_scenarios_for_magicc(
         .loc[:, magicc_start_year : scenarios_start_year - 1]
     )
 
-    complete_magicc = pix.concat(
+    complete_magicc = pd.concat(
         [
             history_to_add.reorder_levels(scenarios.index.names),
             scenarios,
         ],
-        axis="columns",
+        axis=1,
     )
     # Also interpolate for MAGICC
     complete_magicc = complete_magicc.T.interpolate(method="index").T
