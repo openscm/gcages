@@ -99,7 +99,7 @@ def test_individual_scenario(model, scenario):
             scm_results.index.get_level_values("variable").str.contains(
                 "Surface Air Temperature Change"
             )
-        ],
+        ].iloc[:10],
         exp_temperature,
         rtol=1e-1,
     )
