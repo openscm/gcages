@@ -587,7 +587,10 @@ if not MAGICC_EXE_PATH.exists():
 
 if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
     MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE = (
-        Path("../..") / MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE
+        Path("../..")
+        / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+        / "magicc-v7.6.0a3/configs"
+        / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
     )
     if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
         raise AssertionError
