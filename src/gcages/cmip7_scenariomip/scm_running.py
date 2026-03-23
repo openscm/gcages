@@ -26,6 +26,9 @@ from gcages.assertions import (
     assert_has_index_levels,
     assert_index_is_multiindex,
 )
+from gcages.cmip7_scenariomip.harmonisation import (
+    load_cmip7_scenariomip_historical_emissions,
+)
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.harmonisation import assert_harmonised
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
@@ -177,9 +180,9 @@ def get_complete_scenarios_for_magicc(
     history_to_add = (
         multi_index_lookup(
             history,
-            scenarios.reset_index(["model", "scenario"], drop=True)
-            .drop_duplicates()
-            .index,
+            scenarios.reset_index(
+                ["model", "scenario"], drop=True
+            ).index.drop_duplicates(),
         )
         .reset_index(["model", "scenario"], drop=True)
         .align(scenarios)[0]
@@ -366,11 +369,14 @@ class CMIP7_SCENARIOMIP_SCMRunner:
                     ["model", "scenario", "unit"]
                 ),
             )
+        if self.historical_emissions is None:
+            complete_emissions = in_emissions
+        else:
+            complete_emissions = get_complete_scenarios_for_magicc(
+                scenarios=in_emissions,
+                history=self.historical_emissions,
+            )
 
-        complete_emissions = get_complete_scenarios_for_magicc(
-            scenarios=in_emissions,
-            history=self.historical_emissions,
-        )
         complete_emissions.columns = complete_emissions.columns.astype(int)
 
         openscm_runner_emissions = update_index_levels_func(
@@ -457,27 +463,27 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
         batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
-        historical_emissions: pd.DataFrame | None = None,
-        harmonisation_year: int | None = None,
+        historical_emissions_path: Path | None = None,
+        harmonisation_year: int = 2023,
         verbose: bool = True,
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
     ) -> CMIP7_SCENARIOMIP_SCMRunner:
         """
-        Initialise from the config used in AR6
+        Initialise from the config used in CMIP7 ScenarioMIP
 
         Parameters
         ----------
         magicc_exe_path
             Path to the MAGICC executable to use.
 
-            This should be a MAGICC v7.5.3 executable.
+            This should be a MAGICC v7.6.0a3 executable.
 
         magicc_prob_distribution_path
             Path to the MAGICC probabilistic distribution.
 
-            This should be the AR6 probabilistic distribution.
+            This should be the CMIP7 ScenarioMIP probabilistic distribution.
 
         output_variables
             Variables to include in the output
@@ -529,6 +535,17 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
         # TODO?
         # check_cmip7_scenariomip_magicc7_version()
+
+        # TODO Is it appropriate that we want a Path here and
+        # a df in the class?
+        if historical_emissions_path is not None:
+            # Load history
+            historical_emissions = load_cmip7_scenariomip_historical_emissions(
+                filepath=historical_emissions_path,
+                check_hash=True,
+            )
+        else:
+            historical_emissions = None
 
         magicc_prob_cfg = load_magicc_cfgs(
             prob_distribution_path=magicc_prob_distribution_path,

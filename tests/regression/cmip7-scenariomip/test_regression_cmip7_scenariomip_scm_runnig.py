@@ -10,9 +10,6 @@ from pathlib import Path
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.cmip7_scenariomip.harmonisation import (
-    load_cmip7_scenariomip_historical_emissions,
-)
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7_SCENARIOMIP_SCMRunner,
 )
@@ -49,10 +46,10 @@ HARMONISATION_YEAR = 2023
 )
 def test_individual_scenario(model, scenario):
     # Load history
-    historical_emissions = load_cmip7_scenariomip_historical_emissions(
-        filepath=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
-        check_hash=True,
-    )
+    # historical_emissions = load_cmip7_scenariomip_historical_emissions(
+    #     filepath=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+    #     check_hash=True,
+    # )
 
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
@@ -90,7 +87,7 @@ def test_individual_scenario(model, scenario):
         magicc_exe_path=MAGIC_EXE,
         magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
-        historical_emissions=historical_emissions,
+        historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
         n_processes=multiprocessing.cpu_count(),
     )
