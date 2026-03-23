@@ -12,7 +12,7 @@ import multiprocessing
 import os
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pandas as pd
 from attrs import define, field
@@ -177,12 +177,15 @@ def get_complete_scenarios_for_magicc(
     """
     scenarios_start_year = scenarios.columns.min()
 
+    scenario_index = cast(
+        pd.MultiIndex,
+        scenarios.reset_index(["model", "scenario"], drop=True).drop_duplicates().index,
+    )
+
     history_to_add = (
         multi_index_lookup(
             history,
-            scenarios.reset_index(
-                ["model", "scenario"], drop=True
-            ).index.drop_duplicates(),
+            scenario_index,
         )
         .reset_index(["model", "scenario"], drop=True)
         .align(scenarios)[0]

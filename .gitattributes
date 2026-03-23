@@ -1,0 +1,16 @@
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP370-LOWNTCF-AERCHEMMIP_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/PICONTROL_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP370_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP245_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP370-LOWNTCF-GIDDEN_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin/magicc filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/HISTRCP_VOLCANIC_RF.MON filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP534-OVER_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/SSP245_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP119_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP585_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP126_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP460_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/HIST_VOLCANIC_RF.MON filter=lfs diff=lfs merge=lfs -text
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/rcmip/SSP434_EMMS.SCEN7 filter=lfs diff=lfs merge=lfs -text
