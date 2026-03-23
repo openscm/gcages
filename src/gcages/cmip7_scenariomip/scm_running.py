@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-import pandas_indexing as pix
 from attrs import define, field
 from pandas_openscm.db import OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
@@ -187,16 +186,15 @@ def get_complete_scenarios_for_magicc(
         .loc[:, magicc_start_year : scenarios_start_year - 1]
     )
 
-    complete_magicc = pix.concat(
+    complete_magicc = pd.concat(
         [
             history_to_add.reorder_levels(scenarios.index.names),
             scenarios,
         ],
-        axis="columns",
+        axis=1,
     )
     # Also interpolate for MAGICC
     complete_magicc = complete_magicc.T.interpolate(method="index").T
-
     return complete_magicc
 
 
@@ -319,6 +317,10 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         :
             Raw results from the simple climate model
         """
+        # TODO MZ: not sure that's the best solution
+        in_emissions.columns.name = "year"
+        in_emissions = in_emissions.dropna(axis=1, how="all")
+
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_has_index_levels(
@@ -397,7 +399,6 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         #         .T.interpolate("index")
         #         .T
         #     )
-
         scm_results_maybe = run_scms(
             scenarios=openscm_runner_emissions,
             climate_models_cfgs=self.climate_models_cfgs,
