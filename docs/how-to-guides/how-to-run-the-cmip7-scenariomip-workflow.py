@@ -33,6 +33,7 @@
 # %% editable=true slideshow={"slide_type": ""}
 import multiprocessing
 import os
+import platform
 from functools import partial
 from pathlib import Path
 
@@ -41,24 +42,16 @@ import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
-from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
 import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
 from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
-    load_cmip7_scenariomip_global_historical_emissions,
 )
-from gcages.cmip7_scenariomip.infilling import create_cmip7_scenariomip_infilled_df
+from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
-from gcages.cmip7_scenariomip.scm_running_aux import (
-    CMIP7_SCENARIOMIP_SCMRunner,
-    get_complete_scenarios_for_magicc,
-    load_magicc_cfgs,
-)
+from gcages.cmip7_scenariomip.scm_running import CMIP7_SCENARIOMIP_SCMRunner
 from gcages.index_manipulation import split_sectors
-from gcages.renaming import SupportedNamingConventions, convert_variable_name
-from gcages.scm_running import run_scms
 
 # %%
 # Setup pint
@@ -112,21 +105,13 @@ if not EXAMPLE_INPUT_FILE.exists():
     if not EXAMPLE_INPUT_FILE.exists():
         raise AssertionError
 
-# %%
-start_raw = load_timeseries_csv(
+# %% editable=true slideshow={"slide_type": ""}
+start = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_type=int,
+    out_columns_name="year",
 )
-
-# %% editable=true slideshow={"slide_type": ""}
-start = start_raw.loc[:, 2015:2100].dropna(how="all", axis="columns")
-if start.empty:
-    raise AssertionError
-
-start.columns.name = "year"
-
-start = start.T.interpolate(method="index").T
 
 # %% editable=true slideshow={"slide_type": ""}
 relplot_in_emms = partial(
@@ -389,8 +374,6 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
 
 # %% editable=true slideshow={"slide_type": ""}
 harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions)
-# harmonised_global = harmoniser_global(
-#                     res_pre_processed.global_workflow_emissions_raw_names)
 harmonised_global
 
 # %% [markdown]
@@ -433,11 +416,6 @@ fg = relplot_in_emms(
 
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
-
-# %%
-from IPython.display import display
-
-display(fg.fig)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ### Region-sector (i.e. gridding level)
@@ -498,62 +476,37 @@ display(fg.fig)
 # [silicone](https://github.com/GranthamImperial/silicone) package.
 
 # %%
-BASE_DIR = Path.cwd().parent.parent
+BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
+CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_db_cmip7_scenariomip.csv"
+GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
 
-CMIP7_SCENARIOMIP_INFILLING_FILE = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
-    / "infilling_cmip7_scenariomip.csv"
-)
-GHG_INVERSION_FILE = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip"
-    / "cmip7-scenariomip-workflow-inputs/cmip7_ghg_inversions.csv"
-)
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+    CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
+    if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+        raise AssertionError
 
-files = [CMIP7_SCENARIOMIP_INFILLING_FILE, GHG_INVERSION_FILE]
-
-for file in files:
-    CMIP7_SCENARIOMIP_FILE = Path(file)
-
-    if not CMIP7_SCENARIOMIP_FILE.exists():
-        CMIP7_SCENARIOMIP_FILE = Path("../..") / CMIP7_SCENARIOMIP_FILE
-        if not CMIP7_SCENARIOMIP_FILE.exists():
-            raise AssertionError
-
-# %%
-harmonised_global = harmonised_global.rename(
-    index={
-        "Emissions|CO2|Fossil": "Emissions|CO2|Energy and Industrial Processes",
-        "Emissions|CO2|Biosphere": "Emissions|CO2|AFOLU",
-        "Emissions|SOx": "Emissions|Sulfur",
-        "Emissions|NMVOC": "Emissions|VOC",
-    },
-    level="variable",
-)
-
-# %%
-infilled = create_cmip7_scenariomip_infilled_df(
-    harmonised_emissions=harmonised_global,
-    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
-    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
-    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
-)
-
-# %%
-infilled.complete.iloc[0:11]
+if not GHG_INVERSION_FILE.exists():
+    GHG_INVERSION_FILE = Path("../..") / GHG_INVERSION_FILE
+    if not GHG_INVERSION_FILE.exists():
+        raise AssertionError
 
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
 
 # %%
-# TBD
+infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
+    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
+    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+)
 
 # %% [markdown]
 # And infill
 
 # %%
-# TBD
+infilled = infiller(harmonised_global)
+infilled
 
 # %% [markdown]
 # You can see infilled pathways compared to raw pathways in the below.
@@ -570,7 +523,7 @@ pdf = (
                 stage="pre_processed"
             ),
             harmonised_global.pix.assign(stage="harmonised"),
-            infilled.complete.pix.assign(stage="infilled"),
+            infilled.pix.assign(stage="infilled"),
         ]
     )
     .loc[
@@ -596,9 +549,6 @@ fg = relplot_in_emms(
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
-# %%
-display(fg.fig)
-
 # %% [markdown]
 # ## SCM Running
 #
@@ -617,127 +567,56 @@ display(fg.fig)
 
 # %%
 # combine to create complete timeseries using sum of gridded
-# and the global harmonised timeseries
+# and the global harmonised timeseries or provide both as input
 # complete_scenarios = pd.concat([harmonised, infilled])
 # complete_scenarios
 
 # %%
-output_variables = (
-    # GSAT
-    "Surface Air Temperature Change",
-    # # GMST
-    "Surface Air Ocean Blended Temperature Change",
-    # # ERFs
-    "Effective Radiative Forcing",
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-    "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Greenhouse Gases",
-    "Effective Radiative Forcing|CO2",
-    "Effective Radiative Forcing|CH4",
-    "Effective Radiative Forcing|N2O",
-    "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Effective Radiative Forcing|Ozone",
-    "Effective Radiative Forcing|Tropospheric Ozone",
-    "Effective Radiative Forcing|Stratospheric Ozone",
-    "Effective Radiative Forcing|Solar",
-    "Effective Radiative Forcing|Volcanic",
-    # # Heat uptake
-    "Heat Uptake",
-    "Heat Uptake|Ocean",
-    # # Atmospheric concentrations
-    "Atmospheric Concentrations|CO2",
-    "Atmospheric Concentrations|CH4",
-    "Atmospheric Concentrations|N2O",
-    # # Carbon cycle
-    # "Net Atmosphere to Land Flux|CO2",
-    # "Net Atmosphere to Ocean Flux|CO2",
-    # "CO2_CURRENT_NPP",
-    # # Permafrost
-    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-    "Sea Level Rise",
+MAGICC_EXE_PATH = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin"
 )
+MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
+)
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+if not MAGICC_EXE_PATH.exists():
+    MAGICC_EXE_PATH = Path("../..") / MAGICC_EXE_PATH
+    if not MAGICC_EXE_PATH.exists():
+        raise AssertionError
+
+if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
+    MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE = (
+        Path("../..") / MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE
+    )
+    if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
+        raise AssertionError
 
 # %%
-MAGICC_EXE_PATH = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip"
-    / "cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin"
-)
+if platform.system() == "Darwin":
+    if platform.processor() == "arm":
+        MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
+        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
 
-MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
-    BASE_DIR
-    / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
-    / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
-)
+elif platform.system() == "Linux":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
 
-os.environ["MAGICC_EXECUTABLE_7"] = str(MAGICC_EXE_PATH / "magicc")
-
-# %%
-history = load_cmip7_scenariomip_global_historical_emissions(
-    CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE
-)
-history.iloc[:5]
-
-# %%
-climate_models_cfgs = load_magicc_cfgs(
-    prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
-    output_variables=output_variables,
-    startyear=1750,
-)
-
-# %%
-climate_models_cfgs["MAGICC7"][0]["out_dynamic_vars"]
-
-# %%
-complete_scm = get_complete_scenarios_for_magicc(
-    # scenarios=complete_scenarios,
-    scenarios=infilled.complete,
-    history=history,
-)
-
-# Convert year columns from float to int to avoid MAGICC namelist errors
-# MAGICC's Fortran namelist reader expects integer years, not floats
-complete_scm.columns = complete_scm.columns.astype(int)
-complete_scm.iloc[:5]
-
-# %% [markdown]
-# Loading configurations
-
-# %%
-complete_openscm_runner = update_index_levels_func(
-    complete_scm,
-    {
-        "variable": partial(
-            convert_variable_name,
-            from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-            to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
-        )
-    },
-)
-complete_openscm_runner
+elif platform.system() == "Windows":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc.exe"
 
 # %% [markdown]
 # With the set up done, we can initialise our SCM runner.
 
 # %%
-# scm_runner = AR6SCMRunner.from_ar6_config(
-#     # Generally, you want to run SCMs in parallel
-#     n_processes=multiprocessing.cpu_count(),
-#     magicc_exe_path=MAGICC_EXE,
-#     magicc_prob_distribution_path=MAGICC_AR6_PROBABILISTIC_CONFIG_FILE,
-#     historical_emissions=get_ar6_full_historical_emissions(
-#           AR6_INFILLING_DB_CFCS_FILE),
-#     harmonisation_year=2015,
-#     output_variables=("Surface Air Temperature Change",
-#        "Effective Radiative Forcing"),
-# )
+scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+    # Generally, you want to run SCMs in parallel
+    n_processes=multiprocessing.cpu_count(),
+    magicc_exe_path=MAGICC_EXE,
+    magicc_prob_distribution_path=MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE,
+    historical_emissions_path=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
+    batch_size_scenarios=15,
+)
 
 # %% [markdown]
 # If you're reading this on RtD,
@@ -754,67 +633,23 @@ complete_openscm_runner
 # And then run
 
 # %%
-# scm_results = scm_runner(complete_scenarios)
-# scm_results
-scm_results = run_scms(
-    scenarios=complete_openscm_runner,
-    climate_models_cfgs=climate_models_cfgs,
-    output_variables=output_variables,
-    scenario_group_levels=["model", "scenario"],
-    n_processes=multiprocessing.cpu_count(),
-    # db=db,
-    verbose=True,
-    progress=True,
-    batch_size_scenarios=15,
-    force_rerun=False,
-)
+scm_results = scm_runner(infilled)
+scm_results
 
 # %% [markdown]
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
 
 # %%
-scm_results[
-    scm_results.index.get_level_values("variable").str.contains(
-        "Surface Air Temperature Change"
-    )
-]
-
-# %%
-scm_results.loc[
-    pix.isin(variable=["Effective Radiative Forcing"])
-].openscm.plot_plume_after_calculating_quantiles(
-    style_var="variable",
-    quantile_over="run_id",
-    quantiles_plumes=(
-        (0.5, 0.8),
-        ((0.05, 0.95), 0.3),
-    ),
-)
-ax.grid()
-
-# %%
-executable = MAGICC_EXE_PATH / "magicc"
-
-# %%
-run_scm_obj = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
-    magicc_exe_path=executable,
-    magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
-    output_variables=output_variables,
-    batch_size_scenarios=15,
-    historical_emissions=history,
-    harmonisation_year=2023,
-    n_processes=multiprocessing.cpu_count(),
-)
-
-# %%
-run = run_scm_obj(infilled.complete)
-
-# %%
-run[
-    run.index.get_level_values("variable").str.contains(
-        "Surface Air Temperature Change"
-    )
-]
+# scm_results.loc[
+#     pix.isin(variable=["Effective Radiative Forcing"])
+# ].openscm.plot_plume_after_calculating_quantiles(
+#     style_var="variable",
+#     quantile_over="run_id",
+#     quantiles_plumes=(
+#         (0.5, 0.8),
+#         ((0.05, 0.95), 0.3),
+#     ),
+# )
 
 # %% [markdown]
 # ## Post-processing

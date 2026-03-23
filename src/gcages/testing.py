@@ -51,6 +51,29 @@ KEY_AR6_TESTING_MODEL_SCENARIOS = tuple(
 def get_key_testing_model_scenario_parameters(
     model_scenarios: tuple[tuple[str, str]],
 ) -> pytest.MarkDecorator:
+    """
+    Create a pytest parameterization decorator for model-scenario pairs.
+
+    Parameters
+    ----------
+    model_scenarios
+        Tuples of (model, scenario) pairs to parameterize.
+
+    Returns
+    -------
+    :
+        A pytest decorator that runs a test for each (model, scenario) pair.
+
+    Raises
+    ------
+    MissingOptionalDependencyError
+        If pytest is not installed.
+
+    Examples
+    --------
+    >>> @get_key_testing_model_scenario_parameters((("m1", "s1"), ("m2", "s2")))
+    ... def test_func(model, scenario): ...
+    """
     try:
         import pytest
     except ImportError as exc:
@@ -387,6 +410,52 @@ def get_cmip7_scenariomip_harmonised_emissions(
         index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
         out_columns_type=int,
     )
+
+    return res
+
+
+@functools.cache
+def get_cmip7_scenariomip_infilled_emissions(
+    model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
+) -> pd.DataFrame:
+    """
+    Get infilled emissions from CMIP7 ScenarioMIP outputs
+
+    Parameters
+    ----------
+    model
+        Model for which to retrieve outputs
+
+    scenario
+        Scenario for which to retrieve outputs
+
+    processed_cmip7_scenariomip_output_data_dir
+        Directory in which the CMIP7 ScenarioMIP output was saved
+
+    Returns
+    -------
+    :
+        All infilled emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+    """
+    try:
+        from pandas_indexing.selectors import ismatch as pix_ismatch
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_ar6_infilled_emissions", requirement="pandas_indexing"
+        ) from exc
+
+    res = load_timeseries_csv(
+        processed_cmip7_scenariomip_output_data_dir
+        / f"{model}_{scenario}_infilled.csv",
+        index_columns=["model", "scenario", "variable", "region", "unit"],
+        out_columns_type=int,
+    )
+    res = res.loc[:, 2023:2100]
+    # Select scenario and drop aggregated/cumulative rows
+    res = res.loc[
+        pix_ismatch(scenario=scenario)
+        & ~pix_ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
+    ]
 
     return res
 
