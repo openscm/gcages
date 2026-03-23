@@ -62,8 +62,6 @@ def test_individual_scenario(model, scenario):
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
-    # exp = exp.loc[:, HARMONISATION_YEAR:2100]
-    # infilled.columns.name = "year"
     # Select scenario and drop aggregated/cumulative rows
     infilled = infilled.loc[
         pix.ismatch(scenario=scenario)
@@ -86,19 +84,16 @@ def test_individual_scenario(model, scenario):
         ],
         out_columns_type=int,
     )
-    # exp = exp.loc[:, HARMONISATION_YEAR:2100]
-    # exp_temperature.columns.name = "time"
+    exp_temperature.columns.name = "time"
 
     scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=MAGIC_EXE,
         magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
         historical_emissions=historical_emissions,
-        harmonisation_year=2023,
+        harmonisation_year=HARMONISATION_YEAR,
         n_processes=multiprocessing.cpu_count(),
     )
-
-    # post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
 
     scm_results = scm_runner(infilled)
 
