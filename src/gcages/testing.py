@@ -341,7 +341,7 @@ KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS = (
     ("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions"),
     ("AIM 3.0", "SSP2 - Low Overshoot_a"),
     ("MESSAGEix-GLOBIOM-GAINS 2.1-M-R12", "SSP2 - Low Emissions"),
-    # ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
+    ("COFFEE 1.6", "SSP2 - Medium-Low Emissions"),
     ("IMAGE 3.4", "SSP2 - Medium Emissions"),
     ("WITCH 6.0", "SSP5 - Medium-Low Emissions_a"),
     ("GCAM 8s", "SSP3 - High Emissions"),
@@ -448,6 +448,7 @@ def get_cmip7_scenariomip_infilled_emissions(
         / f"{model}_{scenario}_infilled.csv",
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_columns_type=int,
+        out_columns_name="year",
     )
     res = res.loc[:, 2023:2100]
     # Select scenario and drop aggregated/cumulative rows

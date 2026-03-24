@@ -387,7 +387,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             {
                 "variable": partial(
                     convert_variable_name,
-                    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                    from_convention=SupportedNamingConventions.GCAGES,
                     to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
                 )
             },
@@ -546,6 +546,17 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             historical_emissions = load_cmip7_scenariomip_historical_emissions(
                 filepath=historical_emissions_path,
                 check_hash=True,
+            )
+            historical_emissions = update_index_levels_func(
+                historical_emissions,
+                {
+                    "variable": lambda x: convert_variable_name(
+                        x,
+                        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                        to_convention=SupportedNamingConventions.GCAGES,
+                    )
+                },
+                copy=False,
             )
         else:
             historical_emissions = None
