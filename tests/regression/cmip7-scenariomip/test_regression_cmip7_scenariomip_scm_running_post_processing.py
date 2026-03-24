@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
+from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7_SCENARIOMIP_SCMRunner,
 )
@@ -45,12 +46,6 @@ HARMONISATION_YEAR = 2023
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
 def test_individual_scenario(model, scenario):
-    # Load history
-    # historical_emissions = load_cmip7_scenariomip_historical_emissions(
-    #     filepath=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
-    #     check_hash=True,
-    # )
-
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
     infilled = load_timeseries_csv(
@@ -101,5 +96,47 @@ def test_individual_scenario(model, scenario):
             )
         ].iloc[:10],
         exp_temperature,
-        rtol=1e-5,
+        rtol=1e-6,
+    )
+
+    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processed = post_processor(scm_results)
+
+    # Loading and assessing quantiles results
+    file = (
+        CMIP7_SCENARIOMIP_OUT_DIR / f"assessed-warming-timeseries-quantiles_{model}.csv"
+    )
+    exp_quantiles = load_timeseries_csv(
+        file,
+        lower_column_names=True,
+        index_columns=[
+            "climate_model",
+            "model",
+            "region",
+            "scenario",
+            "unit",
+            "variable",
+            "quantile",
+        ],
+        out_columns_type=int,
+        out_columns_name="time",
+    )
+    exp_quantiles.index = exp_quantiles.index.set_levels(
+        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
+            4
+        ),
+        level="quantile",
+    )
+    processed_quantiles = post_processed.timeseries_quantile.iloc[:, 250:]
+    processed_quantiles.index = processed_quantiles.index.set_levels(
+        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
+            4
+        ),
+        level="quantile",
+    )
+
+    assert_frame_equal(
+        processed_quantiles,
+        exp_quantiles,
+        rtol=1e-8,
     )
