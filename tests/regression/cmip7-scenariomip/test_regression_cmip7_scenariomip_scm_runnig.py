@@ -101,5 +101,5 @@ def test_individual_scenario(model, scenario):
             )
         ].iloc[:10],
         exp_temperature,
-        rtol=1e-1,
+        rtol=1e-5,
     )

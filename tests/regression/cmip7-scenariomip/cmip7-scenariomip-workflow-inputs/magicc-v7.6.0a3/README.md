@@ -64,7 +64,7 @@ It is the recommended method for running MAGICC7.
 ### Contributing and issues
 
 If you would like to discuss contributing or have any issues,
-please [raise an issue](https://gitlab.com/magicc/magicc/-/issues/new).
+please [raise an issue](https://gitlab.com/magicc/magicc)
 Note that we are in a period of heavy development so,
 while we will try to reply to all issues,
 maintenance is not our priority right now hence please be patient.

@@ -499,7 +499,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
 
             If not supplied, raw outputs are not stored.
 
-        historical_emissions
+        historical_emissions_path
             Historical emissions used for harmonisation
 
             Only required if `run_checks` is `True` to check
