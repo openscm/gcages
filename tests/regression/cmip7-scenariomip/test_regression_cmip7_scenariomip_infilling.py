@@ -36,10 +36,6 @@ def test_individual_scenario_class(model, scenario):
         processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
     )
 
-    harmonised_df = harmonised_df.loc[pix.ismatch(workflow="for_scms")].reset_index(
-        ["workflow"], drop=True
-    )
-
     # Load infilled results
     exp = get_cmip7_scenariomip_infilled_emissions(
         model=model,
