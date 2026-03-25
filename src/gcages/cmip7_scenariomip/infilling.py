@@ -24,7 +24,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.exceptions import MissingOptionalDependencyError, UnrecognisedValueError
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation.common import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
@@ -154,8 +154,6 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
 
     def res(inp: pd.DataFrame) -> pd.DataFrame:
         res_h = silicone_infiller(pyam.IamDataFrame(inp)).timeseries()
-        # The fact that this is needed suggests there's a bug in silicone
-        res_h = res_h.loc[:, inp.dropna(axis="columns", how="all").columns]
 
         return cast(pd.DataFrame, res_h)
 
@@ -608,24 +606,6 @@ class CMIP7ScenarioMIPInfiller:
                 "get_silicone_based_infiller", requirement="silicone"
             ) from exc
 
-        try:
-            # Use gcages naming convention.
-            in_emissions = update_index_levels_func(
-                in_emissions,
-                {
-                    "variable": lambda x: convert_variable_name(
-                        x,
-                        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                        to_convention=SupportedNamingConventions.GCAGES,
-                    )
-                },
-                copy=False,
-            )
-        # TODO does this make any sense?
-        except UnrecognisedValueError:
-            msg = "Assuming input data follows CMIP7_SCENARIOMIP naming convention."
-            print(msg)
-
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_data_is_all_numeric(in_emissions)
@@ -755,6 +735,7 @@ class CMIP7ScenarioMIPInfiller:
 
         infilled_scaling = infill(complete_wmo, infillers_scaling)
         infilled = get_complete(complete_wmo, infilled_scaling)
+        infilled.columns.name = "year"
 
         if self.run_checks:
             pd.testing.assert_index_equal(infilled.columns, in_emissions.columns)
