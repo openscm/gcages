@@ -17,11 +17,9 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
-from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 if TYPE_CHECKING:
     import pytest
@@ -411,23 +409,6 @@ def get_cmip7_scenariomip_harmonised_emissions(
         / f"{model}_{scenario}_harmonised.csv",
         index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
         out_columns_type=int,
-        out_columns_name="year",
-    )
-    res = res[res.index.get_level_values("workflow") == "for_scms"].reset_index(
-        ["workflow"], drop=True
-    )
-
-    # Use gcages naming convention.
-    res = update_index_levels_func(
-        res,
-        {
-            "variable": lambda x: convert_variable_name(
-                x,
-                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                to_convention=SupportedNamingConventions.GCAGES,
-            )
-        },
-        copy=False,
     )
     return res
 
