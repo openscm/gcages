@@ -569,12 +569,7 @@ class CMIP7ScenarioMIPInfiller:
     UnitRegistry
     """
 
-    cmip7_scenariomip_output: bool = False
-    """
-    Output equivalent to CMIP7 ScenarioMIP
-    """
-
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:  # noqa: PLR0915
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
 
@@ -749,20 +744,6 @@ class CMIP7ScenarioMIPInfiller:
             ## Check completeness
             assert_all_groups_are_complete(infilled, complete_index_gcages_names)
 
-        if self.cmip7_scenariomip_output:
-            # Use revert to cmip7 ScenatioMIP naming convention.
-            infilled = update_index_levels_func(
-                infilled,
-                {
-                    "variable": lambda x: convert_variable_name(
-                        x,
-                        from_convention=SupportedNamingConventions.GCAGES,
-                        to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                    )
-                },
-                copy=False,
-            )
-
         return infilled
 
     @classmethod
@@ -884,8 +865,6 @@ class CMIP7ScenarioMIPInfiller:
                 history_unit_level="unit",
                 ur=ur,
             )
-        # TODO not sure here
-        cmip7_scenariomip_output = True
 
         return cls(
             infilling_db=infilling_db,
@@ -895,5 +874,4 @@ class CMIP7ScenarioMIPInfiller:
             pre_industrial_year=PI_YEAR,
             run_checks=run_checks,
             ur=ur,
-            cmip7_scenariomip_output=cmip7_scenariomip_output,
         )

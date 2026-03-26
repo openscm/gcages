@@ -72,4 +72,16 @@ def test_individual_scenario_class(model, scenario):
     )
     infilled = infiller(harmonised_df)
 
+    infilled = update_index_levels_func(
+        infilled,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.GCAGES,
+                to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            )
+        },
+        copy=False,
+    )
+
     assert_frame_equal(infilled, exp)

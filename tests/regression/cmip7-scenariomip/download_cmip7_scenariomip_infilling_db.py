@@ -7,8 +7,10 @@ from __future__ import annotations
 from pathlib import Path
 
 
-# TODO: Not currently working. The hash keeps changing.
-# Might be related to embargoed files on Zenodo?
+# TODO: Not currently working.
+# We believe this is because you have to be logged in to retrieve the file,
+# and we haven't set that up
+# (this should work fine once the record is no longer embargoed).
 def main() -> None:
     import pandas_indexing  # noqa: F401
     import pooch
