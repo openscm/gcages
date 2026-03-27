@@ -64,6 +64,7 @@ def load_cmip7_scenariomip_historical_emissions(
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
+    res.columns.name = "year"
 
     return res
 
@@ -83,7 +84,13 @@ def load_aneris_overrides_file(filepath: Path) -> pd.Series[str]:
         Aneris overrides
     """
     raw = pd.read_csv(filepath)
-    res = raw.set_index(list(raw.columns.difference(["method"])))["method"]
+
+    # TODO: better function for validating our overrides will work with the data
+    if "method" not in raw.columns:
+        msg = "'method' column is required in the overrides CSV"
+        raise KeyError(msg)
+
+    res = raw.set_index(list(raw.columns.difference(["method"])))["method"].astype(str)
 
     return res
 
@@ -96,7 +103,7 @@ def create_cmip7_scenariomip_global_harmoniser(
     n_processes: int | None = multiprocessing.cpu_count(),
 ) -> AnerisHarmoniser:
     """
-    Create an a harmoniser configured for CMIP7 ScenarioMIP's global workflow.
+    Create an Aneris harmoniser configured for CMIP7 ScenarioMIP global emissions.
 
     Parameters
     ----------

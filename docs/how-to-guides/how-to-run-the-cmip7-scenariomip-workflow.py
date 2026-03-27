@@ -45,6 +45,7 @@ import gcages.cmip7_scenariomip.pre_processing.reaggregation.basic
 from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
 )
+from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
 from gcages.index_manipulation import split_sectors
 
@@ -105,9 +106,8 @@ start = load_timeseries_csv(
     EXAMPLE_INPUT_FILE,
     index_columns=["model", "scenario", "region", "variable", "unit"],
     out_columns_type=int,
+    out_columns_name="year",
 )
-start.columns.name = "year"
-start
 
 # %% editable=true slideshow={"slide_type": ""}
 relplot_in_emms = partial(
@@ -319,9 +319,6 @@ fg.fig.suptitle(species_to_plot, y=1.02)
 # (Lots of assumptions are not an issue,
 # we simply include this for clarity and transparency.)
 
-# %% editable=true slideshow={"slide_type": ""}
-res_pre_processed.assumed_zero_emissions
-
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Harmonisation
 #
@@ -345,8 +342,6 @@ res_pre_processed.assumed_zero_emissions
 CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE = Path(
     "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/history_cmip7_scenariomip.csv"
 )
-# TODO: move this file to inputs
-# (yes, we derived it as part of the process, but it's an input now)
 ANERIS_GLOBAL_OVERRIDES_FILE = Path(
     "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/aneris-overrides-global.csv"
 )
@@ -377,11 +372,11 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
 harmonised_global = harmoniser_global(res_pre_processed.global_workflow_emissions)
 harmonised_global
 
-# %% [markdown] editable=true slideshow={"slide_type": ""}
-# You can see the modification to the pathways
-# as a result of the harmonisation in the plot below.
+# %% [markdown]
+# You can see the modification to the pathways as a result of
+# the harmonisation in the plot below.
 
-# %% editable=true slideshow={"slide_type": ""}
+# %%
 pdf = (
     pix.concat(
         [
@@ -477,19 +472,37 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # [silicone](https://github.com/GranthamImperial/silicone) package.
 
 # %%
-# TBD - download infiller db
+BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
+CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_db_cmip7_scenariomip.csv"
+GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+    CMIP7_SCENARIOMIP_INFILLING_FILE = Path("../..") / CMIP7_SCENARIOMIP_INFILLING_FILE
+    if not CMIP7_SCENARIOMIP_INFILLING_FILE.exists():
+        raise AssertionError
+
+if not GHG_INVERSION_FILE.exists():
+    GHG_INVERSION_FILE = Path("../..") / GHG_INVERSION_FILE
+    if not GHG_INVERSION_FILE.exists():
+        raise AssertionError
 
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
 
 # %%
-# TBD
+infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
+    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
+    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
+    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+)
 
 # %% [markdown]
 # And infill
 
 # %%
-# TBD
+infilled = infiller(harmonised_global)
+infilled
 
 # %% [markdown]
 # You can see infilled pathways compared to raw pathways in the below.
@@ -499,32 +512,38 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # see [Lamboll et al., 2020](https://doi.org/10.5194/gmd-13-5259-2020).
 
 # %%
-# pdf = (
-#     pix.concat(
-#         [
-#             pre_processed.pix.assign(stage="pre_processed"),
-#             harmonised.pix.assign(stage="harmonised"),
-#             infilled.pix.assign(stage="infilled"),
-#         ]
-#     )
-#     .loc[pix.ismatch(variable=["**CO2|Fossil", "**CH4", "**N2O", "**SOx"])]
-#     .melt(ignore_index=False, var_name="year")
-#     .reset_index()
-# )
+pdf = (
+    pix.concat(
+        [
+            res_pre_processed.global_workflow_emissions.loc[:, 2023:].pix.assign(
+                stage="pre_processed"
+            ),
+            harmonised_global.pix.assign(stage="harmonised"),
+            infilled.pix.assign(stage="infilled"),
+        ]
+    )
+    .loc[
+        pix.ismatch(
+            variable=["**CO2|Energy and Industrial Processes", "**CH4", "**N2O", "**CO"]
+        )
+    ]
+    .melt(ignore_index=False, var_name="year")
+    .reset_index()
+)
 
-# fg = relplot_in_emms(
-#     data=pdf,
-#     hue="scenario",
-#     style="stage",
-#     dashes={
-#         "pre_processed": (3, 3),
-#         "harmonised": "",
-#         "infilled": (1, 1),
-#     },
-# )
+fg = relplot_in_emms(
+    data=pdf,
+    hue="scenario",
+    style="stage",
+    dashes={
+        "pre_processed": (3, 3),
+        "harmonised": "",
+        "infilled": (1, 1),
+    },
+)
 
-# fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
-# fg.axes.flatten()[1].set_ylim(ymin=0.0)
+fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
+fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %% [markdown]
 # ## SCM Running
