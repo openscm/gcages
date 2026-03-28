@@ -7,6 +7,7 @@ from __future__ import annotations
 import multiprocessing
 from pathlib import Path
 
+import pandas as pd
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
@@ -102,7 +103,7 @@ def test_individual_scenario(model, scenario):
     post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
     post_processed = post_processor(scm_results)
 
-    # Loading and assessing quantiles results
+    # Loading and assessing quantiles timeseries results
     file = (
         CMIP7_SCENARIOMIP_OUT_DIR / f"assessed-warming-timeseries-quantiles_{model}.csv"
     )
@@ -140,3 +141,10 @@ def test_individual_scenario(model, scenario):
         exp_quantiles,
         rtol=1e-8,
     )
+
+    # Loading and categories
+    file = CMIP7_SCENARIOMIP_OUT_DIR / f"categories_{model}.csv"
+    exp_categories = pd.read_csv(file)
+
+    assert post_processed.metadata_categories.values[0] == exp_categories["value.1"][2]
+    assert post_processed.metadata_categories.values[1] == exp_categories["value"][2]
