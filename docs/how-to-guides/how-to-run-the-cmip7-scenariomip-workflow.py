@@ -31,6 +31,9 @@
 # ## Imports
 
 # %% editable=true slideshow={"slide_type": ""}
+import multiprocessing
+import os
+import platform
 from functools import partial
 from pathlib import Path
 
@@ -47,6 +50,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
 )
 from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
+from gcages.cmip7_scenariomip.scm_running import CMIP7_SCENARIOMIP_SCMRunner
 from gcages.index_manipulation import split_sectors
 
 # %%
@@ -563,43 +567,59 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %%
 # combine to create complete timeseries using sum of gridded
-# and the global harmonised timeseries
+# and the global harmonised timeseries or provide both as input
 # complete_scenarios = pd.concat([harmonised, infilled])
 # complete_scenarios
 
 # %%
-# MAGICC_EXE_PATH = Path("tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin")
-# MAGICC_AR6_PROBABILISTIC_CONFIG_FILE = Path(
-#     "tests/regression/ar6/ar6-workflow-inputs/magicc-ar6-0fd0f62-f023edb-drawnset/0fd0f62-derived-metrics-id-f023edb-drawnset.json"  # noqa: E501
-# )
+MAGICC_EXE_PATH = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin"
+)
+MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE = Path(
+    "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
+)
+
+# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
+if not MAGICC_EXE_PATH.exists():
+    MAGICC_EXE_PATH = Path("../..") / MAGICC_EXE_PATH
+    if not MAGICC_EXE_PATH.exists():
+        raise AssertionError
+
+if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
+    MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE = (
+        Path("../..")
+        / "tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
+        / "magicc-v7.6.0a3/configs"
+        / "magicc-ar7-fast-track-drawnset-v0-3-0.json"
+    )
+    if not MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE.exists():
+        raise AssertionError
 
 # %%
-# if platform.system() == "Darwin":
-#     if platform.processor() == "arm":
-#         MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
-#         os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"  # noqa: E501
+if platform.system() == "Darwin":
+    if platform.processor() == "arm":
+        MAGICC_EXE = MAGICC_EXE_PATH / "magicc-darwin-arm64"
+        os.environ["DYLD_LIBRARY_PATH"] = "/opt/homebrew/opt/gfortran/lib/gcc/current/"
 
-# elif platform.system() == "Linux":
-#     MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
+elif platform.system() == "Linux":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc"
 
-# elif platform.system() == "Windows":
-#     MAGICC_EXE = MAGICC_EXE_PATH / "magicc.exe"
+elif platform.system() == "Windows":
+    MAGICC_EXE = MAGICC_EXE_PATH / "magicc.exe"
 
 # %% [markdown]
 # With the set up done, we can initialise our SCM runner.
 
 # %%
-# scm_runner = AR6SCMRunner.from_ar6_config(
-#     # Generally, you want to run SCMs in parallel
-#     n_processes=multiprocessing.cpu_count(),
-#     magicc_exe_path=MAGICC_EXE,
-#     magicc_prob_distribution_path=MAGICC_AR6_PROBABILISTIC_CONFIG_FILE,
-#     historical_emissions=get_ar6_full_historical_emissions(
-#           AR6_INFILLING_DB_CFCS_FILE),
-#     harmonisation_year=2015,
-#     output_variables=("Surface Air Temperature Change",
-#        "Effective Radiative Forcing"),
-# )
+scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+    # Generally, you want to run SCMs in parallel
+    n_processes=multiprocessing.cpu_count(),
+    magicc_exe_path=MAGICC_EXE,
+    magicc_prob_distribution_path=MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE,
+    historical_emissions_path=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
+    batch_size_scenarios=15,
+)
 
 # %% [markdown]
 # If you're reading this on RtD,
@@ -616,8 +636,8 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # And then run
 
 # %%
-# scm_results = scm_runner(complete_scenarios)
-# scm_results
+scm_results = scm_runner(infilled)
+scm_results
 
 # %% [markdown]
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
