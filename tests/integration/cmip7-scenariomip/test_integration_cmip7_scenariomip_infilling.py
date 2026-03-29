@@ -6,12 +6,14 @@ import pytest
 
 from gcages.cmip7_scenariomip import infilling
 
+pytest.importorskip("pandas_indexing")
+
 
 class TestInfillBranches:
     """Test all branches in core infilling functions."""
 
     def test_infill_nothing_to_infill_returns_none(self):
-        """BRANCH: No variables need infilling → return None."""
+        """No variables need infilling → return None."""
         df = pd.DataFrame(
             {
                 2015: [10.0, 10.0],
@@ -31,13 +33,13 @@ class TestInfillBranches:
         assert result is None
 
     def test_get_complete_indf_only(self):
-        """BRANCH: infilled is None → return indf unchanged."""
+        """Infilled is None → return indf unchanged."""
         indf = pd.DataFrame(index=pd.MultiIndex.from_tuples([("M1", "S1", "CH4")]))
         result = infilling.get_complete(indf, None)
         pd.testing.assert_frame_equal(result, indf)
 
     def test_get_complete_both_indf_and_infilled(self):
-        """BRANCH: Both indf and infilled → concat them."""
+        """Both indf and infilled → concat them."""
         indf = pd.DataFrame(
             index=pd.MultiIndex.from_tuples([("M1", "S1", "Emissions|CH4")]),
             columns=[2015],
@@ -72,7 +74,7 @@ class TestLoadFunctionsBranches:
 
     @patch("gcages.cmip7_scenariomip.infilling.get_file_hash")
     def test_load_cmip7_scenariomip_infilling_db_hash_mismatch_raises(self, mock_hash):
-        """BRANCH: check_hash=True, hash mismatch → AssertionError."""
+        """check_hash=True, hash mismatch → AssertionError."""
         mock_hash.return_value = "wronghash"
 
         with pytest.raises(AssertionError, match="does not match"):
@@ -81,7 +83,7 @@ class TestLoadFunctionsBranches:
             )
 
     def test_load_cmip7_scenariomip_infilling_db_no_hash_check(self, monkeypatch):
-        """BRANCH: check_hash=False → skip hash check."""
+        """check_hash=False → skip hash check."""
         monkeypatch.setattr(
             infilling, "load_timeseries_csv", lambda *a, **kw: pd.DataFrame()
         )
