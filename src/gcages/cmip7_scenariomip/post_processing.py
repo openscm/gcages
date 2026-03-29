@@ -140,7 +140,19 @@ class CMIP7ScenarioMIPPostProcessor:
         peak_warming = set_new_single_value_levels(
             temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
+        # Moving to frame for typing
+        peak_warming_f = peak_warming.to_frame().copy()
 
+        # Rebuild proper MultiIndex columns BEFORE your helper
+        peak_warming_f.columns = pd.MultiIndex.from_tuples(
+            [("max",)],  # placeholder, will be replaced
+            names=temperatures_in_line_with_assessment.columns.names,
+        )
+
+        peak_warming_f = set_new_single_value_levels(
+            peak_warming_f,
+            {"metric": "max"},
+        )
         peak_warming_quantiles = fix_index_name_after_groupby_quantile(
             groupby_except(peak_warming, "run_id").quantile(
                 self.percentiles_to_calculate
@@ -153,7 +165,7 @@ class CMIP7ScenarioMIPPostProcessor:
         )
         eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
             groupby_except(eoc_warming, "run_id").quantile(
-                self.percentiles_to_calculate
+                list(self.percentiles_to_calculate)
             ),
             new_name="quantile",
         )
@@ -164,8 +176,21 @@ class CMIP7ScenarioMIPPostProcessor:
             ),
             {"metric": "max_year"},
         )
+        # Moving to frame for typing
+        peak_warming_f = peak_warming_year.to_frame().copy()
+
+        # Rebuild proper MultiIndex columns BEFORE your helper
+        peak_warming_f.columns = pd.MultiIndex.from_tuples(
+            [("max",)],  # placeholder, will be replaced
+            names=temperatures_in_line_with_assessment.columns.names,
+        )
+
+        peak_warming_f = set_new_single_value_levels(
+            peak_warming_f,
+            {"metric": "max"},
+        )
         peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming_year, "run_id").quantile(
+            groupby_except(peak_warming_f, "run_id").quantile(
                 self.percentiles_to_calculate
             ),
             new_name="quantile",
