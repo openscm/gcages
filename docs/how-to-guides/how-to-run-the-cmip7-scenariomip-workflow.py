@@ -698,8 +698,3 @@ post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
         ((0.05, 0.95), 0.3),
     ),
 )
-
-# %%
-post_processed_results.timeseries_quantile
-
-# %%

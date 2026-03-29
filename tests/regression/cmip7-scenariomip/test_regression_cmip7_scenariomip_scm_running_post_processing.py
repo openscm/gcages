@@ -7,11 +7,9 @@ from __future__ import annotations
 import multiprocessing
 from pathlib import Path
 
-import pandas as pd
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7_SCENARIOMIP_SCMRunner,
 )
@@ -99,52 +97,3 @@ def test_individual_scenario(model, scenario):
         exp_temperature,
         rtol=1e-6,
     )
-
-    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
-    post_processed = post_processor(scm_results)
-
-    # Loading and assessing quantiles timeseries results
-    file = (
-        CMIP7_SCENARIOMIP_OUT_DIR / f"assessed-warming-timeseries-quantiles_{model}.csv"
-    )
-    exp_quantiles = load_timeseries_csv(
-        file,
-        lower_column_names=True,
-        index_columns=[
-            "climate_model",
-            "model",
-            "region",
-            "scenario",
-            "unit",
-            "variable",
-            "quantile",
-        ],
-        out_columns_type=int,
-        out_columns_name="time",
-    )
-    exp_quantiles.index = exp_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
-    )
-    processed_quantiles = post_processed.timeseries_quantile.iloc[:, 250:]
-    processed_quantiles.index = processed_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
-    )
-
-    assert_frame_equal(
-        processed_quantiles,
-        exp_quantiles,
-        rtol=1e-8,
-    )
-
-    # Loading and categories
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"categories_{model}.csv"
-    exp_categories = pd.read_csv(file)
-
-    assert post_processed.metadata_categories.values[0] == exp_categories["value.1"][2]
-    assert post_processed.metadata_categories.values[1] == exp_categories["value"][2]

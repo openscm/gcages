@@ -10,7 +10,6 @@ from __future__ import annotations
 import multiprocessing
 
 import pandas as pd
-import pandas_indexing as pix
 from attrs import define
 from pandas_openscm.grouping import (
     fix_index_name_after_groupby_quantile,
@@ -107,7 +106,9 @@ class CMIP7ScenarioMIPPostProcessor:
 
         temperatures_in_line_with_assessment = update_index_levels_func(
             get_temperatures_in_line_with_assessment(
-                in_df.loc[pix.isin(variable=[self.gsat_variable_name])],
+                in_df.loc[
+                    in_df.index.get_level_values("variable") == self.gsat_variable_name
+                ],
                 assessment_median=self.gsat_assessment_median,
                 assessment_time_period=self.gsat_assessment_time_period,
                 assessment_pre_industrial_period=self.gsat_assessment_pre_industrial_period,

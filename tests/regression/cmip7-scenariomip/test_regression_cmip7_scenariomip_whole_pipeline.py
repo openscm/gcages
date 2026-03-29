@@ -252,8 +252,18 @@ def test_whole_pipeline(model, scenario):  # noqa: PLR0915
         processed_cmip7_scenariomip_output_data_dir=CMIP7_SCENARIOMIP_OUT_DIR
         / "whole_pipeline",
     )
-    # exp.columns.name = "year"
-    harmonised.columns.name = None
+    exp = update_index_levels_func(
+        exp,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+        copy=False,
+    )
+    exp.columns.name = "year"
 
     infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
         cmip7_scenariomip_infilling_leader_emissions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
