@@ -8,6 +8,7 @@ Individual notebooks can then override them as needed.
 from __future__ import annotations
 
 import multiprocessing
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -235,8 +236,8 @@ class CMIP7ScenarioMIPPostProcessor:
         # Now receives Series, ensuring the internal .unstack("quantile")
         # creates a simple column index [0.05, 0.5, ...]
         categories = categorise_scenarios(
-            peak_warming_quantiles=peak_warming_quantiles,
-            eoc_warming_quantiles=eoc_warming_quantiles,
+            peak_warming_quantiles=cast(pd.DataFrame, peak_warming_quantiles),
+            eoc_warming_quantiles=cast(pd.DataFrame, eoc_warming_quantiles),
             group_levels=["climate_model", "model", "scenario"],
             quantile_level="quantile",
         )
@@ -311,31 +312,6 @@ class CMIP7ScenarioMIPPostProcessor:
     def from_cmip7_scenariomip_config(cls) -> CMIP7ScenarioMIPPostProcessor:
         """
         Initialise from the config used in CMIP7 ScenarioMIP
-
-        Parameters
-        ----------
-        exceedance_thresholds_of_interest
-            The thresholds for which we are interested in exceedance probabilities
-
-        quantiles_of_interest
-            The quantiles we want to include in the results
-
-        raw_gsat_variable_in
-            Name of the variable that contains raw temperature output in the input
-
-            The temperature output should be global-mean surface air temperature (GSAT).
-
-        assessed_gsat_variable
-            Name of the output variable that will contain temperature output
-
-            This temperature output is in line with the
-            CMIP7 ScenarioMIP assessed historical warming.
-
-        run_checks
-            Should checks of the input and output data be performed?
-
-            If this is turned off, things are faster,
-            but error messages are much less clear if things go wrong.
 
         Returns
         -------
