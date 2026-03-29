@@ -98,13 +98,7 @@ class CMIP7ScenarioMIPPostProcessor:
             Post-processed results
         """
         if self.run_checks:
-            raise NotImplementedError
-
-        # TODO:
-        #   - enable optional checks for:
-        #       - only known variable names are in the output
-        #       - only data with a useable time axis is in there
-        #       - metadata is appropriate/usable
+            self._check_in_df(in_df)
 
         temperatures_in_line_with_assessment = update_index_levels_func(
             get_temperatures_in_line_with_assessment(
@@ -146,47 +140,7 @@ class CMIP7ScenarioMIPPostProcessor:
             groupby_except_levels="run_id",
         )
 
-        # # Calculate peak warming and its quantiles
-        # peak_warming = set_new_single_value_levels(
-        #     temperatures_in_line_with_assessment.max(axis="columns"),
-        # {"metric": "max"}
-        # )
-        #
-        # # Moving to frame for typing
-        # peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-        #     groupby_except(peak_warming.to_frame("value"), "run_id")["value"]
-        # .quantile(
-        #         list(self.percentiles_to_calculate)
-        #     ),
-        #     new_name="quantile",
-        # )
-        #
-        # eoc_warming = set_new_single_value_levels(
-        #     temperatures_in_line_with_assessment[2100], {"metric": 2100}
-        # )
-        # eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
-        #     groupby_except(eoc_warming.to_frame("value"), "run_id")["value"].quantile(
-        #         list(self.percentiles_to_calculate)
-        #     ),
-        #     new_name="quantile",
-        # )
-        # # Peak Warming Year
-        # peak_warming_year = set_new_single_value_levels(
-        #     update_index_levels_func(
-        #         temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
-        #             "value"
-        #         ),
-        #         {"unit": lambda x: "yr"},
-        #     ),
-        #     {"metric": "max_year"},
-        # ).squeeze()
-        # peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
-        #     groupby_except(peak_warming_year.to_frame("value"), "run_id").quantile(
-        #         list(self.percentiles_to_calculate)
-        #     ),
-        #     new_name="quantile",
-        # )
-        # 1. Peak Warming
+        # Peak Warming
         peak_warming_df = set_new_single_value_levels(
             temperatures_in_line_with_assessment.max(axis="columns").to_frame("value"),
             {"metric": "max"},
@@ -200,7 +154,7 @@ class CMIP7ScenarioMIPPostProcessor:
         # Extract Series for categorization and final result
         peak_warming_quantiles = peak_warming_quantiles_df["value"]
 
-        # 2. EOC Warming
+        # EOC Warming
         eoc_warming_df = set_new_single_value_levels(
             temperatures_in_line_with_assessment[2100].to_frame("value"),
             {"metric": 2100},
@@ -213,7 +167,7 @@ class CMIP7ScenarioMIPPostProcessor:
         )
         eoc_warming_quantiles = eoc_warming_quantiles_df["value"]
 
-        # 3. Peak Year
+        # Peak Year
         peak_warming_year_df = set_new_single_value_levels(
             update_index_levels_func(
                 temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
@@ -223,7 +177,6 @@ class CMIP7ScenarioMIPPostProcessor:
             ),
             {"metric": "max_year"},
         )
-        # Note: peak_warming_year_df is ALREADY a DataFrame, so no .to_frame() here
         peak_warming_year_quantiles_df = fix_index_name_after_groupby_quantile(
             groupby_except(peak_warming_year_df, "run_id").quantile(
                 np.array(self.percentiles_to_calculate)
@@ -232,9 +185,7 @@ class CMIP7ScenarioMIPPostProcessor:
         )
         peak_warming_year_quantiles = peak_warming_year_quantiles_df["value"]
 
-        # 4. Categorisation
-        # Now receives Series, ensuring the internal .unstack("quantile")
-        # creates a simple column index [0.05, 0.5, ...]
+        # Categorisation
         categories = categorise_scenarios(
             peak_warming_quantiles=cast(pd.DataFrame, peak_warming_quantiles),
             eoc_warming_quantiles=cast(pd.DataFrame, eoc_warming_quantiles),
@@ -242,8 +193,7 @@ class CMIP7ScenarioMIPPostProcessor:
             quantile_level="quantile",
         )
 
-        # 5. Metadata Compilation
-        # Concatenate the Series versions to ensure metadata is a Series[float]
+        # Metadata Compilation
         metadata_run_id = pd.concat(
             [
                 peak_warming_df["value"],
@@ -254,27 +204,6 @@ class CMIP7ScenarioMIPPostProcessor:
         metadata_quantile = pd.concat(
             [peak_warming_quantiles, eoc_warming_quantiles, peak_warming_year_quantiles]
         )
-        # exceedance_probabilities = get_exceedance_probabilities(
-        #     temperatures_in_line_with_assessment,
-        #     exceedance_thresholds_of_interest=self.exceedance_global_warming_levels,
-        #     group_cols=["model", "scenario", "climate_model"],
-        #     unit_col="unit",
-        #     groupby_except_levels="run_id",
-        # )
-        # peak_warming_quantiles_for_cat = peak_warming_quantiles.unstack("quantile")
-        #
-        # Strip the extra level if quantile became a MultiIndex level in the columns
-        # if isinstance(peak_warming_quantiles_for_cat.columns, pd.MultiIndex):
-        #     peak_warming_quantiles_for_cat.columns = (
-        #         peak_warming_quantiles_for_cat.columns.get_level_values("quantile")
-        #     )
-        #
-        # categories = categorise_scenarios(
-        #     peak_warming_quantiles=peak_warming_quantiles,
-        #     eoc_warming_quantiles=eoc_warming_quantiles,
-        #     group_levels=["climate_model", "model", "scenario"],
-        #     quantile_level="quantile",
-        # )
 
         # Compile climate output result
         timeseries_run_id = pd.concat([temperatures_in_line_with_assessment])
@@ -285,14 +214,6 @@ class CMIP7ScenarioMIPPostProcessor:
             [exceedance_probabilities_over_time]
         )
 
-        # metadata_run_id = pd.concat([peak_warming, eoc_warming, peak_warming_year])
-        # metadata_quantile = pd.concat(
-        #     [
-        #         peak_warming_quantiles,
-        #         eoc_warming_quantiles,
-        #         peak_warming_year_quantiles,
-        #     ]
-        # )
         metadata_exceedance_probabilities = exceedance_probabilities
         metadata_categories = categories
 
@@ -336,6 +257,63 @@ class CMIP7ScenarioMIPPostProcessor:
                 0.95,
             ),
             exceedance_global_warming_levels=(1.0, 4.01, 0.5),
-            # TODO: implement and activate
-            run_checks=False,
+            run_checks=True,
         )
+
+    def _check_in_df(self, in_df: pd.DataFrame) -> None:
+        """
+        Perform checks on the input DataFrame
+        """
+        # 1. Check for known variable names
+        # Ensure that the variable we expect to process is actually present
+        available_vars = in_df.index.get_level_values("variable").unique()
+        if self.gsat_variable_name not in available_vars:
+            msg = (
+                f"Required variable '{self.gsat_variable_name}' not found in input.",
+                f" Available variables: {available_vars.tolist()}",
+            )
+            raise ValueError(msg)
+
+        # 2. Check for usable time axis
+        # Ensure columns are integers (years) and not empty
+        if in_df.columns.empty:
+            msg = "Input DataFrame has no time columns."
+            raise ValueError(msg)
+
+        try:
+            # Check if all columns can be treated as integers
+            years = in_df.columns.astype(int)
+        except (ValueError, TypeError):
+            msg = (
+                "Input columns must be integer years. ",
+                f"Found: {in_df.columns.tolist()}",
+            )
+            raise ValueError(msg)
+
+        # Ensure the time axis covers the required assessment periods
+        required_years = set(self.gsat_assessment_time_period) | set(
+            self.gsat_assessment_pre_industrial_period
+        )
+        missing_years = required_years - set(years)
+        if missing_years:
+            msg = (
+                "Input data is missing years required for assessment:",
+                f"{sorted(list(missing_years))}",
+            )
+            raise ValueError(msg)
+
+        # 3. Check if metadata is appropriate/usable
+        # Check for required index levels that are used in grouping/processing
+        required_levels = ["model", "scenario", "climate_model", "run_id", "unit"]
+        missing_levels = [
+            level for level in required_levels if level not in in_df.index.names
+        ]
+        if missing_levels:
+            msg = f"Input index is missing required metadata levels: {missing_levels}"
+            raise ValueError(msg)
+
+        # Ensure there are no NaNs in the essential grouping metadata
+        for level in ["model", "scenario", "run_id"]:
+            if in_df.index.get_level_values(level).isnull().any():
+                msg = f"Found NaN values in required metadata level: '{level}'"
+                raise ValueError(msg)

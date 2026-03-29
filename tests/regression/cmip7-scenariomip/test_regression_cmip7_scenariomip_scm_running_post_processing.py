@@ -5,16 +5,19 @@ Test infilling compared for CMIP7 ScenarioMIP
 from __future__ import annotations
 
 import multiprocessing
+from functools import partial
 from pathlib import Path
 
 import pandas as pd
 import pytest
+from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7_SCENARIOMIP_SCMRunner,
 )
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -60,6 +63,16 @@ def test_individual_scenario(model, scenario):
         pix.ismatch(scenario=scenario)
         & ~pix.ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
     ]
+    infilled = update_index_levels_func(
+        infilled,
+        {
+            "variable": partial(
+                convert_variable_name,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+    )
 
     # Loading expected results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_GSAT.csv"
@@ -97,9 +110,9 @@ def test_individual_scenario(model, scenario):
             )
         ].iloc[:10],
         exp_temperature,
-        rtol=1e-6,
     )
 
+    # Post-processing
     post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
     post_processed = post_processor(scm_results)
 
