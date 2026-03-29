@@ -10,17 +10,25 @@ from gcages.cmip7_scenariomip.harmonisation import (
 from gcages.cmip7_scenariomip.infilling import (
     CMIP7ScenarioMIPInfiller,
 )
+from gcages.cmip7_scenariomip.post_processing import (
+    CMIP7ScenarioMIPPostProcessor,
+)
 from gcages.cmip7_scenariomip.pre_processing import (
     CMIP7ScenarioMIPPreProcessingResult,
     CMIP7ScenarioMIPPreProcessor,
     ReaggregatorBasic,
     ReaggregatorLike,
 )
+from gcages.cmip7_scenariomip.scm_running import (
+    CMIP7_SCENARIOMIP_SCMRunner,
+)
 
 __all__ = [
     "CMIP7ScenarioMIPInfiller",
+    "CMIP7ScenarioMIPPostProcessor",
     "CMIP7ScenarioMIPPreProcessingResult",
     "CMIP7ScenarioMIPPreProcessor",
+    "CMIP7_SCENARIOMIP_SCMRunner",
     "ReaggregatorBasic",
     "ReaggregatorLike",
     "create_cmip7_scenariomip_global_harmoniser",
