@@ -123,7 +123,7 @@ class CMIP7ScenarioMIPPostProcessor:
                 groupby_except(
                     temperatures_in_line_with_assessment,
                     "run_id",
-                ).quantile(self.percentiles_to_calculate),  # type: ignore # pandas-stubs confused
+                ).quantile(list(self.percentiles_to_calculate)),  # type: ignore # pandas-stubs confused
                 new_name="quantile",
             )
         )
@@ -137,30 +137,15 @@ class CMIP7ScenarioMIPPostProcessor:
             groupby_except_levels="run_id",
         )
 
+        # Calculate peak warming and its quantiles
         peak_warming = set_new_single_value_levels(
             temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
 
         # Moving to frame for typing
-        peak_warming_df = set_new_single_value_levels(
-            temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
-        ).to_frame()
-
-        # Rebuild proper MultiIndex columns BEFORE your helper
-        peak_warming_df.columns = pd.MultiIndex.from_tuples(
-            [("max",)],  # placeholder, will be replaced
-            names=temperatures_in_line_with_assessment.columns.names,
-        )
-
         peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming_df, "run_id").quantile(
-                self.percentiles_to_calculate
-            ),
-            new_name="quantile",
-        )
-        peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming, "run_id").quantile(
-                self.percentiles_to_calculate
+            groupby_except(peak_warming.to_frame("value"), "run_id")["value"].quantile(
+                list(self.percentiles_to_calculate)
             ),
             new_name="quantile",
         )
@@ -169,21 +154,24 @@ class CMIP7ScenarioMIPPostProcessor:
             temperatures_in_line_with_assessment[2100], {"metric": 2100}
         )
         eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(eoc_warming, "run_id").quantile(
-                self.percentiles_to_calculate
+            groupby_except(eoc_warming.to_frame("value"), "run_id")["value"].quantile(
+                list(self.percentiles_to_calculate)
             ),
             new_name="quantile",
         )
+        # Peak Warming Year
         peak_warming_year = set_new_single_value_levels(
             update_index_levels_func(
-                temperatures_in_line_with_assessment.idxmax(axis="columns"),
+                temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
+                    "value"
+                ),
                 {"unit": lambda x: "yr"},
             ),
             {"metric": "max_year"},
-        )
+        ).squeeze()
         peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming_year, "run_id").quantile(
-                self.percentiles_to_calculate
+            groupby_except(peak_warming_year.to_frame("value"), "run_id").quantile(
+                list(self.percentiles_to_calculate)
             ),
             new_name="quantile",
         )
@@ -195,6 +183,13 @@ class CMIP7ScenarioMIPPostProcessor:
             unit_col="unit",
             groupby_except_levels="run_id",
         )
+        peak_warming_quantiles_for_cat = peak_warming_quantiles.unstack("quantile")
+
+        # 4. Strip the extra level if quantile became a MultiIndex level in the columns
+        if isinstance(peak_warming_quantiles_for_cat.columns, pd.MultiIndex):
+            peak_warming_quantiles_for_cat.columns = (
+                peak_warming_quantiles_for_cat.columns.get_level_values("quantile")
+            )
 
         categories = categorise_scenarios(
             peak_warming_quantiles=peak_warming_quantiles,
