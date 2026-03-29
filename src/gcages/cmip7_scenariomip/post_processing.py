@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import multiprocessing
 
+import numpy as np
 import pandas as pd
 from attrs import define
 from pandas_openscm.grouping import (
@@ -136,46 +137,6 @@ class CMIP7ScenarioMIPPostProcessor:
             unit_col="unit",
             groupby_except_levels="run_id",
         )
-
-        # Calculate peak warming and its quantiles
-        peak_warming = set_new_single_value_levels(
-            temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
-        )
-
-        # Moving to frame for typing
-        peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming.to_frame("value"), "run_id")["value"].quantile(
-                list(self.percentiles_to_calculate)
-            ),
-            new_name="quantile",
-        )
-
-        eoc_warming = set_new_single_value_levels(
-            temperatures_in_line_with_assessment[2100], {"metric": 2100}
-        )
-        eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(eoc_warming.to_frame("value"), "run_id")["value"].quantile(
-                list(self.percentiles_to_calculate)
-            ),
-            new_name="quantile",
-        )
-        # Peak Warming Year
-        peak_warming_year = set_new_single_value_levels(
-            update_index_levels_func(
-                temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
-                    "value"
-                ),
-                {"unit": lambda x: "yr"},
-            ),
-            {"metric": "max_year"},
-        ).squeeze()
-        peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming_year.to_frame("value"), "run_id").quantile(
-                list(self.percentiles_to_calculate)
-            ),
-            new_name="quantile",
-        )
-
         exceedance_probabilities = get_exceedance_probabilities(
             temperatures_in_line_with_assessment,
             exceedance_thresholds_of_interest=self.exceedance_global_warming_levels,
@@ -183,20 +144,136 @@ class CMIP7ScenarioMIPPostProcessor:
             unit_col="unit",
             groupby_except_levels="run_id",
         )
-        peak_warming_quantiles_for_cat = peak_warming_quantiles.unstack("quantile")
 
-        # 4. Strip the extra level if quantile became a MultiIndex level in the columns
-        if isinstance(peak_warming_quantiles_for_cat.columns, pd.MultiIndex):
-            peak_warming_quantiles_for_cat.columns = (
-                peak_warming_quantiles_for_cat.columns.get_level_values("quantile")
-            )
+        # # Calculate peak warming and its quantiles
+        # peak_warming = set_new_single_value_levels(
+        #     temperatures_in_line_with_assessment.max(axis="columns"),
+        # {"metric": "max"}
+        # )
+        #
+        # # Moving to frame for typing
+        # peak_warming_quantiles = fix_index_name_after_groupby_quantile(
+        #     groupby_except(peak_warming.to_frame("value"), "run_id")["value"]
+        # .quantile(
+        #         list(self.percentiles_to_calculate)
+        #     ),
+        #     new_name="quantile",
+        # )
+        #
+        # eoc_warming = set_new_single_value_levels(
+        #     temperatures_in_line_with_assessment[2100], {"metric": 2100}
+        # )
+        # eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
+        #     groupby_except(eoc_warming.to_frame("value"), "run_id")["value"].quantile(
+        #         list(self.percentiles_to_calculate)
+        #     ),
+        #     new_name="quantile",
+        # )
+        # # Peak Warming Year
+        # peak_warming_year = set_new_single_value_levels(
+        #     update_index_levels_func(
+        #         temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
+        #             "value"
+        #         ),
+        #         {"unit": lambda x: "yr"},
+        #     ),
+        #     {"metric": "max_year"},
+        # ).squeeze()
+        # peak_warming_year_quantiles = fix_index_name_after_groupby_quantile(
+        #     groupby_except(peak_warming_year.to_frame("value"), "run_id").quantile(
+        #         list(self.percentiles_to_calculate)
+        #     ),
+        #     new_name="quantile",
+        # )
+        # 1. Peak Warming
+        peak_warming_df = set_new_single_value_levels(
+            temperatures_in_line_with_assessment.max(axis="columns").to_frame("value"),
+            {"metric": "max"},
+        )
+        peak_warming_quantiles_df = fix_index_name_after_groupby_quantile(
+            groupby_except(peak_warming_df, "run_id").quantile(
+                np.array(self.percentiles_to_calculate)
+            ),
+            new_name="quantile",
+        )
+        # Extract Series for categorization and final result
+        peak_warming_quantiles = peak_warming_quantiles_df["value"]
 
+        # 2. EOC Warming
+        eoc_warming_df = set_new_single_value_levels(
+            temperatures_in_line_with_assessment[2100].to_frame("value"),
+            {"metric": 2100},
+        )
+        eoc_warming_quantiles_df = fix_index_name_after_groupby_quantile(
+            groupby_except(eoc_warming_df, "run_id").quantile(
+                np.array(self.percentiles_to_calculate)
+            ),
+            new_name="quantile",
+        )
+        eoc_warming_quantiles = eoc_warming_quantiles_df["value"]
+
+        # 3. Peak Year
+        peak_warming_year_df = set_new_single_value_levels(
+            update_index_levels_func(
+                temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
+                    "value"
+                ),
+                {"unit": lambda x: "yr"},
+            ),
+            {"metric": "max_year"},
+        )
+        # Note: peak_warming_year_df is ALREADY a DataFrame, so no .to_frame() here
+        peak_warming_year_quantiles_df = fix_index_name_after_groupby_quantile(
+            groupby_except(peak_warming_year_df, "run_id").quantile(
+                np.array(self.percentiles_to_calculate)
+            ),
+            new_name="quantile",
+        )
+        peak_warming_year_quantiles = peak_warming_year_quantiles_df["value"]
+
+        # 4. Categorisation
+        # Now receives Series, ensuring the internal .unstack("quantile")
+        # creates a simple column index [0.05, 0.5, ...]
         categories = categorise_scenarios(
             peak_warming_quantiles=peak_warming_quantiles,
             eoc_warming_quantiles=eoc_warming_quantiles,
             group_levels=["climate_model", "model", "scenario"],
             quantile_level="quantile",
         )
+
+        # 5. Metadata Compilation
+        # Concatenate the Series versions to ensure metadata is a Series[float]
+        metadata_run_id = pd.concat(
+            [
+                peak_warming_df["value"],
+                eoc_warming_df["value"],
+                peak_warming_year_df["value"],
+            ]
+        )
+        metadata_quantile = pd.concat(
+            [peak_warming_quantiles, eoc_warming_quantiles, peak_warming_year_quantiles]
+        )
+        # exceedance_probabilities = get_exceedance_probabilities(
+        #     temperatures_in_line_with_assessment,
+        #     exceedance_thresholds_of_interest=self.exceedance_global_warming_levels,
+        #     group_cols=["model", "scenario", "climate_model"],
+        #     unit_col="unit",
+        #     groupby_except_levels="run_id",
+        # )
+        # peak_warming_quantiles_for_cat = peak_warming_quantiles.unstack("quantile")
+        #
+        # Strip the extra level if quantile became a MultiIndex level in the columns
+        # if isinstance(peak_warming_quantiles_for_cat.columns, pd.MultiIndex):
+        #     peak_warming_quantiles_for_cat.columns = (
+        #         peak_warming_quantiles_for_cat.columns.get_level_values("quantile")
+        #     )
+        #
+        # categories = categorise_scenarios(
+        #     peak_warming_quantiles=peak_warming_quantiles,
+        #     eoc_warming_quantiles=eoc_warming_quantiles,
+        #     group_levels=["climate_model", "model", "scenario"],
+        #     quantile_level="quantile",
+        # )
 
         # Compile climate output result
         timeseries_run_id = pd.concat([temperatures_in_line_with_assessment])
@@ -207,14 +284,14 @@ class CMIP7ScenarioMIPPostProcessor:
             [exceedance_probabilities_over_time]
         )
 
-        metadata_run_id = pd.concat([peak_warming, eoc_warming, peak_warming_year])
-        metadata_quantile = pd.concat(
-            [
-                peak_warming_quantiles,
-                eoc_warming_quantiles,
-                peak_warming_year_quantiles,
-            ]
-        )
+        # metadata_run_id = pd.concat([peak_warming, eoc_warming, peak_warming_year])
+        # metadata_quantile = pd.concat(
+        #     [
+        #         peak_warming_quantiles,
+        #         eoc_warming_quantiles,
+        #         peak_warming_year_quantiles,
+        #     ]
+        # )
         metadata_exceedance_probabilities = exceedance_probabilities
         metadata_categories = categories
 
@@ -269,8 +346,8 @@ class CMIP7ScenarioMIPPostProcessor:
             gsat_variable_name="Surface Air Temperature Change",
             gsat_in_line_with_assessment_variable_name="Surface Temperature (GSAT)",
             gsat_assessment_median=0.85,
-            gsat_assessment_time_period=range(1995, 2014 + 1),
-            gsat_assessment_pre_industrial_period=range(1850, 1900 + 1),
+            gsat_assessment_time_period=tuple(range(1995, 2014 + 1)),
+            gsat_assessment_pre_industrial_period=tuple(range(1850, 1900 + 1)),
             percentiles_to_calculate=(
                 0.05,
                 0.10,
