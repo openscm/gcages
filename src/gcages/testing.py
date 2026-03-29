@@ -410,7 +410,6 @@ def get_cmip7_scenariomip_harmonised_emissions(
         index_columns=["model", "scenario", "variable", "region", "unit", "workflow"],
         out_columns_type=int,
     )
-
     return res
 
 
@@ -449,6 +448,7 @@ def get_cmip7_scenariomip_infilled_emissions(
         / f"{model}_{scenario}_infilled.csv",
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_columns_type=int,
+        out_columns_name="year",
     )
     res = res.loc[:, 2023:2100]
     # Select scenario and drop aggregated/cumulative rows

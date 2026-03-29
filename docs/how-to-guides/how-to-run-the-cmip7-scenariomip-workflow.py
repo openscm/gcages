@@ -638,6 +638,7 @@ scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
 
 # %%
 scm_results = scm_runner(infilled)
+scm_results
 
 # %% [markdown]
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.

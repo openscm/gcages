@@ -7,10 +7,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip.infilling import (
     CMIP7ScenarioMIPInfiller,
 )
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -36,8 +38,21 @@ def test_individual_scenario_class(model, scenario):
         processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,
     )
 
-    harmonised_df = harmonised_df.loc[pix.ismatch(workflow="for_scms")].reset_index(
-        ["workflow"], drop=True
+    harmonised_df = harmonised_df[
+        harmonised_df.index.get_level_values("workflow") == "for_scms"
+    ].reset_index(["workflow"], drop=True)
+
+    # Use gcages naming convention.
+    harmonised_df = update_index_levels_func(
+        harmonised_df,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+        copy=False,
     )
 
     # Load infilled results
@@ -56,5 +71,17 @@ def test_individual_scenario_class(model, scenario):
         ur=None,
     )
     infilled = infiller(harmonised_df)
+
+    infilled = update_index_levels_func(
+        infilled,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.GCAGES,
+                to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            )
+        },
+        copy=False,
+    )
 
     assert_frame_equal(infilled, exp)

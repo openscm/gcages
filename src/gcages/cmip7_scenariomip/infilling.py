@@ -24,7 +24,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.exceptions import MissingOptionalDependencyError, UnrecognisedValueError
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation.common import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
@@ -154,8 +154,6 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
 
     def res(inp: pd.DataFrame) -> pd.DataFrame:
         res_h = silicone_infiller(pyam.IamDataFrame(inp)).timeseries()
-        # The fact that this is needed suggests there's a bug in silicone
-        res_h = res_h.loc[:, inp.dropna(axis="columns", how="all").columns]
 
         return cast(pd.DataFrame, res_h)
 
@@ -571,12 +569,7 @@ class CMIP7ScenarioMIPInfiller:
     UnitRegistry
     """
 
-    cmip7_scenariomip_output: bool = False
-    """
-    Output equivalent to CMIP7 ScenarioMIP
-    """
-
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:  # noqa: PLR0915
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
         """
         Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
 
@@ -607,24 +600,6 @@ class CMIP7ScenarioMIPInfiller:
             raise MissingOptionalDependencyError(
                 "get_silicone_based_infiller", requirement="silicone"
             ) from exc
-
-        try:
-            # Use gcages naming convention.
-            in_emissions = update_index_levels_func(
-                in_emissions,
-                {
-                    "variable": lambda x: convert_variable_name(
-                        x,
-                        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                        to_convention=SupportedNamingConventions.GCAGES,
-                    )
-                },
-                copy=False,
-            )
-        # TODO does this make any sense?
-        except UnrecognisedValueError:
-            msg = "Assuming input data follows CMIP7_SCENARIOMIP naming convention."
-            print(msg)
 
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
@@ -755,6 +730,7 @@ class CMIP7ScenarioMIPInfiller:
 
         infilled_scaling = infill(complete_wmo, infillers_scaling)
         infilled = get_complete(complete_wmo, infilled_scaling)
+        infilled.columns.name = "year"
 
         if self.run_checks:
             pd.testing.assert_index_equal(infilled.columns, in_emissions.columns)
@@ -767,20 +743,6 @@ class CMIP7ScenarioMIPInfiller:
             )
             ## Check completeness
             assert_all_groups_are_complete(infilled, complete_index_gcages_names)
-
-        if self.cmip7_scenariomip_output:
-            # Use revert to cmip7 ScenatioMIP naming convention.
-            infilled = update_index_levels_func(
-                infilled,
-                {
-                    "variable": lambda x: convert_variable_name(
-                        x,
-                        from_convention=SupportedNamingConventions.GCAGES,
-                        to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                    )
-                },
-                copy=False,
-            )
 
         return infilled
 
@@ -903,8 +865,6 @@ class CMIP7ScenarioMIPInfiller:
                 history_unit_level="unit",
                 ur=ur,
             )
-        # TODO not sure here
-        cmip7_scenariomip_output = True
 
         return cls(
             infilling_db=infilling_db,
@@ -914,5 +874,4 @@ class CMIP7ScenarioMIPInfiller:
             pre_industrial_year=PI_YEAR,
             run_checks=run_checks,
             ur=ur,
-            cmip7_scenariomip_output=cmip7_scenariomip_output,
         )
