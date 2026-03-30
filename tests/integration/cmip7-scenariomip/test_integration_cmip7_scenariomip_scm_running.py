@@ -23,7 +23,10 @@ MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
 
+# Only works if pandas_indexing installed
 pytest.importorskip("pandas_indexing")
+# Only works if openscm-runner installed
+pytest.importorskip("openscm_runner.adapters")
 
 
 def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
