@@ -107,6 +107,7 @@ def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
     assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2016] == 12.0
 
 
+@pytest.mark.skip_ci_default
 @pytest.mark.parametrize(
     "scenario, history_path,run_checks, harmonisation_year,error_message",
     [
