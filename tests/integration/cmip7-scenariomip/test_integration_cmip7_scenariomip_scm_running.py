@@ -23,6 +23,8 @@ MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
 
+pytest.importorskip("openscm_runner")
+
 
 def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
     scenarios = pd.DataFrame(
@@ -102,7 +104,6 @@ def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
     assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2016] == 12.0
 
 
-@pytest.mark.skip_ci_default
 @pytest.mark.parametrize(
     "scenario, history_path,run_checks, harmonisation_year,error_message",
     [
