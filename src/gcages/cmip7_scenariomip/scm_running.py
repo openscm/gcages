@@ -376,7 +376,7 @@ class CMIP7ScenarioMIPSCMRunner:
             complete_emissions = in_emissions
             complete_emissions.columns = complete_emissions.columns.astype(int)
             magicc_start_year = 2015
-            if min(complete_emissions.columns) != magicc_start_year:
+            if int(min(complete_emissions.columns.to_numpy())) != magicc_start_year:
                 msg = "Emissions starting year must be set to `2015`"
                 raise AssertionError(msg)
         else:
