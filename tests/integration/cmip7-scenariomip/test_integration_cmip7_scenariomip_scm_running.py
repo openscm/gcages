@@ -5,15 +5,7 @@ import pytest
 from gcages.cmip7_scenariomip.scm_running import get_complete_scenarios_for_magicc
 
 
-def _multi_index_lookup(
-    history: pd.DataFrame, scenario_index: pd.MultiIndex
-) -> pd.DataFrame:
-    return history.loc[scenario_index]
-
-
-def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios(
-    monkeypatch,
-):
+def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
     scenarios = pd.DataFrame(
         {
             2015: [10.0, 10.0],
@@ -53,7 +45,7 @@ def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios(
     assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2016] == 14.0
 
 
-def test_get_complete_scenarios_for_magicc_interpolates_missing_years(monkeypatch):
+def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
     scenarios = pd.DataFrame(
         {
             2015: [10.0, 10.0],

@@ -50,7 +50,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
 )
 from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
-from gcages.cmip7_scenariomip.scm_running import CMIP7_SCENARIOMIP_SCMRunner
+from gcages.cmip7_scenariomip.scm_running import CMIP7ScenarioMIPSCMRunner
 from gcages.index_manipulation import split_sectors
 
 # %%
@@ -611,7 +611,7 @@ elif platform.system() == "Windows":
 # With the set up done, we can initialise our SCM runner.
 
 # %%
-scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
     # Generally, you want to run SCMs in parallel
     n_processes=multiprocessing.cpu_count(),
     magicc_exe_path=MAGICC_EXE,
