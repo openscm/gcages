@@ -27,7 +27,7 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     get_required_timeseries_index,
 )
 from gcages.cmip7_scenariomip.scm_running import (
-    CMIP7_SCENARIOMIP_SCMRunner,
+    CMIP7ScenarioMIPSCMRunner,
 )
 from gcages.completeness import get_missing_levels
 from gcages.index_manipulation import (
@@ -303,7 +303,7 @@ def test_whole_pipeline(model, scenario):  # noqa: PLR0915
     )
     exp_temperature.columns.name = "time"
 
-    scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=MAGIC_EXE,
         magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),

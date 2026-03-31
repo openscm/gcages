@@ -264,7 +264,7 @@ class CMIP7ScenarioMIPPostProcessor:
         """
         Perform checks on the input DataFrame
         """
-        # 1. Check for known variable names
+        # Check for known variable names
         # Ensure that the variable we expect to process is actually present
         available_vars = in_df.index.get_level_values("variable").unique()
         if self.gsat_variable_name not in available_vars:
@@ -274,7 +274,7 @@ class CMIP7ScenarioMIPPostProcessor:
             )
             raise ValueError(msg)
 
-        # 2. Check for usable time axis
+        # Check for usable time axis
         # Ensure columns are integers (years) and not empty
         if in_df.columns.empty:
             msg = "Input DataFrame has no time columns."
@@ -302,7 +302,7 @@ class CMIP7ScenarioMIPPostProcessor:
             )
             raise ValueError(msg)
 
-        # 3. Check if metadata is appropriate/usable
+        # Check if metadata is appropriate/usable
         # Check for required index levels that are used in grouping/processing
         required_levels = ["model", "scenario", "climate_model", "run_id", "unit"]
         missing_levels = [
