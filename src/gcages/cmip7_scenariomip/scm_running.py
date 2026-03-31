@@ -3,6 +3,8 @@ SCM-running configuration and related things for the updated workflow
 
 This sets our defaults.
 Individual notebooks can then override them as needed.
+
+TODO: reduce duplication with AR6 SCM runner
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
+from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
@@ -151,6 +154,21 @@ def load_magicc_cfgs(
     return climate_models_cfgs
 
 
+def check_cmip7_scenariomip_magicc7_version() -> None:
+    """
+    Check that the MAGICC7 version is what was used in CMIP7 ScenarioMIP
+    """
+    try:
+        import openscm_runner.adapters
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "check_cmip7_scenariomip_magicc7_version", requirement="openscm_runner"
+        ) from exc
+
+    if openscm_runner.adapters.MAGICC7.get_version() != "v7.6.0a3":  # type: ignore
+        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())  # type: ignore
+
+
 def get_complete_scenarios_for_magicc(
     scenarios: pd.DataFrame,
     history: pd.DataFrame,
@@ -187,7 +205,6 @@ def get_complete_scenarios_for_magicc(
             history,
             scenario_index,
         )
-        .reset_index(["model", "scenario"], drop=True)
         .align(scenarios)[0]
         .loc[:, magicc_start_year : scenarios_start_year - 1]
     )
@@ -205,13 +222,13 @@ def get_complete_scenarios_for_magicc(
 
 
 @define
-class CMIP7_SCENARIOMIP_SCMRunner:
+class CMIP7ScenarioMIPSCMRunner:
     """
     Simple climate model runner
 
-    It follows the same logic as was used in CMIP7_SCENARIOMIP
+    It follows the same logic as was used in CMIP7 SCENARIOMIP
 
-    If you want exactly the same behaviour as in CMIP7_SCENARIOMIP
+    If you want exactly the same behaviour as in CMIP7 SCENARIOMIP
     initialise using [`from_cmip7_scenariomip_config`][(c)]
     """
 
@@ -231,11 +248,6 @@ class CMIP7_SCENARIOMIP_SCMRunner:
     """
     Variables to include in the output
     """
-
-    # force_interpolate_to_yearly: bool = True
-    # """
-    # Should we interpolate scenarios we run to yearly steps before running the SCMs.
-    # """
 
     batch_size_scenarios: int | None = None
     """
@@ -304,7 +316,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
     Set to `None` to process in serial.
     """
 
-    def __call__(
+    def __call__(  # noqa: PLR0912
         self, in_emissions: pd.DataFrame, force_rerun: bool = False
     ) -> pd.DataFrame:
         """
@@ -323,10 +335,6 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         :
             Raw results from the simple climate model
         """
-        # TODO MZ: not sure that's the best solution
-        in_emissions.columns.name = "year"
-        in_emissions = in_emissions.dropna(axis=1, how="all")
-
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_has_index_levels(
@@ -354,33 +362,36 @@ class CMIP7_SCENARIOMIP_SCMRunner:
 
             assert_harmonised(
                 in_emissions,
-                history=self.historical_emissions.reset_index(
-                    level=[
-                        lvl
-                        for lvl in ["model", "scenario"]
-                        if lvl in self.historical_emissions.index.names
-                    ],
-                    drop=True,
-                ),
+                history=self.historical_emissions,
                 harmonisation_time=self.harmonisation_year,
                 rounding=5,  # level of data storage in historical data often
             )
             assert_all_groups_are_complete(
                 # The combo of the input and infilled should be complete
                 in_emissions,
-                complete_index=self.historical_emissions.index.droplevel(
-                    ["model", "scenario", "unit"]
-                ),
-            )
-        if self.historical_emissions is None:
-            complete_emissions = in_emissions
-        else:
-            complete_emissions = get_complete_scenarios_for_magicc(
-                scenarios=in_emissions,
-                history=self.historical_emissions,
+                complete_index=self.historical_emissions.index.droplevel("unit"),
             )
 
-        complete_emissions.columns = complete_emissions.columns.astype(int)
+        if "MAGICC7" in self.climate_models_cfgs:
+            if self.historical_emissions is None:
+                # No history provided: assume emissions are already complete
+                complete_emissions = in_emissions
+                complete_emissions.columns = complete_emissions.columns.astype(int)
+                # Validate MAGICC requirement
+                magicc_start_year = 2015
+                if int(min(complete_emissions.columns.to_numpy())) != magicc_start_year:
+                    msg = "Emissions starting year must be set to `2015`"
+                    raise AssertionError(msg)
+            else:
+                # History provided merge with scenarios
+                complete_emissions = get_complete_scenarios_for_magicc(
+                    scenarios=in_emissions,
+                    history=self.historical_emissions,
+                )
+                complete_emissions.columns = complete_emissions.columns.astype(int)
+        else:
+            # Not running MAGICC, use emissions as-is
+            complete_emissions = in_emissions
 
         openscm_runner_emissions = update_index_levels_func(
             complete_emissions,
@@ -392,7 +403,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
                 )
             },
         )
-        # TODO delete?
+
         # if self.force_interpolate_to_yearly:
         #     # TODO: put interpolate to annual steps in pandas-openscm
         #     # Interpolate to ensure no nans.
@@ -472,7 +483,7 @@ class CMIP7_SCENARIOMIP_SCMRunner:
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
-    ) -> CMIP7_SCENARIOMIP_SCMRunner:
+    ) -> CMIP7ScenarioMIPSCMRunner:
         """
         Initialise from the config used in CMIP7 ScenarioMIP
 
@@ -536,11 +547,8 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             Initialised SCM runner
         """
         os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
-        # TODO?
-        # check_cmip7_scenariomip_magicc7_version()
+        check_cmip7_scenariomip_magicc7_version()
 
-        # TODO Is it appropriate that we want a Path here and
-        # a df in the class?
         if historical_emissions_path is not None:
             # Load history
             historical_emissions = load_cmip7_scenariomip_historical_emissions(
@@ -557,6 +565,15 @@ class CMIP7_SCENARIOMIP_SCMRunner:
                     )
                 },
                 copy=False,
+            )
+
+            historical_emissions = historical_emissions.reset_index(
+                level=[
+                    lvl
+                    for lvl in ["model", "scenario"]
+                    if lvl in historical_emissions.index.names
+                ],
+                drop=True,
             )
         else:
             historical_emissions = None
@@ -577,6 +594,5 @@ class CMIP7_SCENARIOMIP_SCMRunner:
             verbose=verbose,
             run_checks=run_checks,
             n_processes=n_processes,
-            # force_interpolate_to_yearly=True,  # MAGICC safer with annual input
             res_column_type=int,  # annual output by default
         )

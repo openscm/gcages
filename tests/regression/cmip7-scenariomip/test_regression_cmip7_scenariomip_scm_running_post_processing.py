@@ -15,7 +15,7 @@ from pandas_openscm.io import load_timeseries_csv
 
 from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import (
-    CMIP7_SCENARIOMIP_SCMRunner,
+    CMIP7ScenarioMIPSCMRunner,
 )
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
@@ -92,7 +92,7 @@ def test_individual_scenario(model, scenario):
     )
     exp_temperature.columns.name = "time"
 
-    scm_runner = CMIP7_SCENARIOMIP_SCMRunner.from_cmip7_scenariomip_config(
+    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=MAGIC_EXE,
         magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
