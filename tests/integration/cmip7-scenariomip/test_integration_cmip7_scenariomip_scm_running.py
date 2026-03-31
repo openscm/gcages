@@ -206,7 +206,7 @@ def test_CMIP7ScenarioMIPSCMRunner(
     )
 
     with pytest.raises(AssertionError, match=error_message):
-        scm_runner(scenario)
+        scm_runner.__call__(scenario)
 
 
 def test_check_cmip7_scenariomip_magicc7_version(monkeypatch):
