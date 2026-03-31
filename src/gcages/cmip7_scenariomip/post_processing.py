@@ -309,7 +309,9 @@ class CMIP7ScenarioMIPPostProcessor:
             level for level in required_levels if level not in in_df.index.names
         ]
         if missing_levels:
-            msg = f"Input index is missing required metadata levels: {missing_levels}"
+            msg: str = (
+                f"Input index is missing required metadata levels: {missing_levels}"
+            )
             raise ValueError(msg)
 
         # Ensure there are no NaNs in the essential grouping metadata
