@@ -6,7 +6,9 @@ import pytest
 
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
+    check_cmip7_scenariomip_magicc7_version,
     get_complete_scenarios_for_magicc,
+    load_magicc_cfgs,
 )
 
 PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
@@ -27,6 +29,36 @@ MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
 pytest.importorskip("pandas_indexing")
 # Only works if openscm-runner installed
 pytest.importorskip("openscm_runner.adapters")
+
+
+def test_load_magicc_cfgs_sets_common_and_physical_cfgs():
+    prob = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "test_prob.json"
+    prob.write_text(
+        """
+        {
+          "configurations": [
+            {
+              "paraset_id": "cfg-1",
+              "nml_allcfgs": {"SCENARIO": "foo", "STARTYEAR": 1750}
+            }
+          ]
+        }
+        """
+    )
+
+    out = load_magicc_cfgs(
+        prob, output_variables=("Surface Air Temperature Change",), startyear=1750
+    )
+
+    assert list(out) == ["MAGICC7"]
+    assert len(out["MAGICC7"]) == 1
+    cfg = out["MAGICC7"][0]
+    assert cfg["run_id"] == "cfg-1"
+    assert cfg["scenario"] == "foo"
+    assert cfg["startyear"] == 1750
+    assert cfg["out_ascii_binary"] == "BINARY"
+    assert cfg["out_binary_format"] == 2
+    assert cfg["out_dynamic_vars"]
 
 
 def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
@@ -175,3 +207,12 @@ def test_CMIP7ScenarioMIPSCMRunner(
 
     with pytest.raises(AssertionError, match=error_message):
         scm_runner(scenario)
+
+
+def test_check_cmip7_scenariomip_magicc7_version(monkeypatch):
+    import openscm_runner.adapters
+
+    monkeypatch.setattr(
+        openscm_runner.adapters.MAGICC7, "get_version", lambda: "v7.6.0a3"
+    )
+    check_cmip7_scenariomip_magicc7_version()
