@@ -316,7 +316,7 @@ class CMIP7ScenarioMIPSCMRunner:
     Set to `None` to process in serial.
     """
 
-    def __call__(
+    def __call__(  # noqa: PLR0912
         self, in_emissions: pd.DataFrame, force_rerun: bool = False
     ) -> pd.DataFrame:
         """
@@ -372,19 +372,26 @@ class CMIP7ScenarioMIPSCMRunner:
                 complete_index=self.historical_emissions.index.droplevel("unit"),
             )
 
-        if self.historical_emissions is None:
-            complete_emissions = in_emissions
-            complete_emissions.columns = complete_emissions.columns.astype(int)
-            magicc_start_year = 2015
-            if int(min(complete_emissions.columns.to_numpy())) != magicc_start_year:
-                msg = "Emissions starting year must be set to `2015`"
-                raise AssertionError(msg)
+        if "MAGICC7" in self.climate_models_cfgs:
+            if self.historical_emissions is None:
+                # No history provided: assume emissions are already complete
+                complete_emissions = in_emissions
+                complete_emissions.columns = complete_emissions.columns.astype(int)
+                # Validate MAGICC requirement
+                magicc_start_year = 2015
+                if int(min(complete_emissions.columns.to_numpy())) != magicc_start_year:
+                    msg = "Emissions starting year must be set to `2015`"
+                    raise AssertionError(msg)
+            else:
+                # History provided merge with scenarios
+                complete_emissions = get_complete_scenarios_for_magicc(
+                    scenarios=in_emissions,
+                    history=self.historical_emissions,
+                )
+                complete_emissions.columns = complete_emissions.columns.astype(int)
         else:
-            complete_emissions = get_complete_scenarios_for_magicc(
-                scenarios=in_emissions,
-                history=self.historical_emissions,
-            )
-            complete_emissions.columns = complete_emissions.columns.astype(int)
+            # Not running MAGICC, use emissions as-is
+            complete_emissions = in_emissions
 
         openscm_runner_emissions = update_index_levels_func(
             complete_emissions,
