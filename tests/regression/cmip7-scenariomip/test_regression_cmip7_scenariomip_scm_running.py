@@ -5,7 +5,6 @@ Test infilling compared for CMIP7 ScenarioMIP
 from __future__ import annotations
 
 import multiprocessing
-import platform
 from functools import partial
 from pathlib import Path
 
@@ -24,8 +23,6 @@ from gcages.testing import (
 )
 
 pix = pytest.importorskip("pandas_indexing")
-if platform.system() in ["Darwin", "Windows"]:
-    pytest.skip("No working MAGICC executable", allow_module_level=True)
 
 CMIP7_SCENARIOMIP_OUT_DIR = Path(__file__).parents[0] / "cmip7-scenariomip-output"
 
@@ -50,7 +47,8 @@ HARMONISATION_YEAR = 2023
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
-def test_individual_scenario(model, scenario):
+def test_individual_scenario(model, scenario, monkeypatch):
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
     infilled = load_timeseries_csv(

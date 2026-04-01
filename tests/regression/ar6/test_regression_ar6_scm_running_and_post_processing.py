@@ -53,12 +53,6 @@ AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
-@pytest.fixture(autouse=True)
-def isolate_magicc_env(monkeypatch):
-    # Ensure every test starts clean
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-
-
 def strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
     indf: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -151,7 +145,9 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
 @get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
-def test_individual_scenario(model, scenario):
+def test_individual_scenario(model, scenario, monkeypatch):
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
+
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
@@ -244,12 +240,13 @@ def test_individual_scenario(model, scenario):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-def test_parallel(tmp_path):
+def test_parallel(tmp_path, monkeypatch):
     """Test a few scenarios in parallel, not all to save compute time"""
     # Required for progress bars
     pytest.importorskip("tqdm.auto")
     # Required for database
     pytest.importorskip("filelock")
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
 
     infilled_l = []
     exp_temperature_percentiles_l = []
