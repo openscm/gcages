@@ -1,3 +1,4 @@
+import platform
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +11,9 @@ from gcages.cmip7_scenariomip.scm_running import (
     get_complete_scenarios_for_magicc,
     load_magicc_cfgs,
 )
+
+if platform.system() in ["Darwin", "Windows"]:
+    pytest.skip("No working MAGICC executable", allow_module_level=True)
 
 PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
     Path(__file__).parents[2]
@@ -31,20 +35,35 @@ pytest.importorskip("pandas_indexing")
 pytest.importorskip("openscm_runner.adapters")
 
 
-def test_load_magicc_cfgs_sets_common_and_physical_cfgs():
-    prob = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "test_prob.json"
-    prob.write_text(
-        """
-        {
-          "configurations": [
+def test_load_magicc_cfgs_sets_common_and_physical_cfgs(monkeypatch):
+    mock_cfgs = {
+        "configurations": [
             {
-              "paraset_id": "cfg-1",
-              "nml_allcfgs": {"SCENARIO": "foo", "STARTYEAR": 1750}
+                "paraset_id": "cfg-1",
+                "nml_allcfgs": {"SCENARIO": "foo", "STARTYEAR": 1750},
             }
-          ]
-        }
-        """
-    )
+        ]
+    }
+
+    def mock_open(path, *args, **kwargs):
+        class MockFile:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                pass
+
+            def read(self):
+                import json
+
+                return json.dumps(mock_cfgs)
+
+        return MockFile()
+
+    monkeypatch.setattr("builtins.open", mock_open)
+    monkeypatch.setattr("json.load", lambda f: mock_cfgs)
+
+    prob = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "test_prob.json"
 
     out = load_magicc_cfgs(
         prob, output_variables=("Surface Air Temperature Change",), startyear=1750

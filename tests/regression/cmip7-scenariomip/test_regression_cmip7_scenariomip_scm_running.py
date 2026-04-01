@@ -5,6 +5,7 @@ Test infilling compared for CMIP7 ScenarioMIP
 from __future__ import annotations
 
 import multiprocessing
+import platform
 from functools import partial
 from pathlib import Path
 
@@ -23,6 +24,8 @@ from gcages.testing import (
 )
 
 pix = pytest.importorskip("pandas_indexing")
+if platform.system() in ["Darwin", "Windows"]:
+    pytest.skip("No working MAGICC executable", allow_module_level=True)
 
 CMIP7_SCENARIOMIP_OUT_DIR = Path(__file__).parents[0] / "cmip7-scenariomip-output"
 
