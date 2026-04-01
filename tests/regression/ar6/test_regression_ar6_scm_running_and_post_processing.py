@@ -53,6 +53,12 @@ AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
 
+@pytest.fixture(autouse=True)
+def isolate_magicc_env(monkeypatch):
+    # Ensure every test starts clean
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
+
+
 def strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
     indf: pd.DataFrame,
 ) -> pd.DataFrame:
