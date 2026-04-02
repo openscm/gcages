@@ -13,6 +13,7 @@ that cover the key paths from AR6.
 from __future__ import annotations
 
 import multiprocessing
+import os
 from pathlib import Path
 
 import numpy as np
@@ -145,9 +146,8 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
 @get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
-def test_individual_scenario(model, scenario, monkeypatch):
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-
+def test_individual_scenario(model, scenario):
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
@@ -240,14 +240,13 @@ def test_individual_scenario(model, scenario, monkeypatch):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-def test_parallel(tmp_path, monkeypatch):
+def test_parallel(tmp_path):
     """Test a few scenarios in parallel, not all to save compute time"""
     # Required for progress bars
     pytest.importorskip("tqdm.auto")
     # Required for database
     pytest.importorskip("filelock")
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []

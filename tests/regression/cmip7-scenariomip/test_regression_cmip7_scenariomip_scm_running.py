@@ -44,11 +44,11 @@ HARMONISATION_YEAR = 2023
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
+@pytest.mark.magicc_v760a3
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
-def test_individual_scenario(model, scenario, monkeypatch):
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
+def test_individual_scenario(model, scenario):
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
     infilled = load_timeseries_csv(
