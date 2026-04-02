@@ -44,6 +44,7 @@ HARMONISATION_YEAR = 2023
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
+@pytest.mark.magicc_v760a3
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )

@@ -57,7 +57,18 @@ ar6 = [
     "silicone>=1.3.0",
 ]
 cmip7scenariomip = [
-    "pandas-indexing>=0.6.3",
+    "aneris-iamc>=0.4.2 ; python_version >= '3.10'",
+    # The next two shouldn't need to be specified
+    # but for some reason are
+    "pycountry>=24.0 ; python_version >= '3.10'",
+    "importlib-resources>=5.0 ; python_version >= '3.10' and python_version <= '3.11'",
+    "openscm-runner>=0.13.0",
+    "pandas-indexing[units]>=0.6.3",
+    "pandas-openscm[db]>=0.5.1",
+    "pymagicc>=2.1.5",
+    "scipy>=1.13.0",
+    "scmdata>=0.18.0",
+    "silicone>=1.3.0",
 ]
 progress = [
     "tqdm>=4.0.0",
@@ -321,6 +332,7 @@ markers = [
     "skip_ci_default: marks tests as being skipped in CI by default",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
+    "magicc_v760a3: tests requiring MAGICC 7.6.0a3",
 ]
 
 [tool.ruff]

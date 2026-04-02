@@ -41,7 +41,12 @@ jobs:
           D:\a\gcages\gcages\tests\regression\ar6\ar6-workflow-inputs\magicc-v7.5.3\bin\magicc.exe --version
       - name: Run tests that are otherwise skipped (mostly regression tests for specific set ups)
         run: |
-          uv run pytest -r a -v -s tests -m "skip_ci_default"
+          uv run pytest -r a -v -s tests -m "not magicc_v760a3 and skip_ci_default"
+      - name: Run CMIP7 tests (MAGICC 7.6.0a3)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          MAGICC_EXECUTABLE_7="tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin/magicc" \
+          uv run pytest -r a -v -s tests -m "magicc_v760a3"
 
   tests-resolution-strategies:
     strategy:
@@ -88,4 +93,9 @@ jobs:
           uv pip install --requirements requirements-tmp.txt .
       - name: Run tests
         run: |
-          MAGICC_EXECUTABLE_7="tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc" uv run --no-sync pytest -r a -v -s tests -m "skip_ci_default"
+          MAGICC_EXECUTABLE_7="tests/regression/ar6/ar6-workflow-inputs/magicc-v7.5.3/bin/magicc" uv run --no-sync pytest -r a -v -s tests -m "not magicc_v760a3 and skip_ci_default"
+      - name: Run CMIP7 tests (MAGICC 7.6.0a3)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          MAGICC_EXECUTABLE_7="tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin/magicc" \
+          uv run --no-syncpytest -r a -v -s tests -m "magicc_v760a3"
