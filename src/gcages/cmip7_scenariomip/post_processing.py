@@ -292,7 +292,7 @@ class CMIP7ScenarioMIPPostProcessor:
 
         # Ensure the time axis covers the required assessment periods
         required_years = set(self.gsat_assessment_time_period) | set(
-            self.gsat_assessment_pre_industrial_period
+            self.gsat_assessment_pre_industrial_period,
         )
         missing_years = required_years - set(years)
         if missing_years:
