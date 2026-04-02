@@ -309,13 +309,13 @@ class CMIP7ScenarioMIPPostProcessor:
             level for level in required_levels if level not in in_df.index.names
         ]
         if missing_levels:
-            msg_tuple = (
+            msg_level = (
                 f"Input index is missing required metadata levels: {missing_levels}"
             )
-            raise ValueError(msg_tuple)
+            raise ValueError(msg_level)
 
         # Ensure there are no NaNs in the essential grouping metadata
         for level in ["model", "scenario", "run_id"]:
             if in_df.index.get_level_values(level).isnull().any():
-                msg_tuple = f"Found NaN values in required metadata level: '{level}'"
-                raise ValueError(msg)
+                msg_level = f"Found NaN values in required metadata level: '{level}'"
+                raise ValueError(msg_level)
