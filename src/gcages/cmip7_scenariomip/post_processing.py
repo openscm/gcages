@@ -317,5 +317,8 @@ class CMIP7ScenarioMIPPostProcessor:
         # Ensure there are no NaNs in the essential grouping metadata
         for level in ["model", "scenario", "run_id"]:
             if in_df.index.get_level_values(level).isnull().any():
-                msg_level = f"Found NaN values in required metadata level: '{level}'"
+                msg_level = (
+                    "Found NaN values in required metadata level:",
+                    f"'{level}'",
+                )
                 raise ValueError(msg_level)
