@@ -121,3 +121,8 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         pytest tests -r a -vv tests/regression/ar6
+    - name: Run CMIP7 tests (MAGICC 7.6.0a3)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        MAGICC_EXECUTABLE_7="tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin/magicc" \
+        uv run pytest -r a -vv tests/integration/cmip7-scenariomip/test_integration_cmip7_scenariomip_scm_running.py tests/regression/cmip7-scenariomip/test_regression_cmip7_scenariomip_scm_running.py
