@@ -268,11 +268,11 @@ class CMIP7ScenarioMIPPostProcessor:
         # Ensure that the variable we expect to process is actually present
         available_vars = in_df.index.get_level_values("variable").unique()
         if self.gsat_variable_name not in available_vars:
-            msg = (
+            msg_tuple = (
                 f"Required variable '{self.gsat_variable_name}' not found in input.",
                 f" Available variables: {available_vars.tolist()}",
             )
-            raise ValueError(msg)
+            raise ValueError(msg_tuple)
 
         # Check for usable time axis
         # Ensure columns are integers (years) and not empty
@@ -284,11 +284,11 @@ class CMIP7ScenarioMIPPostProcessor:
             # Check if all columns can be treated as integers
             years = in_df.columns.astype(int)
         except (ValueError, TypeError):
-            msg = (
+            msg_tuple = (
                 "Input columns must be integer years. ",
                 f"Found: {in_df.columns.tolist()}",
             )
-            raise ValueError(msg)
+            raise ValueError(msg_tuple)
 
         # Ensure the time axis covers the required assessment periods
         required_years = set(self.gsat_assessment_time_period) | set(
@@ -296,11 +296,11 @@ class CMIP7ScenarioMIPPostProcessor:
         )
         missing_years = required_years - set(years)
         if missing_years:
-            msg = (
+            msg_years = (
                 "Input data is missing years required for assessment:",
                 f"{sorted(list(missing_years))}",
             )
-            raise ValueError(msg)
+            raise ValueError(msg_years)
 
         # Check if metadata is appropriate/usable
         # Check for required index levels that are used in grouping/processing
@@ -309,13 +309,13 @@ class CMIP7ScenarioMIPPostProcessor:
             level for level in required_levels if level not in in_df.index.names
         ]
         if missing_levels:
-            msg: str = (
+            msg_tuple = (
                 f"Input index is missing required metadata levels: {missing_levels}"
             )
-            raise ValueError(msg)
+            raise ValueError(msg_tuple)
 
         # Ensure there are no NaNs in the essential grouping metadata
         for level in ["model", "scenario", "run_id"]:
             if in_df.index.get_level_values(level).isnull().any():
-                msg = f"Found NaN values in required metadata level: '{level}'"
+                msg_tuple = f"Found NaN values in required metadata level: '{level}'"
                 raise ValueError(msg)
