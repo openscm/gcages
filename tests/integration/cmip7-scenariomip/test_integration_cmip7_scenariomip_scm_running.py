@@ -100,6 +100,68 @@ def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
     assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2016] == 14.0
 
 
+def test_call_success_non_magicc(monkeypatch):
+    # Setup a runner for a generic model to skip MAGICC-specific interpolation
+    runner = CMIP7ScenarioMIPSCMRunner(
+        climate_models_cfgs={"GenericModel": [{"run_id": "test"}]},
+        output_variables=("Surface Air Temperature Change",),
+        run_checks=False,
+    )
+
+    mock_out = pd.DataFrame(
+        [[1.0]],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("M1", "S1", "Emissions|CO2", "MtCO2/yr"),
+            ],
+            names=["model", "scenario", "variable", "unit"],
+        ),
+        columns=[2020],
+    )
+    monkeypatch.setattr(
+        "gcages.cmip7_scenariomip.scm_running.run_scms", lambda **kwargs: mock_out
+    )
+
+    in_emissions = mock_out.copy()  # Simplest valid input
+    result = runner(in_emissions)
+
+    assert not result.empty
+    assert result.columns.dtype == int
+
+
+def test_call_with_database(monkeypatch):
+    from unittest.mock import MagicMock
+
+    mock_db = MagicMock()
+    mock_data = pd.DataFrame(
+        [[1.0]],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("M1", "S1", "Emissions|CO2", "MtCO2/yr"),
+            ],
+            names=["model", "scenario", "variable", "unit"],
+        ),
+        columns=[2020],
+    )
+    mock_db.load.return_value = mock_data
+
+    runner = CMIP7ScenarioMIPSCMRunner(
+        climate_models_cfgs={"Model": []},
+        output_variables=(),
+        db=mock_db,
+        run_checks=False,
+    )
+
+    # Mock run_scms to return None (simulating output saved only to DB)
+    monkeypatch.setattr(
+        "gcages.cmip7_scenariomip.scm_running.run_scms", lambda **kwargs: None
+    )
+
+    result = runner(mock_data)
+    mock_db.load.assert_called_once()
+    assert result.equals(mock_data)
+
+
 def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
     scenarios = pd.DataFrame(
         {
@@ -217,3 +279,11 @@ def test_check_cmip7_scenariomip_magicc7_version(monkeypatch):
         openscm_runner.adapters.MAGICC7, "get_version", lambda: "v7.6.0a3"
     )
     check_cmip7_scenariomip_magicc7_version()
+
+    # Force a version that isn't v7.6.0a3
+    monkeypatch.setattr(
+        openscm_runner.adapters.MAGICC7, "get_version", lambda: "v8.0.0"
+    )
+
+    with pytest.raises(AssertionError, match="v8.0.0"):
+        check_cmip7_scenariomip_magicc7_version()
