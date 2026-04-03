@@ -49,6 +49,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
 )
 from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
+from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
 from gcages.cmip7_scenariomip.scm_running import CMIP7ScenarioMIPSCMRunner
 from gcages.index_manipulation import split_sectors
@@ -643,16 +644,16 @@ scm_results
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
 
 # %%
-# scm_results.loc[
-#     pix.isin(variable=["Effective Radiative Forcing"])
-# ].openscm.plot_plume_after_calculating_quantiles(
-#     style_var="variable",
-#     quantile_over="run_id",
-#     quantiles_plumes=(
-#         (0.5, 0.8),
-#         ((0.05, 0.95), 0.3),
-#     ),
-# )
+scm_results.loc[
+    pix.isin(variable=["Effective Radiative Forcing"])
+].openscm.plot_plume_after_calculating_quantiles(
+    style_var="variable",
+    quantile_over="run_id",
+    quantiles_plumes=(
+        (0.5, 0.8),
+        ((0.05, 0.95), 0.3),
+    ),
+)
 
 # %% [markdown]
 # ## Post-processing
@@ -661,37 +662,39 @@ scm_results
 # This handles calculation of key pieces of metadata.
 
 # %%
-# post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
-# post_processed_results = post_processor(scm_results)
+post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+post_processed_results = post_processor(
+    scm_results.loc[pix.isin(variable=["Surface Air Temperature Change"])]
+)
 
 # %% [markdown]
 # For example, the scenario category.
 
 # %%
-# post_processed_results.metadata_categories.unstack("metric")
+post_processed_results.metadata_categories.unstack("metric")
 
 # %% [markdown]
 # Exceedance thresholds.
 
 # %%
-# post_processed_results.metadata_exceedance_probabilities.unstack("threshold")
+post_processed_results.metadata_exceedance_probabilities.unstack("threshold")
 
 # %% [markdown]
 # Key warming metrics.
 
 # %%
-# post_processed_results.metadata_quantile.loc[
-#     pix.isin(quantile=[0.05, 0.5, 0.95])
-# ].unstack(["quantile", "metric"]).round(2).sort_index(axis="columns")
+post_processed_results.metadata_quantile.loc[
+    pix.isin(quantile=[0.05, 0.5, 0.95])
+].unstack(["quantile", "metric"]).round(2).sort_index(axis="columns")
 
 # %% [markdown]
 # Assessed surface temperatures.
 
 # %% editable=true slideshow={"slide_type": ""}
-# post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
-#     style_var="variable",
-#     quantiles_plumes=(
-#         (0.5, 0.8),
-#         ((0.05, 0.95), 0.3),
-#     ),
-# )
+post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
+    style_var="variable",
+    quantiles_plumes=(
+        (0.5, 0.8),
+        ((0.05, 0.95), 0.3),
+    ),
+)
