@@ -269,8 +269,8 @@ class CMIP7ScenarioMIPPostProcessor:
         available_vars = in_df.index.get_level_values("variable").unique()
         if self.gsat_variable_name not in available_vars:
             msg_tuple = (
-                f"Required variable '{self.gsat_variable_name}' not found in input."
-                f" Available variables: {available_vars.tolist()}"
+                f"Required variable '{self.gsat_variable_name}' not found in input. "
+                f"Available variables: {available_vars.tolist()}"
             )
             raise ValueError(msg_tuple)
 
@@ -285,8 +285,7 @@ class CMIP7ScenarioMIPPostProcessor:
             years = in_df.columns.astype(int)
         except (ValueError, TypeError):
             msg_tuple = (
-                "Input columns must be integer years. "
-                f"Found: {in_df.columns.tolist()}"
+                f"Input columns must be integer years. Found: {in_df.columns.tolist()}"
             )
             raise ValueError(msg_tuple)
 
@@ -297,7 +296,7 @@ class CMIP7ScenarioMIPPostProcessor:
         missing_years = required_years - set(years)
         if missing_years:
             msg_years = (
-                f"Input data is missing years required for assessment:"
+                "Input data is missing years required for assessment: "
                 f"{sorted(list(missing_years))}"
             )
             raise ValueError(msg_years)
@@ -314,6 +313,6 @@ class CMIP7ScenarioMIPPostProcessor:
 
         # Ensure there are no NaNs in the essential grouping metadata
         for level in ["model", "scenario", "run_id"]:
-            if in_df.index.get_level_values(level).isnull().any():
+            if pd.isna(in_df.index.get_level_values(level)).any():
                 msg_level = f"Found NaN values in required metadata level: '{level}'"
                 raise ValueError(msg_level)
