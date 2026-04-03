@@ -297,7 +297,7 @@ class CMIP7ScenarioMIPPostProcessor:
         missing_years = required_years - set(years)
         if missing_years:
             msg_years = (
-                "Input data is missing years required for assessment:"
+                f"Input data is missing years required for assessment:"
                 f"{sorted(list(missing_years))}"
             )
             raise ValueError(msg_years)
@@ -309,10 +309,8 @@ class CMIP7ScenarioMIPPostProcessor:
             level for level in required_levels if level not in in_df.index.names
         ]
         if missing_levels:
-            msg_level = (
-                f"Input index is missing required metadata levels: {missing_levels}"
-            )
-            raise ValueError(msg_level)
+            msg_l = f"Input index is missing required metadata levels: {missing_levels}"
+            raise ValueError(msg_l)
 
         # Ensure there are no NaNs in the essential grouping metadata
         for level in ["model", "scenario", "run_id"]:
