@@ -4,8 +4,10 @@ import pytest
 
 from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 
+pix = pytest.importorskip("pandas_indexing")
 
-def create_dummy_scm_results(years=range(1850, 2101)):
+
+def create_dummy_scm_results(years=range(1850, 2101), rand_weight=1):
     """Creates a dummy DataFrame mimicking SCM output for multiple runs/scenarios."""
     index = pd.MultiIndex.from_product(
         [
@@ -29,10 +31,11 @@ def create_dummy_scm_results(years=range(1850, 2101)):
     )
 
     data = []
-    for _ in range(len(index)):
-        base = np.linspace(0, 3.0, len(years))
+    for i in range(len(index)):
+        end_val = 1.0 + (i * 0.5)
+        base = np.linspace(0, end_val, len(years))
         rng = np.random.default_rng()
-        noise = rng.normal(0, 0.1, len(years))
+        noise = rng.normal(0, 0.1, len(years)) * rand_weight
         data.append(base + noise)
 
     return pd.DataFrame(data, index=index, columns=years)
@@ -46,49 +49,6 @@ def test_post_processor_initialization():
     assert processor.gsat_assessment_median == 0.85
     assert 1850 in processor.gsat_assessment_pre_industrial_period
     assert 2014 in processor.gsat_assessment_time_period
-
-
-def test_post_processor_call_integration(monkeypatch):
-    """
-    Integration test for the __call__ method.
-    """
-    # Setup
-    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
-    scm_results = create_dummy_scm_results()
-
-    monkeypatch.setattr(
-        "gcages.cmip7_scenariomip.post_processing.get_temperatures_in_line_with_assessment",
-        lambda in_df,
-        **kwargs: in_df,  # Return as-is for simplicity in testing structure
-    )
-    monkeypatch.setattr(
-        "gcages.cmip7_scenariomip.post_processing.get_exceedance_probabilities_over_time",
-        lambda *args, **kwargs: pd.DataFrame(),
-    )
-    monkeypatch.setattr(
-        "gcages.cmip7_scenariomip.post_processing.get_exceedance_probabilities",
-        lambda *args, **kwargs: pd.DataFrame(),
-    )
-    monkeypatch.setattr(
-        "gcages.cmip7_scenariomip.post_processing.categorise_scenarios",
-        lambda **kwargs: pd.Series(["C1", "C1"], name="category"),
-    )
-
-    # Execution
-    result = processor(scm_results)
-
-    # Assertions on PostProcessingResult object
-    assert hasattr(result, "timeseries_quantile")
-    assert hasattr(result, "metadata_categories")
-
-    # Check that quantiles were calculated (index should now contain 'quantile')
-    assert "quantile" in result.timeseries_quantile.index.names
-
-    # Check that variable name was updated to the assessment name
-    assert (
-        result.timeseries_run_id.index.get_level_values("variable")
-        == processor.gsat_in_line_with_assessment_variable_name
-    ).all()
 
 
 @pytest.mark.parametrize("missing_col", ["model", "scenario", "run_id"])
@@ -116,3 +76,30 @@ def test_post_processor_missing_years():
         ValueError, match="Input data is missing years required for assessment"
     ):
         processor(df)
+
+
+def test_post_processor_synthetic_input():
+    """Tests that validation fails if required assessment years are missing."""
+    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    df = create_dummy_scm_results(years=range(1850, 2101), rand_weight=0)
+
+    post_processed = processor(df)
+
+    assert (
+        post_processed.metadata_exceedance_probabilities.unstack("threshold").values
+        == [100, 100, 0]
+    ).all()
+    quantiles = (
+        post_processed.metadata_quantile.loc[pix.isin(quantile=[0.05, 0.5, 0.95])]
+        .unstack(["quantile", "metric"])
+        .round(2)
+        .values
+    )
+    assert (
+        quantiles[~np.isnan(quantiles)]
+        == np.array([1.12, 1.33, 1.53, 1.12, 1.33, 1.53, 2100, 2100, 2100])
+    ).all()
+    assert (
+        post_processed.metadata_run_id.values.round(2)
+        == np.array([1.10, 1.55, 1.10, 1.55, 2100, 2100])
+    ).all()
