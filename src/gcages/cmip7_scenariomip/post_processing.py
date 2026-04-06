@@ -1,8 +1,5 @@
 """
-Post-processing configuration and related things for the updated workflow
-
-This sets our defaults.
-Individual notebooks can then override them as needed.
+Post-processing in line the CMIP7 ScenarioMIP workflow
 """
 
 from __future__ import annotations

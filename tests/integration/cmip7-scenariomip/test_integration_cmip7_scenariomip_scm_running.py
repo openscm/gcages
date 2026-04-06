@@ -1,3 +1,7 @@
+"""
+Tests of the `gcages.cmip7_scenariomip.scm_running`
+"""
+
 import re
 from pathlib import Path
 

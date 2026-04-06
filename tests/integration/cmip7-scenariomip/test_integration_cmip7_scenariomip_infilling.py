@@ -1,3 +1,7 @@
+"""
+Tests of the `gcages.cmip7_scenariomip.infilling`
+"""
+
 from pathlib import Path
 from unittest.mock import patch
 

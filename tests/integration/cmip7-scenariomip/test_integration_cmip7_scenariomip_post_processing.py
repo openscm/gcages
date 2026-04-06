@@ -1,3 +1,7 @@
+"""
+Tests of the `gcages.cmip7_scenariomip.post_processing`
+"""
+
 import numpy as np
 import pandas as pd
 import pytest
