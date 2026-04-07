@@ -93,6 +93,14 @@ jobs:
       if: "!contains(matrix.install-target, 'locked')"
       run: |
         pip install 'gcages[ar6]'
+    - name: Install all CMIP7 ScenarioMIP dependencies application
+      if: contains(matrix.install-target, 'locked')
+      run: |
+        pip install 'gcages[cmip7scenariomip-locked]'
+    - name: Install all CMIP7 ScenarioMIP dependencies library
+      if: "!contains(matrix.install-target, 'locked')"
+      run: |
+        pip install 'gcages[cmip7scenariomip]'
     - name: Set MAGICCv7.5.3 executable environment variable
       if: matrix.os == 'ubuntu-latest'
       run: |
