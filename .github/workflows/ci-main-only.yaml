@@ -98,4 +98,4 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           MAGICC_EXECUTABLE_7="tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/bin/magicc" \
-          uv run --no-syncpytest -r a -v -s tests -m "magicc_v760a3"
+          uv run --no-sync pytest -r a -v -s tests -m "magicc_v760a3"
