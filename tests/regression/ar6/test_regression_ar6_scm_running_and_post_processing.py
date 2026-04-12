@@ -13,6 +13,7 @@ that cover the key paths from AR6.
 from __future__ import annotations
 
 import multiprocessing
+import os
 from pathlib import Path
 
 import numpy as np
@@ -146,6 +147,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 @pytest.mark.slow
 @get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
 def test_individual_scenario(model, scenario):
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
@@ -244,7 +246,7 @@ def test_parallel(tmp_path):
     pytest.importorskip("tqdm.auto")
     # Required for database
     pytest.importorskip("filelock")
-
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []
