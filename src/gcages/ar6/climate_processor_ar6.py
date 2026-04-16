@@ -437,12 +437,6 @@ def run_workflow_ar6(  # noqa: PLR0913
         ],
     )
     metadata = get_res_meta(post_processed_for_metadata)
-    metadata["harmonization"] = f"aneris (version: {aneris.__version__})"
-    metadata["infilling"] = f"silicone (version: {silicone.__version__})"
-    metadata["climate-models"] = (
-        f"openscm_runner (version: {openscm_runner.__version__})"
-    )
-    metadata["workflow"] = f"gcages (version: {gcages.__version__})"
 
     res.set_meta(metadata)
 
@@ -458,6 +452,45 @@ def get_res_meta(res_pp: PostProcessingResult):
     categories = categories.reset_index(
         categories.index.names.difference(out_index), drop=True
     )
+    # Put back in C1a and C1b like climate-assessment used to do.
+    peak_warming_quantiles = res_pp.metadata_quantile.loc[
+        pix.isin(metric="max")
+    ].unstack("quantile")
+    peak_warming_quantiles_use = peak_warming_quantiles.reset_index(
+        peak_warming_quantiles.index.names.difference(["model", "scenario"]), drop=True
+    )
+    c1a_loc = peak_warming_quantiles_use[0.5] < 1.5
+    categories["Category_name"].loc[
+        (
+            categories["Category_name"]
+            == "C1: limit warming to 1.5°C (>50%) with no or limited overshoot"
+        )
+        & c1a_loc
+    ] = "C1a"
+    categories["Category_name"].loc[
+        (
+            categories["Category_name"]
+            == "C1: limit warming to 1.5°C (>50%) with no or limited overshoot"
+        )
+        & ~c1a_loc
+    ] = "C1b"
+
+    # There must have been a mapping done somewhere between climate-assessment
+    # and what appears on the scenario explorer.
+    # gcages matches what is on the scenario explorer,
+    # so we have to undo that mapping here.
+    category_name_mapping = {
+        "C8: exceed warming of 4°C (>=50%)": "C8: Above 4.0°C",
+        "C7: limit warming to 4°C (>50%)": "C7: Below 4.0°C",
+        "C6: limit warming to 3°C (>50%)": "C6: Below 3.0°C",
+        "C5: limit warming to 2.5°C (>50%)": "C5: Below 2.5°C",
+        "C4: limit warming to 2°C (>50%)": "C4: Below 2°C",
+        "C3: limit warming to 2°C (>67%)": "C3: Likely below 2°C",
+        "C2: return warming to 1.5°C (>50%) after a high overshoot": "C2: Below 1.5°C with high OS",  # noqa: E501
+        "C1b": "C1b: Below 1.5°C with low OS",
+        "C1a": "C1a: Below 1.5°C with no OS",
+    }
+    categories["Category_name"] = categories["Category_name"].map(category_name_mapping)
 
     exceedance_probs_s = update_index_levels_func(
         res_pp.metadata_exceedance_probabilities,
@@ -498,5 +531,10 @@ def get_res_meta(res_pp: PostProcessingResult):
     quantile_metadata = pd.concat(quantile_metadata_l, axis="columns")
 
     out = pd.concat([categories, exceedance_probs, quantile_metadata], axis="columns")
+
+    out["harmonization"] = f"aneris (version: {aneris.__version__})"
+    out["infilling"] = f"silicone (version: {silicone.__version__})"
+    out["climate-models"] = f"openscm_runner (version: {openscm_runner.__version__})"
+    out["workflow"] = f"gcages (version: {gcages.__version__})"
 
     return out
