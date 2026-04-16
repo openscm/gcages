@@ -34,7 +34,7 @@ from gcages.ar6 import (
     get_ar6_full_historical_emissions,
 )
 from gcages.ar6.post_processing import set_new_single_value_levels
-from gcages.ghg_aggregation import calculate_kyoto_ghgs
+from gcages.ghg_aggregation import calculate_kyoto_ghg
 from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
@@ -317,7 +317,7 @@ def get_kyoto_timeseries(indf: pd.DataFrame, harmonised: bool) -> pd.DataFrame:
         kyoto_ghgs = complete_kyoto_ghgs
 
     def ckg(indf: pd.DataFrame, gwp: str) -> pd.DataFrame:
-        tmp = calculate_kyoto_ghgs(
+        tmp = calculate_kyoto_ghg(
             indf,
             indf_naming_convention=SupportedNamingConventions.GCAGES,
             kyoto_ghgs=kyoto_ghgs,

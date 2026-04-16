@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     import pint
 
 
-def calculate_kyoto_ghgs(
+def calculate_kyoto_ghg(  # noqa: PLR0913
     indf: pd.DataFrame,
     indf_naming_convention: SupportedNamingConventions,
     gwp: str = "AR6GWP100",
@@ -29,6 +29,51 @@ def calculate_kyoto_ghgs(
     variable_level: str = "variable",
     unit_level: str = "unit",
 ):
+    """
+    Calculate Kyoto greenhouse gas aggregate
+
+    Parameters
+    ----------
+    indf
+        Input data
+
+    indf_naming_convention
+        Naming convention used by `indf`
+
+    gwp
+        GWP to use for calculating the aggregate
+
+    out_variable
+        Name to give the output variable
+
+    out_unit
+        Unit to use for the aggregation
+
+        This must be some variation of t CO2 / yr.
+
+    kyoto_ghgs
+        Gases to include in the aggregate
+
+        If not supplied, the full set of greenhouse gases known by gcages is used,
+        converted to `indf_naming_convention`.
+        If supplied, no naming convention conversion is applied.
+
+    ur
+        Unit registry to use for the unit conversions.
+
+        If not supplied, we use [openscm_units.unit_registry][].
+
+    variable_level
+        Level in `indf`'s multi-index which contains variable names.
+
+    unit_level
+        Level in `indf`'s multi-index which contains unit information.
+
+    Returns
+    -------
+    :
+        Kyoto greenhouse gas aggregate timeseries
+    """
     if kyoto_ghgs is None:
         kyoto_ghgs_gcages = (
             "Emissions|CO2",
@@ -94,6 +139,5 @@ def calculate_kyoto_ghgs(
             groupby_except(components_same_unit, variable_level).sum(),
             {variable_level: out_variable, unit_level: "Mt CO2eq/yr"},
         )
-        # .pix.assign(variable=out_variable, unit="Mt CO2-equiv/yr")
 
     return res

@@ -12,7 +12,7 @@ import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.ghg_aggregation import calculate_kyoto_ghgs
+from gcages.ghg_aggregation import calculate_kyoto_ghg
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
@@ -59,7 +59,7 @@ def test_ghg_kyoto(model, scenario):
         },
     )
 
-    res = calculate_kyoto_ghgs(infilled)
+    res = calculate_kyoto_ghg(infilled)
 
     assert np.isclose(
         res[2100].values, exp.get(model), atol=1e-8
