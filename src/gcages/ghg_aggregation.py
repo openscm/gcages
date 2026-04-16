@@ -1,5 +1,5 @@
 """
-Calculate aggregate Kyoto GHG emissions in CO2-equivalent units.
+Tools for calculating greenhouse gas aggregate timeseries
 """
 
 from __future__ import annotations
@@ -17,14 +17,42 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 if TYPE_CHECKING:
     import pint
 
+ALL_KYOTO_GHGS_GCAGES = (
+    "Emissions|CO2",
+    "Emissions|CH4",
+    "Emissions|N2O",
+    "Emissions|HFC125",
+    "Emissions|HFC134a",
+    "Emissions|HFC143a",
+    "Emissions|HFC152a",
+    "Emissions|HFC227ea",
+    "Emissions|HFC23",
+    "Emissions|HFC236fa",
+    "Emissions|HFC245fa",
+    "Emissions|HFC32",
+    "Emissions|HFC365mfc",
+    "Emissions|HFC4310mee",
+    "Emissions|NF3",
+    "Emissions|SF6",
+    "Emissions|C2F6",
+    "Emissions|C3F8",
+    "Emissions|C4F10",
+    "Emissions|C5F12",
+    "Emissions|C6F14",
+    "Emissions|C7F16",
+    "Emissions|C8F18",
+    "Emissions|CF4",
+    "Emissions|cC4F8",
+)
+
 
 def calculate_kyoto_ghg(  # noqa: PLR0913
     indf: pd.DataFrame,
-    indf_naming_convention: SupportedNamingConventions,
+    indf_naming_convention: SupportedNamingConventions | None = None,
+    kyoto_ghgs: tuple[str, ...] | None = None,
     gwp: str = "AR6GWP100",
     out_variable: str = "Emissions|Kyoto Gases",
     out_unit: str = "MtCO2 / yr",
-    kyoto_ghgs: tuple[str, ...] | None = None,
     ur: pint.facets.PlainRegistry | None = None,
     variable_level: str = "variable",
     unit_level: str = "unit",
@@ -40,6 +68,20 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
     indf_naming_convention
         Naming convention used by `indf`
 
+        Only required if `kyoto_ghgs` is `None`.
+        If `kyoto_ghgs` is supplied, we assume that `indf` uses
+        the same naming convention as the supplied `kyoto_ghgs`.
+        If `kyoto_ghgs` is not supplied, we use `indf_naming_convention`
+        to convert the list of Kyoto GHGs into the same naming convention
+        as `indf`.
+
+    kyoto_ghgs
+        Gases to include in the aggregate
+
+        If not supplied, we use [ALL_KYOTO_GHGS_GCAGES][(m).].
+        See notes for `indf_naming_convention` to understand the implications
+        of supplying or not supplying this variable for naming conventions.
+
     gwp
         GWP to use for calculating the aggregate
 
@@ -50,13 +92,6 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         Unit to use for the aggregation
 
         This must be some variation of t CO2 / yr.
-
-    kyoto_ghgs
-        Gases to include in the aggregate
-
-        If not supplied, the full set of greenhouse gases known by gcages is used,
-        converted to `indf_naming_convention`.
-        If supplied, no naming convention conversion is applied.
 
     ur
         Unit registry to use for the unit conversions.
@@ -75,47 +110,27 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         Kyoto greenhouse gas aggregate timeseries
     """
     if kyoto_ghgs is None:
-        kyoto_ghgs_gcages = (
-            "Emissions|CO2",
-            "Emissions|CH4",
-            "Emissions|N2O",
-            "Emissions|HFC125",
-            "Emissions|HFC134a",
-            "Emissions|HFC143a",
-            "Emissions|HFC152a",
-            "Emissions|HFC227ea",
-            "Emissions|HFC23",
-            "Emissions|HFC236fa",
-            "Emissions|HFC245fa",
-            "Emissions|HFC32",
-            "Emissions|HFC365mfc",
-            "Emissions|HFC4310mee",
-            "Emissions|NF3",
-            "Emissions|SF6",
-            "Emissions|C2F6",
-            "Emissions|C3F8",
-            "Emissions|C4F10",
-            "Emissions|C5F12",
-            "Emissions|C6F14",
-            "Emissions|C7F16",
-            "Emissions|C8F18",
-            "Emissions|CF4",
-            "Emissions|cC4F8",
-        )
-        kyoto_ghgs = [
+        kyoto_ghgs_use = [
             convert_variable_name(
                 v,
                 from_convention=SupportedNamingConventions.GCAGES,
                 to_convention=indf_naming_convention,
             )
-            for v in kyoto_ghgs_gcages
+            for v in ALL_KYOTO_GHGS_GCAGES
         ]
+    else:
+        kyoto_ghgs_use = kyoto_ghgs
 
-    kyoto_ghgs_missing = set(kyoto_ghgs) - set(
+    kyoto_ghgs_missing = set(kyoto_ghgs_use) - set(
         indf.index.get_level_values("variable").unique()
     )
     if kyoto_ghgs_missing:
-        msg = f"You are missing the following Kyoto GHGs: {kyoto_ghgs_missing}"
+        msg = (
+            f"You are missing the following Kyoto GHGs: {kyoto_ghgs_missing}. "
+            "Please either supply these gases "
+            "or provide a different value for `kyoto_ghgs` to this function. "
+            f"Currently {kyoto_ghgs=}."
+        )
         raise AssertionError(msg)
 
     if ur is None:
@@ -130,7 +145,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
 
     with ur.context(gwp):
         components_same_unit = convert_unit(
-            indf.loc[indf.index.get_level_values(variable_level).isin(kyoto_ghgs)],
+            indf.loc[indf.index.get_level_values(variable_level).isin(kyoto_ghgs_use)],
             desired_units=out_unit,
             unit_level=unit_level,
             ur=ur,
