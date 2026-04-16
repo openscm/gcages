@@ -357,12 +357,53 @@ def run_workflow_ar6(  # noqa: PLR0913
         scm_results_raw.columns.dtype
     )
 
-    # TODO: clean this up
-    # Calculate Kyoto GHGs and add to output datasets
-    #  Rename
+    complete_kyoto_ghgs = (
+        "Emissions|CO2|Fossil",
+        "Emissions|CO2|Biosphere",
+        "Emissions|CH4",
+        "Emissions|HFC125",
+        "Emissions|HFC134a",
+        "Emissions|HFC143a",
+        "Emissions|HFC227ea",
+        "Emissions|HFC23",
+        "Emissions|HFC32",
+        "Emissions|HFC4310mee",
+        "Emissions|N2O",
+        "Emissions|C2F6",
+        "Emissions|C6F14",
+        "Emissions|CF4",
+        "Emissions|SF6",
+    )
+
+    def ckg(
+        indf: pd.DataFrame, gwp: str, kyoto_ghgs: tuple[str, ...] = complete_kyoto_ghgs
+    ) -> pd.DataFrame:
+        tmp = calculate_kyoto_ghgs(
+            indf,
+            indf_naming_convention=SupportedNamingConventions.GCAGES,
+            kyoto_ghgs=kyoto_ghgs,
+            gwp=gwp,
+        )
+        gwp_str = f"{gwp[:3]}-{gwp[3:]}"
+        res = tmp.pix.assign(
+            variable=f"Emissions|Kyoto Gases ({gwp_str})", unit="Mt CO2-equiv/yr"
+        )
+
+        return res
+
+    kyoto_ghgs_harmonised = tuple(
+        set(harmonised.index.get_level_values("variable")).intersection(
+            set(complete_kyoto_ghgs)
+        )
+    )
     harmonised_kyoto = pix.concat(
         [
-            calculate_kyoto_ghgs(harmonised, gwp=gwp)
+            ckg(
+                harmonised,
+                gwp=gwp,
+                # For harmonisation, use whatever is there rather than checking strictly
+                kyoto_ghgs=kyoto_ghgs_harmonised,
+            )
             for gwp in ["AR6GWP100", "AR5GWP100"]
         ]
     )
@@ -372,7 +413,7 @@ def run_workflow_ar6(  # noqa: PLR0913
     )
 
     complete_kyoto = pix.concat(
-        [calculate_kyoto_ghgs(complete, gwp=gwp) for gwp in ["AR6GWP100", "AR5GWP100"]]
+        [ckg(complete, gwp=gwp) for gwp in ["AR6GWP100", "AR5GWP100"]]
     )
     infilled_kyoto_out = complete_kyoto.rename(
         index=lambda x: f"AR6 climate diagnostics|Infilled|{x}",
