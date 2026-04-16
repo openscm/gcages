@@ -8,10 +8,22 @@ import json
 import multiprocessing
 from pathlib import Path
 
+import aneris
+import numpy as np
+import openscm_runner
 import pandas as pd
+import pandas_indexing as pix
+import silicone
+from attrs import evolve
+from pandas_openscm.grouping import (
+    fix_index_name_after_groupby_quantile,
+    groupby_except,
+)
 from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
+from pyam import IamDataFrame
 
+import gcages
 from gcages.ar6 import (
     AR6Harmoniser,
     AR6Infiller,
@@ -20,7 +32,9 @@ from gcages.ar6 import (
     AR6SCMRunner,
     get_ar6_full_historical_emissions,
 )
+from gcages.ar6.post_processing import set_new_single_value_levels
 from gcages.ghg_aggregation import calculate_kyoto_ghgs
+from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 
 MAGICC_OUTPUT_VARIABLES = (
@@ -76,7 +90,7 @@ MAGICC_OUTPUT_VARIABLES = (
 )
 
 
-def run_workflow_ar6(  # noqa: PLR0913, PLR0915
+def run_workflow_ar6(  # noqa: PLR0913
     input_emissions_file_path: Path,
     infilling_database: Path,
     probabilistic_file: Path,
@@ -90,10 +104,11 @@ def run_workflow_ar6(  # noqa: PLR0913, PLR0915
     out_variables: list[str] = [
         "AR6 climate diagnostics|Surface Temperature*",
     ],
+    # TODO: change to default being None i.e. use everything in probabilistic_file
     num_cfgs: int = 600,
     scenario_batch_size: int = 20,
     **kwargs,
-) -> None:
+) -> IamDataFrame:
     """
     Run the full AR6 climate assessment workflow for emissions-to-climate outputs.
 
@@ -131,8 +146,8 @@ def run_workflow_ar6(  # noqa: PLR0913, PLR0915
 
     Returns
     -------
-    None
-        Results are written to disk as Excel files in the output directory
+    :
+        Results
     """
     raw = load_timeseries_csv(
         input_emissions_file_path,
@@ -195,62 +210,104 @@ def run_workflow_ar6(  # noqa: PLR0913, PLR0915
         n_processes=n_processes,
     )
 
-    pre_processed = pre_processor(raw)
-
-    harmonised = harmoniser(pre_processed)
-
+    historical_emissions = get_ar6_full_historical_emissions(
+        infilling_database_cfcs_path
+    )
     infiller = AR6Infiller.from_ar6_config(
         ar6_infilling_db_file=infilling_database,
         ar6_infilling_db_cfcs_file=infilling_database_cfcs_path,
-        historical_emissions=get_ar6_full_historical_emissions(
-            infilling_database_cfcs_path
-        ),
         harmonisation_year=2015,
         progress=progress,
         n_processes=n_processes,
+        run_checks=True,
+        historical_emissions=historical_emissions,
     )
 
-    infilled = infiller(harmonised)
-
-    # I have not been able to find:
-    # Effective Radiative Forcing|Basket|Non-CO2 Anthropogenic,
-    # Raw Surface Temperature (GSAT),
-    # Effective Radiative Forcing|Basket|Non-CO2 Greenhouse Gases
     scm_runner = AR6SCMRunner(
         climate_models_cfgs=magicc_ar6_prob_cfg,
         output_variables=magicc_output_variables,
-        # historical_emissions=historical_df,  # pandas DataFrame
-        run_checks=False,
         harmonisation_year=2015,
         batch_size_scenarios=scenario_batch_size,
         progress=progress,
         n_processes=n_processes,
+        run_checks=True,
+        historical_emissions=historical_emissions,
     )
 
-    scm_results = scm_runner(infilled)
-    # Calculating: "Effective Radiative Forcing|Basket|Non-CO2 Anthropogenic"
-    diff = scm_results.xs(
-        "Effective Radiative Forcing|Anthropogenic", level="variable"
-    ) - scm_results.xs("Effective Radiative Forcing|CO2", level="variable")
-
-    diff["variable"] = "Effective Radiative Forcing|Basket|Non-CO2 Anthropogenic"
-    diff = diff.set_index("variable", append=True)
-    diff = diff.reorder_levels(
-        ["climate_model", "model", "region", "run_id", "scenario", "unit", "variable"]
+    # Somewhat inexplicably, the quantiles for metadata
+    # are not the same as the quantiles for timeseries.
+    quantiles_metadata = (
+        0.05,
+        0.10,
+        0.17,
+        0.25,
+        0.33,
+        0.50,
+        0.66,
+        0.67,
+        0.75,
+        0.83,
+        0.90,
+        0.95,
     )
-    scm_results = pd.concat([scm_results, diff], axis=0)
-
-    # Calculating: Effective Radiative Forcing|Basket|Non-CO2 Greenhouse Gases
-    diff = scm_results.xs(
-        "Effective Radiative Forcing|Greenhouse Gases", level="variable"
-    ) - scm_results.xs("Effective Radiative Forcing|CO2", level="variable")
-
-    diff["variable"] = "Effective Radiative Forcing|Basket|Non-CO2 Greenhouse Gases"
-    diff = diff.set_index("variable", append=True)
-    diff = diff.reorder_levels(
-        ["climate_model", "model", "region", "run_id", "scenario", "unit", "variable"]
+    quantiles_timeseries = (
+        *quantiles_metadata,
+        1.0 / 6.0,
+        5.0 / 6.0,
     )
-    scm_results = pd.concat([scm_results, diff], axis=0)
+
+    post_processor = AR6PostProcessor.from_ar6_config(
+        exceedance_thresholds_of_interest=tuple([1.5 + i * 0.5 for i in range(8)]),
+        quantiles_of_interest=quantiles_timeseries,
+        run_checks=True,
+        progress=progress,
+        n_processes=n_processes,
+    )
+
+    pre_processed = pre_processor(raw)
+
+    harmonised = harmoniser(pre_processed)
+
+    infilled = infiller(harmonised)
+
+    complete = pix.concat([harmonised, infilled])
+
+    scm_results_raw = scm_runner(complete)
+
+    # Add derived variables
+    scm_results_raw = pix.concat(
+        [
+            scm_results_raw,
+            (
+                scm_results_raw.xs(
+                    "Effective Radiative Forcing|Anthropogenic", level="variable"
+                )
+                - scm_results_raw.xs(
+                    "Effective Radiative Forcing|CO2", level="variable"
+                )
+            ).pix.assign(
+                variable="Effective Radiative Forcing|Basket|Non-CO2 Anthropogenic"
+            ),
+            (
+                scm_results_raw.xs(
+                    "Effective Radiative Forcing|Greenhouse Gases", level="variable"
+                )
+                - scm_results_raw.xs(
+                    "Effective Radiative Forcing|CO2", level="variable"
+                )
+            ).pix.assign(
+                variable="Effective Radiative Forcing|Basket|Non-CO2 Greenhouse Gases"
+            ),
+        ]
+    )
+
+    scm_results_raw_quantiles = fix_index_name_after_groupby_quantile(
+        groupby_except(
+            scm_results_raw,
+            "run_id",
+        ).quantile(quantiles_timeseries),  # type: ignore # pandas-stubs confused
+        new_name="quantile",
+    )
 
     replacements = {
         (
@@ -274,151 +331,172 @@ def run_workflow_ar6(  # noqa: PLR0913, PLR0915
         "Surface Air Temperature Change": "Raw Surface Temperature (GSAT)",
     }
 
-    post_processed_list = []
+    scm_results_raw_quantiles = scm_results_raw_quantiles.rename(
+        index=lambda x: replacements[x] if x in replacements else x, level="variable"
+    )
 
-    for magicc_variable in magicc_output_variables:
-        output_variable = replacements.get(magicc_variable, magicc_variable)
+    post_processed = post_processor(scm_results_raw)
 
-        post_processor = AR6PostProcessor(
-            gsat_assessment_median=0.5,
-            gsat_assessment_time_period=tuple(range(1995, 2014 + 1)),
-            gsat_assessment_pre_industrial_period=tuple(range(1850, 1900 + 1)),
-            quantiles_of_interest=(
-                0.05,
-                0.10,
-                1.0 / 6.0,
-                0.17,
-                0.25,
-                0.33,
-                0.50,
-                0.66,
-                0.67,
-                0.75,
-                0.83,
-                5.0 / 6.0,
-                0.90,
-                0.95,
-            ),
-            exceedance_thresholds_of_interest=tuple([1.0 + i * 0.5 for i in range(9)]),
-            raw_gsat_variable_in=magicc_variable,
-            assessed_gsat_variable=f"{output_variable}",
-            run_checks=True,
-            progress=progress,
-            n_processes=n_processes,
-        )
-        post_processed_single = post_processor(scm_results)
-        post_processed_list.append(
-            post_processed_single.timeseries_quantile.loc[:, 1995:]
-        )
-        if magicc_variable == "Surface Air Temperature Change":
-            post_processor = AR6PostProcessor.from_ar6_config(n_processes=n_processes)
-            post_processed_temperature_gsat = post_processor(scm_results)
-            post_processed_list.append(
-                post_processed_temperature_gsat.timeseries_quantile.loc[:, 1995:]
-            )
-
-    post_processed = pd.concat(post_processed_list)
-
-    harmonised_kyoto = pd.concat(
+    timeseries_scm = pd.concat(
         [
-            calculate_kyoto_ghgs(harmonised, gwp="AR6GWP100"),
-            calculate_kyoto_ghgs(harmonised, gwp="AR5GWP100"),
+            scm_results_raw_quantiles,
+            post_processed.timeseries_quantile,
         ]
-    ).rename(
-        index=lambda x: "AR6 climate diagnostics|Harmonized|" + x, level="variable"
-    )
-    infilled_kyoto = pd.concat(
-        [
-            calculate_kyoto_ghgs(pd.concat([harmonised, infilled]), gwp="AR6GWP100"),
-            calculate_kyoto_ghgs(pd.concat([harmonised, infilled]), gwp="AR5GWP100"),
-        ]
-    ).rename(index=lambda x: "AR6 climate diagnostics|Infilled|" + x, level="variable")
-    harmonised_kyoto = harmonised_kyoto.reorder_levels(
-        ["model", "scenario", "variable", "region", "unit"]
-    )
-    infilled_kyoto = infilled_kyoto.reorder_levels(
-        ["model", "scenario", "variable", "region", "unit"]
     )
 
-    harmonised_infilled = update_index_levels_func(
-        pd.concat(
-            [
-                infilled,
-                harmonised.loc[
-                    ~harmonised.index.get_level_values("variable").str.endswith("CO2")
-                ],
-            ]
-        ),
-        {
-            "variable": lambda x: (
-                "AR6 climate diagnostics|Infilled|"
-                + convert_variable_name(
-                    x,
-                    from_convention=SupportedNamingConventions.GCAGES,
-                    to_convention=SupportedNamingConventions.IAMC,
-                )
-            ),
-            "unit": lambda x: x.replace("HFC245fa", "HFC245ca").replace(
-                "HFC4310", "HFC43-10"
-            ),
-        },
+    timeseries_scm = timeseries_scm.rename(
+        index=lambda x: np.round(x * 100.0, 1), level="quantile"
     )
-    harmonised = update_index_levels_func(
-        harmonised,
-        {
-            "variable": lambda x: (
-                "AR6 climate diagnostics|Harmonized|"
-                + convert_variable_name(
-                    x,
-                    from_convention=SupportedNamingConventions.GCAGES,
-                    to_convention=SupportedNamingConventions.IAMC,
-                )
-            )
-        },
-        copy=False,
-    )
+    timeseries_scm.index = timeseries_scm.index.rename({"quantile": "percentile"})
 
-    res = post_processed.reset_index("quantile")
-    res["percentile"] = (res["quantile"] * 100.0).round(1).astype(str)
-    res = res.set_index("percentile", append=True).drop("quantile", axis="columns")
-
-    res = res.pix.format(
+    timeseries_scm = timeseries_scm.pix.format(
         variable="AR6 climate diagnostics|{variable}|{climate_model}|{percentile}th Percentile",  # noqa: E501
         drop=True,
     )
-
-    res.columns = res.columns.astype(post_processed.columns.dtype)
-    res = res.reorder_levels(["model", "scenario", "variable", "region", "unit"])
-
-    out = (
-        pd.concat(
-            [
-                harmonised,
-                harmonised_kyoto,
-                harmonised_infilled,
-                infilled_kyoto,
-                res,
-                raw,
-            ]
-        )
-        .reset_index()
-        .sort_values(by="variable")
+    timeseries_scm.columns = timeseries_scm.columns.astype(
+        scm_results_raw.columns.dtype
     )
 
-    metadata = pd.DataFrame(
+    # TODO: clean this up
+    # Calculate Kyoto GHGs and add to output datasets
+    #  Rename
+    harmonised_kyoto = pix.concat(
         [
-            {
-                "harmonisation": "aneris (version: 0.3.1)",
-                "infilling": "silicone (version: 1.3.0)",
-                "climate-models": "openscm_runner (version: 0.12.1)",
-                "workflow": "climate_assessment (version: 0.1.6)",
-            }
+            calculate_kyoto_ghgs(harmonised, gwp=gwp)
+            for gwp in ["AR6GWP100", "AR5GWP100"]
         ]
     )
-
-    metadata.index = pd.MultiIndex.from_tuples(
-        [(out.model[0], out.scenario[0])],
-        names=["model", "scenario"],
+    harmonised_kyoto_out = harmonised_kyoto.rename(
+        index=lambda x: f"AR6 climate diagnostics|Harmonized|{x}",
+        level="variable",
     )
 
-    return out, post_processed_temperature_gsat, metadata
+    complete_kyoto = pix.concat(
+        [calculate_kyoto_ghgs(complete, gwp=gwp) for gwp in ["AR6GWP100", "AR5GWP100"]]
+    )
+    infilled_kyoto_out = complete_kyoto.rename(
+        index=lambda x: f"AR6 climate diagnostics|Infilled|{x}",
+        level="variable",
+    )
+
+    def get_output_emissions(
+        indf: pd.DataFrame, name_id: str, include_hfc4310_unit: bool = True
+    ) -> pd.DataFrame:
+        def update_unit(u: str) -> str:
+            res = u.replace("HFC245fa", "HFC245ca")
+            if include_hfc4310_unit:
+                res = res.replace("HFC4310", "HFC43-10")
+
+            return res
+
+        out_emms = update_index_levels_func(
+            indf,
+            {
+                "variable": lambda x: (
+                    f"AR6 climate diagnostics|{name_id}|"
+                    + convert_variable_name(
+                        x,
+                        from_convention=SupportedNamingConventions.GCAGES,
+                        to_convention=SupportedNamingConventions.IAMC,
+                    )
+                ),
+                "unit": update_unit,
+            },
+        )
+
+        return out_emms
+
+    harmonised_out = get_output_emissions(
+        harmonised,
+        "Harmonized",
+        # Only done for infilled for some reason
+        include_hfc4310_unit=False,
+    )
+    infilled_out = get_output_emissions(complete, "Infilled")
+
+    res = IamDataFrame(
+        pix.concat(
+            [
+                harmonised_out,
+                harmonised_kyoto_out,
+                infilled_out,
+                infilled_kyoto_out,
+                timeseries_scm,
+            ]
+        )
+        .sort_index(axis="columns")
+        .loc[:, 1995:]
+    )
+
+    post_processed_for_metadata = evolve(
+        post_processed,
+        metadata_quantile=post_processed.metadata_quantile.loc[
+            post_processed.metadata_quantile.index.get_level_values("quantile").isin(
+                quantiles_metadata
+            )
+        ],
+    )
+    metadata = get_res_meta(post_processed_for_metadata)
+    metadata["harmonization"] = f"aneris (version: {aneris.__version__})"
+    metadata["infilling"] = f"silicone (version: {silicone.__version__})"
+    metadata["climate-models"] = (
+        f"openscm_runner (version: {openscm_runner.__version__})"
+    )
+    metadata["workflow"] = f"gcages (version: {gcages.__version__})"
+
+    res.set_meta(metadata)
+
+    return res
+
+
+def get_res_meta(res_pp: PostProcessingResult):
+    out_index = ["model", "scenario"]
+
+    # Works only for MAGICC, others need the category in their name
+    categories = res_pp.metadata_categories.unstack("metric")
+    categories.columns = categories.columns.str.capitalize()
+    categories = categories.reset_index(
+        categories.index.names.difference(out_index), drop=True
+    )
+
+    exceedance_probs_s = update_index_levels_func(
+        res_pp.metadata_exceedance_probabilities,
+        {"threshold": lambda x: np.round(x, 1)},
+    )
+    exceedance_probs_s = exceedance_probs_s.pix.format(
+        out_name="Exceedance Probability {threshold}C ({climate_model})"
+    )
+    exceedance_probs = exceedance_probs_s.reset_index(
+        exceedance_probs_s.index.names.difference([*out_index, "out_name"]), drop=True
+    ).unstack("out_name")
+    exceedance_probs = exceedance_probs / 100.0
+
+    def get_out_quantile(q: float) -> str:
+        if q == 0.5:  # noqa: PLR2004
+            return "median"
+
+        return f"p{q*100:.0f}"
+
+    quantile_metadata_l = []
+    for v_str, metric_id in (
+        ("peak warming", "max"),
+        ("warming in 2100", 2100),
+        ("year of peak warming", "max_year"),
+    ):
+        start = res_pp.metadata_quantile[
+            res_pp.metadata_quantile.index.get_level_values("metric") == metric_id
+        ]
+        tmp_a = update_index_levels_func(start, {"quantile": get_out_quantile})
+        tmp_b = set_new_single_value_levels(tmp_a, {"v_str": v_str}, copy=False)
+        tmp_c = tmp_b.pix.format(out_name="{quantile} {v_str} ({climate_model})")
+        tmp_d = tmp_c.reset_index(
+            tmp_a.index.names.difference([*out_index, "out_name"]), drop=True
+        ).unstack("out_name")
+
+        quantile_metadata_l.append(tmp_d)
+
+    quantile_metadata = pd.concat(quantile_metadata_l, axis="columns")
+
+    out = pd.concat([categories, exceedance_probs, quantile_metadata], axis="columns")
+
+    return out
