@@ -4,16 +4,15 @@ Tests of the `gcages.ghg_aggregation` using ar6 data.
 
 from __future__ import annotations
 
-from functools import partial
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 import pytest
-from pandas_openscm.index_manipulation import update_index_levels_func
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.ghg_aggregation import calculate_kyoto_ghg
-from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.renaming import SupportedNamingConventions
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     get_key_testing_model_scenario_parameters,
@@ -24,6 +23,8 @@ CMIP7_SCENARIOMIP_OUT_DIR = (
     / "regression/cmip7-scenariomip"
     / "cmip7-scenariomip-output"
 )
+
+pytest.importorskip("openscm_units")
 
 
 @get_key_testing_model_scenario_parameters(
@@ -40,6 +41,7 @@ def test_ghg_kyoto(model, scenario):
         "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": -1179.4559735383446,
         "WITCH 6.0": 6408.325974409462,
     }
+
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
     infilled = load_timeseries_csv(
         file,
@@ -48,19 +50,18 @@ def test_ghg_kyoto(model, scenario):
         out_columns_type=int,
     )
 
-    infilled = update_index_levels_func(
-        infilled,
-        {
-            "variable": partial(
-                convert_variable_name,
-                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                to_convention=SupportedNamingConventions.GCAGES,
-            )
-        },
+    tmp = infilled.xs("Emissions|CO2|AFOLU", level="variable") + infilled.xs(
+        "Emissions|CO2|Energy and Industrial Processes", level="variable"
     )
+    tmp["variable"] = "Emissions|CO2"
+    tmp = tmp.set_index("variable", append=True)
+    tmp = tmp.reorder_levels(["model", "scenario", "region", "variable", "unit"])
+    infilled = pd.concat([infilled, tmp])
 
-    res = calculate_kyoto_ghg(infilled)
-
+    res = calculate_kyoto_ghg(
+        infilled,
+        indf_naming_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+    )
     assert np.isclose(
         res[2100].values, exp.get(model), atol=1e-8
     ), f"Values don't match: {res[2100].values} vs {exp.get(model)}"
