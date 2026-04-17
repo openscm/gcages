@@ -55,7 +55,7 @@ from gcages.ar6 import (
 pint.set_application_registry(openscm_units.unit_registry)
 
 # %%
-pandas_openscm.register_pandas_accessor()
+pandas_openscm.register_pandas_accessors()
 
 # %% [markdown]
 # ## Starting point
@@ -371,7 +371,7 @@ infiller = AR6Infiller.from_ar6_config(
 # %%
 harmonised
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 infilled = infiller(harmonised)
 infilled
 
@@ -497,7 +497,7 @@ scm_runner = AR6SCMRunner.from_ar6_config(
 # note that we run a greatly reduced number of ensemble members.
 # You will likely want to skip this step if running yourself.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 if os.environ.get("READTHEDOCS", False):
     scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
         "MAGICC7"

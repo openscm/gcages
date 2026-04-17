@@ -665,6 +665,8 @@ class CMIP7ScenarioMIPInfiller:
         else:
             infilled_vl_exception = None
 
+        # TODO: fix this. The infiller should only return infilled emissions,
+        # not complete emissions.
         complete_vl_exception = get_complete(in_emissions, infilled_vl_exception)
 
         # Silicone
