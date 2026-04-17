@@ -49,7 +49,7 @@ ar6 = [
     "pycountry>=23.12.11 ; python_version >= '3.10'",
     "importlib-resources>=5.0 ; python_version >= '3.10' and python_version <= '3.11'",
     # Required to allow ciceroscm to be imported via openscm-runner
-    "setuptools>=60.1.0, ; python_version >= '3.12'",
+    "setuptools>=60.1.0 ; python_version >= '3.12'",
     "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
     "pandas-openscm[db]>=0.5.1",
