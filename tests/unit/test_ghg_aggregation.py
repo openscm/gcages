@@ -4,19 +4,15 @@ Tests of the `gcages.ghg_aggregation` using ar6 data.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
+import pandas_openscm.io
+import pandas_openscm.testing
 import pytest
-from pandas_openscm.io import load_timeseries_csv
 
 from gcages.ghg_aggregation import calculate_kyoto_ghg
-from gcages.renaming import SupportedNamingConventions
-from gcages.testing import (
-    KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
-    get_key_testing_model_scenario_parameters,
-)
 
 CMIP7_SCENARIOMIP_OUT_DIR = (
     Path(__file__).parents[1]
@@ -26,42 +22,106 @@ CMIP7_SCENARIOMIP_OUT_DIR = (
 
 pytest.importorskip("openscm_units")
 
+# Tests:
+# - works with basic
+# - fails if only one of the groups is missing a required timeseries
+#   (will require updating climate-processing too)
+# - supports different naming conventions
+# - works for different gwps
+# - out_variable, out_unit, variable_level, unit_level all supported
+# - ur can be injected (add ur that knows about GWPZN, then make sure that works)
 
-@get_key_testing_model_scenario_parameters(
-    KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
-)
-@pytest.mark.skip_ci_default
-def test_ghg_kyoto(model, scenario):
-    exp = {
-        "REMIND-MAgPIE 3.5-4.11": -2117.6153824875214,
-        "AIM 3.0": -15589.945051374172,
-        "COFFEE 1.6": 480.653514665217,
-        "GCAM 8s": 79997.47475468584,
-        "IMAGE 3.4": 52572.39531797594,
-        "MESSAGEix-GLOBIOM-GAINS 2.1-M-R12": -1179.4559735383446,
-        "WITCH 6.0": 6408.325974409462,
-    }
 
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
-    infilled = load_timeseries_csv(
-        file,
-        lower_column_names=True,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_columns_type=int,
+@pytest.fixture(scope="module")
+def indf_basic():
+    res = pd.DataFrame(
+        [
+            [100, 110, 120],
+            [10, 11, 12],
+            [1000.0, 2000.0, 3000.0],
+            [200, 100, 300],
+            [5, 6, 7],
+            [1000.0, 500.0, 0.0],
+        ],
+        columns=[2010, 2020, 2025],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("a", "CO2", "MtCO2 / yr"),
+                ("a", "CH4", "MtCH4 / yr"),
+                ("a", "N2O", "ktN2O / yr"),
+                ("b", "CO2", "MtCO2 / yr"),
+                ("b", "CH4", "MtCH4 / yr"),
+                ("b", "N2O", "ktN2O / yr"),
+            ],
+            names=["ms", "variable", "unit"],
+        ),
     )
+    return res
 
-    tmp = infilled.xs("Emissions|CO2|AFOLU", level="variable") + infilled.xs(
-        "Emissions|CO2|Energy and Industrial Processes", level="variable"
-    )
-    tmp["variable"] = "Emissions|CO2"
-    tmp = tmp.set_index("variable", append=True)
-    tmp = tmp.reorder_levels(["model", "scenario", "region", "variable", "unit"])
-    infilled = pd.concat([infilled, tmp])
 
+def test_calculate_kyoto_ghg_basic(indf_basic):
     res = calculate_kyoto_ghg(
-        infilled,
-        indf_naming_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+        indf_basic,
+        kyoto_ghgs=("CO2", "CH4", "N2O"),
     )
-    assert np.isclose(
-        res[2100].values, exp.get(model), atol=1e-8
-    ), f"Values don't match: {res[2100].values} vs {exp.get(model)}"
+
+    exp = pd.DataFrame(
+        [
+            [
+                100 + 10 * 27.9 + 273 * 1.0,
+                110 + 11 * 27.9 + 273 * 2.0,
+                120 + 12 * 27.9 + 273 * 3.0,
+            ],
+            [
+                200 + 5 * 27.9 + 273 * 1.0,
+                100 + 6 * 27.9 + 273 * 0.5,
+                300 + 7 * 27.9 + 273 * 0.0,
+            ],
+        ],
+        columns=[2010, 2020, 2025],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("a", "Kyoto GHG", "MtCO2 / yr"),
+                ("b", "Kyoto GHG", "MtCO2 / yr"),
+            ],
+            names=["ms", "variable", "unit"],
+        ),
+    )
+
+    pandas_openscm.testing.assert_frame_alike(res, exp)
+
+
+def test_calculate_kyoto_ghg_all_missing(indf_basic):
+    indf = indf_basic.loc[~(indf_basic.index.get_level_values("variable") == "N2O")]
+    error_msg = re.escape(
+        "You are missing the following Kyoto GHGs: {'N2O'}. "
+        "Please either supply these gases "
+        "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
+        "Currently kyoto_ghgs=('CO2', 'CH4', 'N2O')."
+    )
+    with pytest.raises(AssertionError, match=error_msg):
+        calculate_kyoto_ghg(
+            indf,
+            kyoto_ghgs=("CO2", "CH4", "N2O"),
+        )
+
+
+def test_calculate_kyoto_ghg_one_missing_error(indf_basic):
+    indf = indf_basic.loc[
+        ~(
+            (indf_basic.index.get_level_values("variable") == "N2O")
+            & (indf_basic.index.get_level_values("ms") == "b")
+        )
+    ]
+    error_msg = re.escape(
+        "For some groups, you are missing some Kyoto GHGs. "
+        "Please either supply these gases for these groups "
+        "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
+        "Currently kyoto_ghgs=('CO2', 'CH4', 'N2O'). "
+        "The groups and their missing Kyoto GHGs are: "
+    )
+    with pytest.raises(AssertionError, match=error_msg):
+        calculate_kyoto_ghg(
+            indf,
+            kyoto_ghgs=("CO2", "CH4", "N2O"),
+        )

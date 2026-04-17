@@ -414,11 +414,11 @@ def get_cmip7_scenariomip_harmonised_emissions(
 
 
 @functools.cache
-def get_cmip7_scenariomip_infilled_emissions(
+def get_cmip7_scenariomip_complete_emissions(
     model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
 ) -> pd.DataFrame:
     """
-    Get infilled emissions from CMIP7 ScenarioMIP outputs
+    Get complete emissions from CMIP7 ScenarioMIP outputs
 
     Parameters
     ----------
@@ -434,18 +434,18 @@ def get_cmip7_scenariomip_infilled_emissions(
     Returns
     -------
     :
-        All infilled emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+        All complete emissions from CMIP7 ScenarioMIP for `model`-`scenario`
     """
     try:
         from pandas_indexing.selectors import ismatch as pix_ismatch
     except ImportError as exc:
         raise MissingOptionalDependencyError(
-            "get_ar6_infilled_emissions", requirement="pandas_indexing"
+            "get_cmip7_scenariomip_complete_emissions", requirement="pandas_indexing"
         ) from exc
 
     res = load_timeseries_csv(
         processed_cmip7_scenariomip_output_data_dir
-        / f"{model}_{scenario}_infilled.csv",
+        / f"{model}_{scenario}_complete.csv",
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_columns_type=int,
         out_columns_name="year",

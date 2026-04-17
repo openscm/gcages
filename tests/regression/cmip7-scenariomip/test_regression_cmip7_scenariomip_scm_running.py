@@ -50,20 +50,20 @@ HARMONISATION_YEAR = 2023
 )
 def test_individual_scenario(model, scenario):
     # Loading infilled results
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_infilled.csv"
-    infilled = load_timeseries_csv(
+    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv"
+    complete = load_timeseries_csv(
         file,
         lower_column_names=True,
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
     # Select scenario and drop aggregated/cumulative rows
-    infilled = infilled.loc[
+    complete = complete.loc[
         pix.ismatch(scenario=scenario)
         & ~pix.ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
     ]
-    infilled = update_index_levels_func(
-        infilled,
+    complete = update_index_levels_func(
+        complete,
         {
             "variable": partial(
                 convert_variable_name,
@@ -100,7 +100,7 @@ def test_individual_scenario(model, scenario):
         n_processes=multiprocessing.cpu_count(),
     )
 
-    scm_results = scm_runner(infilled)
+    scm_results = scm_runner(complete)
 
     assert_frame_equal(
         scm_results[

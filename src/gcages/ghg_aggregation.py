@@ -18,7 +18,8 @@ if TYPE_CHECKING:
     import pint
 
 ALL_KYOTO_GHGS_GCAGES = (
-    "Emissions|CO2",
+    "Emissions|CO2|Fossil",
+    "Emissions|CO2|Biosphere",
     "Emissions|CH4",
     "Emissions|N2O",
     "Emissions|HFC125",
@@ -51,7 +52,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
     indf_naming_convention: SupportedNamingConventions | None = None,
     kyoto_ghgs: tuple[str, ...] | None = None,
     gwp: str = "AR6GWP100",
-    out_variable: str = "Emissions|Kyoto Gases",
+    out_variable: str = "Kyoto GHG",
     out_unit: str = "MtCO2 / yr",
     ur: pint.facets.PlainRegistry | None = None,
     variable_level: str = "variable",
@@ -128,7 +129,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         msg = (
             f"You are missing the following Kyoto GHGs: {kyoto_ghgs_missing}. "
             "Please either supply these gases "
-            "or provide a different value for `kyoto_ghgs` to this function. "
+            "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
             f"Currently {kyoto_ghgs=}."
         )
         raise AssertionError(msg)
@@ -152,7 +153,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         )
         res = set_index_levels_func(
             groupby_except(components_same_unit, variable_level).sum(),
-            {variable_level: out_variable, unit_level: "Mt CO2eq/yr"},
+            {variable_level: out_variable},
         )
 
     return res
