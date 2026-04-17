@@ -270,10 +270,6 @@ def test_calculate_kyoto_ghg_gwp(indf_basic, gwp):
             ).sum(),
             {"variable": "Kyoto GHG"},
         )
-        if exp.columns.dtype != indf_basic.columns.dtype:
-            # TODO: remove when this is no longer used
-            # (likely when we upgrade supported pandas versions and python versions)
-            exp.columns = exp.columns.astype(indf_basic.columns.dtype)
 
     pandas_openscm.testing.assert_frame_alike(res, exp)
 
@@ -340,10 +336,6 @@ def test_calculate_kyoto_ghg_metadata_arguments(  # noqa: PLR0913
             ).sum(),
             {variable_level_exp: out_variable_exp},
         )
-        if exp.columns.dtype != indf_basic.columns.dtype:
-            # TODO: remove when this is no longer used
-            # (likely when we upgrade supported pandas versions and python versions)
-            exp.columns = exp.columns.astype(indf_basic.columns.dtype)
 
     exp.index = exp.index.rename({"unit": unit_level_exp})
 

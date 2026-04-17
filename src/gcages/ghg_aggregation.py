@@ -194,9 +194,5 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
             groupby_except(components_same_unit, variable_level).sum(),
             {variable_level: out_variable},
         )
-        if res.columns.dtype != indf.columns.dtype:
-            # TODO: remove when this is no longer used
-            # (likely when we upgrade supported pandas versions and python versions)
-            res.columns = res.columns.astype(indf.columns.dtype)
 
     return res
