@@ -48,7 +48,7 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 # Register the openscm accessor
 # (pix does this on import (a side-effect pattern pandas-openscm tries to avoid),
 # so there is no equivalent line)
-pandas_openscm.register_pandas_accessor("openscm")
+pandas_openscm.register_pandas_accessors("openscm")
 
 # %% [markdown]
 # ## Converting between naming conventions

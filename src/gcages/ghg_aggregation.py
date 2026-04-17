@@ -57,7 +57,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
     ur: pint.facets.PlainRegistry | None = None,
     variable_level: str = "variable",
     unit_level: str = "unit",
-):
+) -> pd.DataFrame:
     """
     Calculate Kyoto greenhouse gas aggregate
 
@@ -146,10 +146,10 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         )
         if kyoto_ghgs_missing_group:
             tmp = pd.Series(
-                ", ".join(sorted(kyoto_ghgs_missing_group)),
+                [", ".join(sorted(kyoto_ghgs_missing_group))],  # type: ignore # pandas-stubs confused
                 index=pd.MultiIndex.from_tuples(
                     [meta],
-                    names=indf.index.names.difference([variable_level, unit_level]),
+                    names=indf.index.names.difference([variable_level, unit_level]),  # type: ignore # pandas-stubs confused
                 ),
                 name="missing_kyoto_ghgs",
             )
@@ -173,18 +173,20 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         try:
             import openscm_units
 
-            ur = openscm_units.unit_registry
+            ur_use: pint.facets.PlainRegistry = openscm_units.unit_registry  # type: ignore # openscm_units type info incorrect?
         except ImportError:
             raise MissingOptionalDependencyError(  # noqa: TRY003
                 "calculate_kyoto_ghgs(..., ur=None, ...)", "openscm_units"
             )
+    else:
+        ur_use = ur
 
-    with ur.context(gwp):
+    with ur_use.context(gwp):  # type: ignore # something wrong with pint typing
         components_same_unit = convert_unit(
             indf.loc[indf.index.get_level_values(variable_level).isin(kyoto_ghgs_use)],
             desired_units=out_unit,
             unit_level=unit_level,
-            ur=ur,
+            ur=ur_use,
         )
         res = set_index_levels_func(
             groupby_except(components_same_unit, variable_level).sum(),
