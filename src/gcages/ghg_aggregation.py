@@ -111,19 +111,19 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         Kyoto greenhouse gas aggregate timeseries
     """
     if kyoto_ghgs is None:
-        kyoto_ghgs_use = [
+        kyoto_ghgs_use = {
             convert_variable_name(
                 v,
                 from_convention=SupportedNamingConventions.GCAGES,
                 to_convention=indf_naming_convention,
             )
             for v in ALL_KYOTO_GHGS_GCAGES
-        ]
+        }
     else:
-        kyoto_ghgs_use = kyoto_ghgs
+        kyoto_ghgs_use = set(kyoto_ghgs)
 
-    kyoto_ghgs_missing = set(kyoto_ghgs_use) - set(
-        indf.index.get_level_values("variable").unique()
+    kyoto_ghgs_missing = kyoto_ghgs_use - set(
+        indf.index.get_level_values(variable_level)
     )
     if kyoto_ghgs_missing:
         msg = (
@@ -131,6 +131,36 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
             "Please either supply these gases "
             "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
             f"Currently {kyoto_ghgs=}."
+        )
+        raise AssertionError(msg)
+
+    kyoto_ghgs_missing_by_group_l = []
+    for meta, gdf in groupby_except(indf, [variable_level, unit_level]):
+        kyoto_ghgs_missing_group = kyoto_ghgs_use - set(
+            gdf.index.get_level_values(variable_level)
+        )
+        if kyoto_ghgs_missing_group:
+            tmp = pd.Series(
+                ", ".join(sorted(kyoto_ghgs_missing_group)),
+                index=pd.MultiIndex.from_tuples(
+                    [meta],
+                    names=indf.index.names.difference([variable_level, unit_level]),
+                ),
+                name="missing_kyoto_ghgs",
+            )
+            kyoto_ghgs_missing_by_group_l.append(tmp)
+
+    if kyoto_ghgs_missing_by_group_l:
+        kyoto_ghgs_missing_by_group = pd.concat(
+            kyoto_ghgs_missing_by_group_l
+        ).to_frame()
+        msg = (
+            "For some groups, you are missing some Kyoto GHGs. "
+            "Please either supply these gases for these groups "
+            "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
+            f"Currently {kyoto_ghgs=}. "
+            "The groups and their missing Kyoto GHGs are:\n"
+            f"{kyoto_ghgs_missing_by_group}"
         )
         raise AssertionError(msg)
 

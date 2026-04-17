@@ -23,7 +23,6 @@ CMIP7_SCENARIOMIP_OUT_DIR = (
 pytest.importorskip("openscm_units")
 
 # Tests:
-# - works with basic
 # - fails if only one of the groups is missing a required timeseries
 #   (will require updating climate-processing too)
 # - supports different naming conventions
@@ -113,12 +112,22 @@ def test_calculate_kyoto_ghg_one_missing_error(indf_basic):
             & (indf_basic.index.get_level_values("ms") == "b")
         )
     ]
+
+    missing_kyoto_ghgs_df = pd.DataFrame(
+        ["N2O"],
+        columns=["missing_kyoto_ghgs"],
+        index=pd.MultiIndex.from_tuples(
+            [("b",)],
+            names=["ms"],
+        ),
+    )
     error_msg = re.escape(
         "For some groups, you are missing some Kyoto GHGs. "
         "Please either supply these gases for these groups "
         "or provide a different value for `kyoto_ghgs` to `calculate_kyoto_ghg`. "
         "Currently kyoto_ghgs=('CO2', 'CH4', 'N2O'). "
-        "The groups and their missing Kyoto GHGs are: "
+        "The groups and their missing Kyoto GHGs are:\n"
+        f"{missing_kyoto_ghgs_df}"
     )
     with pytest.raises(AssertionError, match=error_msg):
         calculate_kyoto_ghg(
