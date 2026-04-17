@@ -460,12 +460,17 @@ def get_cmip7_scenariomip_complete_emissions(
     return res
 
 
-def guess_magicc_exe_path() -> Path:
+def guess_magicc_exe(magicc_executables_dir: Path) -> Path:
     """
-    Guess the path to the MAGICC executable
+    Guess the MAGICC executable based on the operating system
 
-    Uses the `MAGICC_EXECUTABLE_7` environment variable.
-    If that isn't set, it guesses.
+    If the `MAGICC_EXECUTABLE_7` environment variable is set,
+    that is simply used and this function becomes almost a no-op.
+
+    Parameters
+    ----------
+    magicc_executables_dir
+        Directory in which MAGICC executables are stored
 
     Returns
     -------
@@ -479,37 +484,41 @@ def guess_magicc_exe_path() -> Path:
     """
     env_var = os.environ.get("MAGICC_EXECUTABLE_7", None)
     if env_var is not None:
-        return Path(env_var)
+        res = Path(env_var)
+        if not res.exists():
+            msg = (
+                f"Path specified by envionment variable `MAGICC_EXECUTABLE_7`, {res}, "
+                "does not exist"
+            )
+            raise FileNotFoundError(msg)
+
+        return res
 
     guess = None
-    guess_path = (
-        Path(__file__).parents[2]
-        / "tests"
-        / "regression"
-        / "ar6"
-        / "ar6-workflow-inputs"
-        / "magicc-v7.5.3"
-        / "bin"
-    )
     if platform.system() == "Darwin":
         if platform.processor() == "arm":
-            guess = guess_path / "magicc-darwin-arm64"
+            guess = magicc_executables_dir / "magicc-darwin-arm64"
 
     elif platform.system() == "Linux":
-        guess = guess_path / "magicc"
+        guess = magicc_executables_dir / "magicc"
 
     elif platform.system() == "Windows":
-        guess = guess_path / "magicc.exe"
+        guess = magicc_executables_dir / "magicc.exe"
 
-    if guess is not None:
-        if guess.exists():
-            return guess
+    if guess is None:
+        msg = (
+            f"No guess about where the MAGICC executable is "
+            "for your system and procesor, "
+            f"{platform.system()=} {platform.processor()=}"
+        )
 
+        raise NotImplementedError(msg)
+
+    if not guess.exists():
         msg = f"Guessed that the MAGICC executable was in: {guess}"
         raise FileNotFoundError(msg)
 
-    msg = "No guess about where the MAGICC executable is for your system"
-    raise FileNotFoundError(msg)
+    return guess
 
 
 def assert_frame_equal(

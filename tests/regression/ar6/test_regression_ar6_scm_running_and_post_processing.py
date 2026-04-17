@@ -33,7 +33,7 @@ from gcages.testing import (
     get_ar6_metadata_outputs,
     get_ar6_temperature_outputs,
     get_key_testing_model_scenario_parameters,
-    guess_magicc_exe_path,
+    guess_magicc_exe,
 )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_unit_string
 
@@ -41,15 +41,15 @@ pix = pytest.importorskip("pandas_indexing")
 # Only works if openscm-runner installed
 pytest.importorskip("openscm_runner.adapters")
 
-AR6_INFILLING_DB_CFCS_FILE = (
-    Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6_cfcs.csv"
-)
+AR6_WORKFLOW_INPUTS_DIR = Path(__file__).parents[0] / "ar6-workflow-inputs"
+
+AR6_INFILLING_DB_CFCS_FILE = AR6_WORKFLOW_INPUTS_DIR / "infilling_db_ar6_cfcs.csv"
 AR6_MAGICC_PROBABILISTIC_CONFIG_FILE = (
-    Path(__file__).parents[0]
-    / "ar6-workflow-inputs"
+    AR6_WORKFLOW_INPUTS_DIR
     / "magicc-ar6-0fd0f62-f023edb-drawnset"
     / "0fd0f62-derived-metrics-id-f023edb-drawnset.json"
 )
+AR6_MAGICC_EXECUTABLES_DIR = AR6_WORKFLOW_INPUTS_DIR / "magicc-v7.5.3/bin"
 AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
@@ -170,7 +170,7 @@ def test_individual_scenario(model, scenario):
         ]
     )
 
-    magicc_exe = guess_magicc_exe_path()
+    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         # Has to be parallel otherwise this is too slow
         n_processes=multiprocessing.cpu_count(),
@@ -285,7 +285,7 @@ def test_parallel(tmp_path):
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
     exp_metadata = pd.concat(exp_metadata_l)
 
-    magicc_exe = guess_magicc_exe_path()
+    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         n_processes=multiprocessing.cpu_count(),
         # run with progress bars is the default

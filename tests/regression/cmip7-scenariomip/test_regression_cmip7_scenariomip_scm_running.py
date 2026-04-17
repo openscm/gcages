@@ -1,5 +1,5 @@
 """
-Test infilling compared for CMIP7 ScenarioMIP
+Test simple climate model running compared for CMIP7 ScenarioMIP
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_key_testing_model_scenario_parameters,
+    guess_magicc_exe,
 )
 
 pix = pytest.importorskip("pandas_indexing")
@@ -33,8 +34,10 @@ CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 
-MAGIC_EXE = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin/magicc"
-MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
+CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR = (
+    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin"
+)
+CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
@@ -92,8 +95,8 @@ def test_individual_scenario(model, scenario):
     exp_temperature.columns.name = "time"
 
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
-        magicc_exe_path=MAGIC_EXE,
-        magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
         historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
