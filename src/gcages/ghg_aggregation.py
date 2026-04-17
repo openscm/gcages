@@ -111,6 +111,10 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
         Kyoto greenhouse gas aggregate timeseries
     """
     if kyoto_ghgs is None:
+        if indf_naming_convention is None:
+            msg = "If `kyoto_ghgs` is `None`, `indf_naming_convention` must be supplied"
+            raise ValueError(msg)
+
         kyoto_ghgs_use = {
             convert_variable_name(
                 v,
@@ -119,6 +123,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
             )
             for v in ALL_KYOTO_GHGS_GCAGES
         }
+
     else:
         kyoto_ghgs_use = set(kyoto_ghgs)
 

@@ -17,13 +17,13 @@ from gcages.testing import (
     get_key_testing_model_scenario_parameters,
 )
 
+pytest.importorskip("openscm_units")
+
 CMIP7_SCENARIOMIP_OUT_DIR = (
     Path(__file__).parents[1]
     / "regression/cmip7-scenariomip"
     / "cmip7-scenariomip-output"
 )
-
-pytest.importorskip("openscm_units")
 
 
 @get_key_testing_model_scenario_parameters(
