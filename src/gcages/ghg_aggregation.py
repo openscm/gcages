@@ -17,7 +17,7 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 if TYPE_CHECKING:
     import pint
 
-ALL_KYOTO_GHGS_GCAGES = (
+ALL_KYOTO_GHGS_GCAGES: tuple[str, ...] = (
     "Emissions|CO2|Fossil",
     "Emissions|CO2|Biosphere",
     "Emissions|CH4",
@@ -45,6 +45,12 @@ ALL_KYOTO_GHGS_GCAGES = (
     "Emissions|CF4",
     "Emissions|cC4F8",
 )
+"""
+Emissions that are included when calculating aggreage Kyoto greenhouse gas emissions
+
+These are specified in the gcages naming convention
+(see [gcages.renaming.SupportedNamingConventions]).
+"""
 
 
 def calculate_kyoto_ghg(  # noqa: PLR0913
