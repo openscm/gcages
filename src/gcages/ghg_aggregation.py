@@ -79,7 +79,8 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
     kyoto_ghgs
         Gases to include in the aggregate
 
-        If not supplied, we use [ALL_KYOTO_GHGS_GCAGES][(m).].
+        If not supplied, we use
+        [ALL_KYOTO_GHGS_GCAGES][gcages.ghg_aggregation.ALL_KYOTO_GHGS_GCAGES].
         See notes for `indf_naming_convention` to understand the implications
         of supplying or not supplying this variable for naming conventions.
 
@@ -188,9 +189,14 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
             unit_level=unit_level,
             ur=ur_use,
         )
+
         res = set_index_levels_func(
             groupby_except(components_same_unit, variable_level).sum(),
             {variable_level: out_variable},
         )
+        if res.columns.dtype != indf.columns.dtype:
+            # TODO: remove when this is no longer used
+            # (likely when we upgrade supported pandas versions and python versions)
+            res.columns = res.columns.astype(indf.columns.dtype)
 
     return res
