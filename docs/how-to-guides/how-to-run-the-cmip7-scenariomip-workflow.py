@@ -58,7 +58,7 @@ from gcages.index_manipulation import split_sectors
 pint.set_application_registry(openscm_units.unit_registry)
 
 # %%
-pandas_openscm.register_pandas_accessor()
+pandas_openscm.register_pandas_accessors()
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## Starting point
@@ -504,9 +504,9 @@ infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
 # %% [markdown]
 # And infill
 
-# %%
-infilled = infiller(harmonised_global)
-infilled
+# %% editable=true slideshow={"slide_type": ""}
+complete = infiller(harmonised_global)
+complete
 
 # %% [markdown]
 # You can see infilled pathways compared to raw pathways in the below.
@@ -515,7 +515,7 @@ infilled
 # If you want to see the full details of how the infilling works,
 # see [Lamboll et al., 2020](https://doi.org/10.5194/gmd-13-5259-2020).
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 pdf = (
     pix.concat(
         [
@@ -523,14 +523,10 @@ pdf = (
                 stage="pre_processed"
             ),
             harmonised_global.pix.assign(stage="harmonised"),
-            infilled.pix.assign(stage="infilled"),
+            complete.pix.assign(stage="infilled"),
         ]
     )
-    .loc[
-        pix.ismatch(
-            variable=["**CO2|Energy and Industrial Processes", "**CH4", "**N2O", "**CO"]
-        )
-    ]
+    .loc[pix.ismatch(variable=["**CO2|Fossil", "**CH4", "**N2O", "**CO"])]
     .melt(ignore_index=False, var_name="year")
     .reset_index()
 )
@@ -549,7 +545,7 @@ fg = relplot_in_emms(
 fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
 fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## SCM Running
 #
 # The next step is running a simple climate model (SCM) or models (SCMs).
@@ -626,20 +622,20 @@ scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
 # note that we run a greatly reduced number of ensemble members.
 # You will likely want to skip this step if running yourself.
 
-# %%
-# if os.environ.get("READTHEDOCS", False):
-#     scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
-#         "MAGICC7"
-#     ][:10]
+# %% editable=true slideshow={"slide_type": ""}
+if os.environ.get("READTHEDOCS", False):
+    scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
+        "MAGICC7"
+    ][:10]
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # And then run
 
-# %%
-scm_results = scm_runner(infilled)
+# %% editable=true slideshow={"slide_type": ""}
+scm_results = scm_runner(complete)
 scm_results
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # With these outputs, we can look at raw (i.e. before pre-processing) variables.
 
 # %%

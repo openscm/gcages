@@ -1288,7 +1288,7 @@ def to_gridding_sectors(
     # remove it from regional transport
     # and drop the levels we no longer use.
     domestic_aviation_sum = groupby_except(
-        emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION],  # type: ignore # issue in pandas-openscm
+        emissions_region_sector_df[SECTOR_DOMESTIC_AVIATION],
         region_level,
     ).sum()
     emissions_sector_df["Aircraft"] = (
