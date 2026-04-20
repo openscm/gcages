@@ -37,8 +37,8 @@ from gcages.index_manipulation import (
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
+    get_cmip7_scenariomip_complete_emissions,
     get_cmip7_scenariomip_harmonised_emissions,
-    get_cmip7_scenariomip_infilled_emissions,
 )
 
 pix = pytest.importorskip("pandas_indexing")
@@ -246,7 +246,7 @@ def test_whole_pipeline(model, scenario):  # noqa: PLR0915
 
     ## INFILLING
     # Load infilled results
-    exp = get_cmip7_scenariomip_infilled_emissions(
+    exp = get_cmip7_scenariomip_complete_emissions(
         model=model,
         scenario=scenario,
         processed_cmip7_scenariomip_output_data_dir=CMIP7_SCENARIOMIP_OUT_DIR

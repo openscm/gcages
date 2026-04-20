@@ -5,7 +5,6 @@ Post-processing in line the CMIP7 ScenarioMIP workflow
 from __future__ import annotations
 
 import multiprocessing
-from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -184,8 +183,8 @@ class CMIP7ScenarioMIPPostProcessor:
 
         # Categorisation
         categories = categorise_scenarios(
-            peak_warming_quantiles=cast(pd.DataFrame, peak_warming_quantiles),
-            eoc_warming_quantiles=cast(pd.DataFrame, eoc_warming_quantiles),
+            peak_warming_quantiles=peak_warming_quantiles,
+            eoc_warming_quantiles=eoc_warming_quantiles,
             group_levels=["climate_model", "model", "scenario"],
             quantile_level="quantile",
         )
