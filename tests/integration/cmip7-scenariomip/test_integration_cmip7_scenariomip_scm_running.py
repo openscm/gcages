@@ -110,8 +110,8 @@ def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
     assert out.loc[("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"), 2016] == 14.0
 
     scm_runner_cfg = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
-        magicc_exe_path=MAGIC_EXE,
-        magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
         run_checks=False,
     )
