@@ -16,8 +16,8 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
+    get_cmip7_scenariomip_complete_emissions,
     get_cmip7_scenariomip_harmonised_emissions,
-    get_cmip7_scenariomip_infilled_emissions,
     get_key_testing_model_scenario_parameters,
 )
 
@@ -56,7 +56,7 @@ def test_individual_scenario_class(model, scenario):
     )
 
     # Load infilled results
-    exp = get_cmip7_scenariomip_infilled_emissions(
+    exp = get_cmip7_scenariomip_complete_emissions(
         model=model,
         scenario=scenario,
         processed_cmip7_scenariomip_output_data_dir=OUTPUT_CMIP7_DIR,

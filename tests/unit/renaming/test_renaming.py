@@ -7,12 +7,14 @@ from __future__ import annotations
 import itertools
 import re
 
+import pandas as pd
 import pytest
 
 from gcages.exceptions import UnrecognisedValueError
 from gcages.renaming import (
     SupportedNamingConventions,
     convert_variable_name,
+    rename_variables,
 )
 
 
@@ -32,6 +34,23 @@ def test_convert_variable_name_unknown_error(from_nc):
             from_convention=from_nc,
             to_convention=SupportedNamingConventions.GCAGES,
         )
+
+
+naming_convention_combos = pytest.mark.parametrize(
+    "from_nc, to_nc",
+    tuple(
+        [
+            pytest.param(
+                from_nc,
+                to_nc,
+                id=f"{from_nc.value}-{to_nc.value}",
+            )
+            for from_nc, to_nc in itertools.combinations(
+                [v for v in SupportedNamingConventions], 2
+            )
+        ]
+    ),
+)
 
 
 @pytest.mark.parametrize(
@@ -92,21 +111,7 @@ def test_convert_variable_name_unknown_error(from_nc):
         "Emissions|cC4F8",
     ),
 )
-@pytest.mark.parametrize(
-    "from_nc, to_nc",
-    tuple(
-        [
-            pytest.param(
-                from_nc,
-                to_nc,
-                id=f"{from_nc.value}-{to_nc.value}",
-            )
-            for from_nc, to_nc in itertools.combinations(
-                [v for v in SupportedNamingConventions], 2
-            )
-        ]
-    ),
-)
+@naming_convention_combos
 def test_all_combos(gcages_variable, from_nc, to_nc):
     # Get starting point
     start = convert_variable_name(
@@ -124,3 +129,69 @@ def test_all_combos(gcages_variable, from_nc, to_nc):
         )
         == start
     )
+
+
+@pytest.mark.parametrize("to_nc", SupportedNamingConventions)
+@pytest.mark.parametrize(
+    "index_level_in, index_level_exp",
+    (
+        (None, "variable"),
+        ("variables", "variables"),
+    ),
+)
+@pytest.mark.parametrize(
+    "copy, copy_exp",
+    (
+        (None, True),
+        (False, False),
+    ),
+)
+def test_rename_variables(to_nc, index_level_in, index_level_exp, copy, copy_exp):
+    call_kwargs = {}
+
+    from_nc = SupportedNamingConventions.GCAGES
+    gcages_variables = [
+        "Emissions|CO2|Biosphere",
+        "Emissions|CO2|Fossil",
+        "Emissions|HFC4310mee",
+        "Emissions|SOx",
+        "Emissions|NMVOC",
+    ]
+
+    tmp = pd.DataFrame(
+        range(len(gcages_variables)),
+        pd.MultiIndex.from_tuples(
+            [(v, "t") for v in gcages_variables], names=["variable", "unit"]
+        ),
+    )
+
+    if index_level_in is not None:
+        call_kwargs["index_level"] = index_level_in
+        tmp = tmp.rename_axis(index={"variable": index_level_in})
+
+    if copy is not None:
+        call_kwargs["copy"] = copy
+
+    res = rename_variables(
+        tmp, from_convention=from_nc, to_convention=to_nc, **call_kwargs
+    )
+
+    if copy_exp:
+        assert id(res) != id(tmp)
+    else:
+        assert id(res) == id(tmp)
+
+    assert list(res.index.get_level_values(index_level_exp)) == [
+        convert_variable_name(
+            v,
+            from_convention=SupportedNamingConventions.GCAGES,
+            to_convention=to_nc,
+        )
+        for v in gcages_variables
+    ]
+
+    res_roundtrip = rename_variables(
+        res, from_convention=to_nc, to_convention=from_nc, **call_kwargs
+    )
+
+    pd.testing.assert_frame_equal(tmp, res_roundtrip)

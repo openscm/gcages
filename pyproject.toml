@@ -12,7 +12,7 @@ dependencies = [
     "numpy>=1.26.0; python_version < '3.13'",
     "numpy>=2.1.0; python_version >= '3.13'",
     "pandas>=2.2.0",
-    "pandas-openscm>=0.5.1",
+    "pandas-openscm>=0.8.0",
 ]
 readme = "README.md"
 classifiers = [
@@ -46,8 +46,10 @@ ar6 = [
     "aneris-iamc>=0.4.2 ; python_version >= '3.10'",
     # The next two shouldn't need to be specified
     # but for some reason are
-    "pycountry>=24.0 ; python_version >= '3.10'",
+    "pycountry>=23.12.11 ; python_version >= '3.10'",
     "importlib-resources>=5.0 ; python_version >= '3.10' and python_version <= '3.11'",
+    # Required to allow ciceroscm to be imported via openscm-runner
+    "setuptools>=60.1.0 ; python_version >= '3.12'",
     "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
     "pandas-openscm[db]>=0.5.1",
@@ -63,6 +65,8 @@ cmip7scenariomip = [
     "pycountry>=24.0 ; python_version >= '3.10'",
     "importlib-resources>=5.0 ; python_version >= '3.10' and python_version <= '3.11'",
     "openscm-runner>=0.13.0",
+    # Required to allow ciceroscm to be imported via openscm-runner
+    "setuptools>=60.1.0 ; python_version >= '3.12'",
     "pandas-indexing[units]>=0.6.3",
     "pandas-openscm[db]>=0.5.1",
     "pymagicc>=2.1.5",

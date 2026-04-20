@@ -414,11 +414,11 @@ def get_cmip7_scenariomip_harmonised_emissions(
 
 
 @functools.cache
-def get_cmip7_scenariomip_infilled_emissions(
+def get_cmip7_scenariomip_complete_emissions(
     model: str, scenario: str, processed_cmip7_scenariomip_output_data_dir: Path
 ) -> pd.DataFrame:
     """
-    Get infilled emissions from CMIP7 ScenarioMIP outputs
+    Get complete emissions from CMIP7 ScenarioMIP outputs
 
     Parameters
     ----------
@@ -434,18 +434,18 @@ def get_cmip7_scenariomip_infilled_emissions(
     Returns
     -------
     :
-        All infilled emissions from CMIP7 ScenarioMIP for `model`-`scenario`
+        All complete emissions from CMIP7 ScenarioMIP for `model`-`scenario`
     """
     try:
         from pandas_indexing.selectors import ismatch as pix_ismatch
     except ImportError as exc:
         raise MissingOptionalDependencyError(
-            "get_ar6_infilled_emissions", requirement="pandas_indexing"
+            "get_cmip7_scenariomip_complete_emissions", requirement="pandas_indexing"
         ) from exc
 
     res = load_timeseries_csv(
         processed_cmip7_scenariomip_output_data_dir
-        / f"{model}_{scenario}_infilled.csv",
+        / f"{model}_{scenario}_complete.csv",
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_columns_type=int,
         out_columns_name="year",
@@ -460,12 +460,17 @@ def get_cmip7_scenariomip_infilled_emissions(
     return res
 
 
-def guess_magicc_exe_path() -> Path:
+def guess_magicc_exe(magicc_executables_dir: Path) -> Path:
     """
-    Guess the path to the MAGICC executable
+    Guess the MAGICC executable based on the operating system
 
-    Uses the `MAGICC_EXECUTABLE_7` environment variable.
-    If that isn't set, it guesses.
+    If the `MAGICC_EXECUTABLE_7` environment variable is set,
+    that is simply used and this function becomes almost a no-op.
+
+    Parameters
+    ----------
+    magicc_executables_dir
+        Directory in which MAGICC executables are stored
 
     Returns
     -------
@@ -479,37 +484,41 @@ def guess_magicc_exe_path() -> Path:
     """
     env_var = os.environ.get("MAGICC_EXECUTABLE_7", None)
     if env_var is not None:
-        return Path(env_var)
+        res = Path(env_var)
+        if not res.exists():
+            msg = (
+                f"Path specified by envionment variable `MAGICC_EXECUTABLE_7`, {res}, "
+                "does not exist"
+            )
+            raise FileNotFoundError(msg)
+
+        return res
 
     guess = None
-    guess_path = (
-        Path(__file__).parents[2]
-        / "tests"
-        / "regression"
-        / "ar6"
-        / "ar6-workflow-inputs"
-        / "magicc-v7.5.3"
-        / "bin"
-    )
     if platform.system() == "Darwin":
         if platform.processor() == "arm":
-            guess = guess_path / "magicc-darwin-arm64"
+            guess = magicc_executables_dir / "magicc-darwin-arm64"
 
     elif platform.system() == "Linux":
-        guess = guess_path / "magicc"
+        guess = magicc_executables_dir / "magicc"
 
     elif platform.system() == "Windows":
-        guess = guess_path / "magicc.exe"
+        guess = magicc_executables_dir / "magicc.exe"
 
-    if guess is not None:
-        if guess.exists():
-            return guess
+    if guess is None:
+        msg = (
+            f"No guess about where the MAGICC executable is "
+            "for your system and procesor, "
+            f"{platform.system()=} {platform.processor()=}"
+        )
 
+        raise NotImplementedError(msg)
+
+    if not guess.exists():
         msg = f"Guessed that the MAGICC executable was in: {guess}"
         raise FileNotFoundError(msg)
 
-    msg = "No guess about where the MAGICC executable is for your system"
-    raise FileNotFoundError(msg)
+    return guess
 
 
 def assert_frame_equal(
