@@ -1,9 +1,15 @@
+"""
+Tests of the `gcages.cmip7_scenariomip.scm_running`
+"""
+
+import re
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import pytest
 
+from gcages.assertions import MissingDataForTimesError
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
     get_complete_scenarios_for_magicc,
@@ -62,18 +68,20 @@ def test_load_magicc_cfgs_sets_common_and_physical_cfgs(tmp_path: Path):
     assert cfg["out_dynamic_vars"]
 
 
+@pytest.mark.skip_ci_default
+@pytest.mark.slow
 def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
-    scenarios = pd.DataFrame(
+    scenario = pd.DataFrame(
         {
             2015: [10.0, 10.0],
             2016: [12.0, 14.0],
         },
         index=pd.MultiIndex.from_tuples(
             [
-                ("M1", "S1", "CO2", "MtCO2/yr"),
-                ("M1", "S1", "CH4", "MtCH4/yr"),
+                ("M1", "S1", "World", "Emissions|CO2", "MtCO2/yr"),
+                ("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"),
             ],
-            names=["model", "scenario", "variable", "unit"],
+            names=["model", "scenario", "region", "variable", "unit"],
         ),
     )
 
@@ -85,21 +93,46 @@ def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
         },
         index=pd.MultiIndex.from_tuples(
             [
-                ("M1", "S1", "CO2", "MtCO2/yr"),
-                ("M1", "S1", "CH4", "MtCH4/yr"),
+                ("M1", "S1", "World", "Emissions|CO2", "MtCO2/yr"),
+                ("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"),
             ],
-            names=["model", "scenario", "variable", "unit"],
+            names=["model", "scenario", "region", "variable", "unit"],
         ),
     )
 
-    out = get_complete_scenarios_for_magicc(scenarios, history, magicc_start_year=2014)
+    out = get_complete_scenarios_for_magicc(scenario, history, magicc_start_year=2014)
 
     # columns: 2014, 2015, 2016
     assert list(out.columns) == [2014, 2015, 2016]
-    assert out.loc[("M1", "S1", "CO2", "MtCO2/yr"), 2014] == 8.0
-    assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2014] == 8.0
-    assert out.loc[("M1", "S1", "CO2", "MtCO2/yr"), 2015] == 10.0
-    assert out.loc[("M1", "S1", "CH4", "MtCH4/yr"), 2016] == 14.0
+    assert out.loc[("M1", "S1", "World", "Emissions|CO2", "MtCO2/yr"), 2014] == 8.0
+    assert out.loc[("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"), 2014] == 8.0
+    assert out.loc[("M1", "S1", "World", "Emissions|CO2", "MtCO2/yr"), 2015] == 10.0
+    assert out.loc[("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"), 2016] == 14.0
+
+    scm_runner_cfg = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
+        output_variables=("Surface Air Temperature Change",),
+        run_checks=False,
+    )
+    scm_runner = CMIP7ScenarioMIPSCMRunner(
+        climate_models_cfgs=scm_runner_cfg.climate_models_cfgs,
+        output_variables=("Surface Air Temperature Change",),
+        historical_emissions=history.reset_index(
+            level=[lvl for lvl in ["model", "scenario"] if lvl in history.index.names],
+            drop=True,
+        ),
+        harmonisation_year=2015,
+        run_checks=True,
+        res_column_type=int,
+    )
+
+    error_message = re.escape(
+        '"in_emissions is missing data for the following times: [2100]. '
+        "Available times: Index([2015, 2016], dtype='int64')"
+    )
+    with pytest.raises(MissingDataForTimesError, match=error_message):
+        scm_runner.__call__(scenario)
 
 
 def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
@@ -195,9 +228,12 @@ def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
         ),
     ],
 )
-def test_cmip7_scenariomip_scmrunner(
-    scenario, history_path, run_checks, harmonisation_year, error_message
+def test_cmip7_scenariomip_scmrunner(  # noqa: PLR0913
+    scenario, history_path, run_checks, harmonisation_year, error_message, monkeypatch
 ):
+    monkeypatch.setenv(
+        "MAGICC_EXECUTABLE_7", str(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR / "magicc")
+    )
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
