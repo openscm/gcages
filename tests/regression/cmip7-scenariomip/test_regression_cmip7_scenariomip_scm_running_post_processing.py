@@ -53,7 +53,10 @@ HARMONISATION_YEAR = 2023
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
-def test_individual_scenario(model, scenario):
+def test_individual_scenario(model, scenario, monkeypatch):
+    monkeypatch.setenv(
+        "MAGICC_EXECUTABLE_7", str(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR / "magicc")
+    )
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv"
     complete = load_timeseries_csv(

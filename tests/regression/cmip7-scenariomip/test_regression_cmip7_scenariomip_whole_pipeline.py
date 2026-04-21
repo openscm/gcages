@@ -117,9 +117,9 @@ def missing_reporting_zero_hack(reaggregator, model_df, model_regions):
     "model, scenario",
     [("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions")],
 )
-def test_whole_pipeline(model, scenario):  # noqa: PLR0915
+def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     """Test a few scenarios, not all to save compute time"""
-
+    monkeypatch.setenv("MAGICC_EXECUTABLE_7", "MAGIC_EXE")
     # LOADING SCENARIO
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_raw-scenario.csv"
     input_df = load_timeseries_csv(
@@ -153,7 +153,6 @@ def test_whole_pipeline(model, scenario):  # noqa: PLR0915
         progress=False,
         run_checks=True,
     )
-
     pre_processed = pre_processor(input_df)
 
     # TODO should we move this ?
