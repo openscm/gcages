@@ -434,7 +434,7 @@ class AR6Harmoniser:
                 harmonisation_time=self.harmonisation_year,
             )
 
-            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs doesn't know about check_order
+            pd.testing.assert_index_equal(
                 harmonised_df.index,
                 in_emissions.index,
                 check_order=False,
