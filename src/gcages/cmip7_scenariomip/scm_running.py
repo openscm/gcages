@@ -450,7 +450,7 @@ class CMIP7ScenarioMIPSCMRunner:
 
         if self.run_checks:
             # All scenarios have output
-            pd.testing.assert_index_equal(
+            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
                 out.index.droplevel(
                     out.index.names.difference(["model", "scenario"])  # type: ignore # pandas-stubs out of date
                 ).drop_duplicates(),

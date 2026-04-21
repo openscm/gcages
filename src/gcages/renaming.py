@@ -26,6 +26,9 @@ if sys.version_info >= (3, 11):
 else:
     from backports.strenum import StrEnum
 
+if TYPE_CHECKING:
+    P = TypeVar("P", pd.DataFrame, pd.Series[Any])
+
 
 class SupportedNamingConventions(StrEnum):
     """Supported naming conventions"""
