@@ -231,9 +231,7 @@ def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
 def test_cmip7_scenariomip_scmrunner(  # noqa: PLR0913
     scenario, history_path, run_checks, harmonisation_year, error_message, monkeypatch
 ):
-    monkeypatch.setenv(
-        "MAGICC_EXECUTABLE_7", str(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR / "magicc")
-    )
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
