@@ -13,6 +13,7 @@ that cover the key paths from AR6.
 from __future__ import annotations
 
 import multiprocessing
+import os
 from pathlib import Path
 
 import numpy as np
@@ -28,13 +29,13 @@ from gcages.ar6 import AR6PostProcessor, AR6SCMRunner, get_ar6_full_historical_e
 from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
-    KEY_TESTING_MODEL_SCENARIOS,
+    KEY_AR6_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_ar6_infilled_emissions,
     get_ar6_metadata_outputs,
     get_ar6_temperature_outputs,
     get_key_testing_model_scenario_parameters,
-    guess_magicc_exe_path,
+    guess_magicc_exe,
 )
 from gcages.units_helpers import strip_pint_incompatible_characters_from_unit_string
 
@@ -42,15 +43,15 @@ pix = pytest.importorskip("pandas_indexing")
 # Only works if openscm-runner installed
 pytest.importorskip("openscm_runner.adapters")
 
-AR6_INFILLING_DB_CFCS_FILE = (
-    Path(__file__).parents[0] / "ar6-workflow-inputs" / "infilling_db_ar6_cfcs.csv"
-)
+AR6_WORKFLOW_INPUTS_DIR = Path(__file__).parents[0] / "ar6-workflow-inputs"
+
+AR6_INFILLING_DB_CFCS_FILE = AR6_WORKFLOW_INPUTS_DIR / "infilling_db_ar6_cfcs.csv"
 AR6_MAGICC_PROBABILISTIC_CONFIG_FILE = (
-    Path(__file__).parents[0]
-    / "ar6-workflow-inputs"
+    AR6_WORKFLOW_INPUTS_DIR
     / "magicc-ar6-0fd0f62-f023edb-drawnset"
     / "0fd0f62-derived-metrics-id-f023edb-drawnset.json"
 )
+AR6_MAGICC_EXECUTABLES_DIR = AR6_WORKFLOW_INPUTS_DIR / "magicc-v7.5.3/bin"
 AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
 
@@ -146,8 +147,9 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-@get_key_testing_model_scenario_parameters()
+@get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
 def test_individual_scenario(model, scenario):
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
@@ -170,7 +172,7 @@ def test_individual_scenario(model, scenario):
         ]
     )
 
-    magicc_exe = guess_magicc_exe_path()
+    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         # Has to be parallel otherwise this is too slow
         n_processes=multiprocessing.cpu_count(),
@@ -246,11 +248,11 @@ def test_parallel(tmp_path):
     pytest.importorskip("tqdm.auto")
     # Required for database
     pytest.importorskip("filelock")
-
+    os.environ.pop("MAGICC_EXECUTABLE_7", None)
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []
-    for model, scenario in KEY_TESTING_MODEL_SCENARIOS[:3]:
+    for model, scenario in KEY_AR6_TESTING_MODEL_SCENARIOS[:3]:
         infilled_l.append(
             get_ar6_infilled_emissions(
                 model=model,
@@ -285,7 +287,7 @@ def test_parallel(tmp_path):
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
     exp_metadata = pd.concat(exp_metadata_l)
 
-    magicc_exe = guess_magicc_exe_path()
+    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         n_processes=multiprocessing.cpu_count(),
         # run with progress bars is the default

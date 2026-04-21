@@ -18,6 +18,9 @@ from pandas_openscm.index_manipulation import update_index_levels_func
 import gcages.databases
 from gcages.exceptions import UnrecognisedValueError
 
+if TYPE_CHECKING:
+    P = TypeVar("P", pd.DataFrame, pd.Series[Any])
+
 if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:

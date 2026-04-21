@@ -4,7 +4,6 @@ Simple climate model (SCM) running part of the AR6 workflow
 
 from __future__ import annotations
 
-import json
 import multiprocessing
 import os
 from functools import partial
@@ -32,6 +31,7 @@ from gcages.scm_running import (
     convert_openscm_runner_output_names_to_magicc_output_names,
     run_scms,
 )
+from gcages.scm_running.magicc import load_magicc_probabilistic_config
 from gcages.units_helpers import assert_has_no_pint_incompatible_characters
 
 DEFAULT_OUTPUT_VARIABLES: tuple[str, ...] = (
@@ -121,16 +121,7 @@ def load_ar6_magicc_probabilistic_config(filepath: Path) -> list[dict[str, Any]]
         )
         raise AssertionError(msg)
 
-    with open(filepath) as fh:
-        cfgs_raw = json.load(fh)
-
-    cfgs = [
-        {
-            "run_id": c["paraset_id"],
-            **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
-        }
-        for c in cfgs_raw["configurations"]
-    ]
+    cfgs = load_magicc_probabilistic_config(filepath)
 
     return cfgs
 

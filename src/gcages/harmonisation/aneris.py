@@ -108,6 +108,8 @@ class AnerisHarmoniser:
         if not self.run_checks:
             return
 
+        # TODO: implement a `assert_aneris_overrides_align_with_historical` function
+
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame

@@ -265,7 +265,7 @@ if not AR6_HISTORICAL_EMISSIONS_FILE.exists():
 # %% [markdown]
 # With this file, we can initialise a harmoniser exactly like that used in AR6.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 harmoniser = AR6Harmoniser.from_ar6_config(
     ar6_historical_emissions_file=AR6_HISTORICAL_EMISSIONS_FILE,
     n_processes=None,  # run serially for this demo
@@ -274,17 +274,17 @@ harmoniser = AR6Harmoniser.from_ar6_config(
 # %% [markdown]
 # And harmonise
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 harmonised = harmoniser(pre_processed)
 harmonised
 
-# %% [markdown]
+# %% [markdown] editable=true slideshow={"slide_type": ""}
 # You can see the modification to the pathways
 # as a result of the harmonisation in the plot below.
 # In scenarios that have more emissions,
 # the same idea is applied to all variables.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 pdf = (
     pix.concat(
         [
@@ -353,7 +353,7 @@ if not AR6_INFILLING_DB_CFCS_FILE.exists():
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 infiller = AR6Infiller.from_ar6_config(
     ar6_infilling_db_file=AR6_INFILLING_DB_FILE,
     ar6_infilling_db_cfcs_file=AR6_INFILLING_DB_CFCS_FILE,
@@ -371,7 +371,7 @@ infiller = AR6Infiller.from_ar6_config(
 # %%
 harmonised
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 infilled = infiller(harmonised)
 infilled
 
@@ -497,7 +497,7 @@ scm_runner = AR6SCMRunner.from_ar6_config(
 # note that we run a greatly reduced number of ensemble members.
 # You will likely want to skip this step if running yourself.
 
-# %%
+# %% editable=true slideshow={"slide_type": ""}
 if os.environ.get("READTHEDOCS", False):
     scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
         "MAGICC7"

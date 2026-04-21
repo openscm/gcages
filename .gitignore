@@ -1,5 +1,9 @@
-# MAGICC
+# Binary files
+*.feather
+
+# MAGICC stuff
 magicc-v7.5.3
+tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs/magicc-v7.6.0a3/run/openscm-runner
 
 # Notebooks
 *.ipynb

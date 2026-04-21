@@ -28,7 +28,7 @@ from gcages.testing import (
     (
         (
             get_key_testing_model_scenario_parameters,
-            [],
+            [(("m", "s"), ("m1", "s"))],
             "get_key_testing_model_scenario_parameters",
             "pytest",
             "pytest",

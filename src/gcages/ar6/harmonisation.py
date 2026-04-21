@@ -153,10 +153,10 @@ def load_ar6_historical_emissions(filepath: Path) -> pd.DataFrame:
     return res
 
 
-def harmonise_scenario(
+def harmonise_single_scenario(
     indf: pd.DataFrame,
     history: pd.DataFrame,
-    year: int,
+    harmonisation_year: int,
     overrides: pd.Series[str] | None,
     calc_scaling_year: int,
 ) -> pd.DataFrame:
@@ -171,7 +171,7 @@ def harmonise_scenario(
     history
         History to harmonise to
 
-    year
+    harmonisation_year
         Year to use for harmonisation
 
     overrides
@@ -191,23 +191,25 @@ def harmonise_scenario(
     assert_only_working_on_variable_unit_variations(indf)
 
     # In AR6, if the year we needed wasn't there, we tried some workarounds
-    if year not in indf:
+    if harmonisation_year not in indf:
         emissions_to_harmonise = add_historical_year_based_on_scaling(
-            year_to_add=year,
+            year_to_add=harmonisation_year,
             year_calc_scaling=calc_scaling_year,
             emissions=indf,
             emissions_history=history,
         )
 
-    elif indf[year].isnull().any():
-        null_emms_in_harm_year = indf[year].isnull()
+    elif indf[harmonisation_year].isnull().any():
+        null_emms_in_harm_year = indf[harmonisation_year].isnull()
 
         dont_change = indf[~null_emms_in_harm_year]
 
         updated = add_historical_year_based_on_scaling(
-            year_to_add=year,
+            year_to_add=harmonisation_year,
             year_calc_scaling=calc_scaling_year,
-            emissions=indf[null_emms_in_harm_year].drop(year, axis="columns"),
+            emissions=indf[null_emms_in_harm_year].drop(
+                harmonisation_year, axis="columns"
+            ),
             emissions_history=history,
         )
 
@@ -218,7 +220,7 @@ def harmonise_scenario(
 
     # In AR6, any emissions with zero in the harmonisation year were dropped
     emissions_to_harmonise = emissions_to_harmonise[
-        ~(emissions_to_harmonise[year] == 0.0)
+        ~(emissions_to_harmonise[harmonisation_year] == 0.0)
     ]
 
     ### In AR6, we interpolated before harmonising
@@ -231,7 +233,9 @@ def harmonise_scenario(
         raise NotImplementedError
 
     # Then, interpolate
-    out_interp_years = list(range(year, emissions_to_harmonise.columns.max() + 1))
+    out_interp_years = list(
+        range(harmonisation_year, emissions_to_harmonise.columns.max() + 1)
+    )
     emissions_to_harmonise = emissions_to_harmonise.reindex(
         columns=out_interp_years
     ).interpolate(method="slinear", axis="columns")
@@ -239,7 +243,7 @@ def harmonise_scenario(
     harmonised = harmonise_all(
         emissions_to_harmonise,
         history=history,
-        year=year,
+        year=harmonisation_year,
         overrides=overrides,
     )
 
@@ -326,6 +330,8 @@ class AR6Harmoniser:
         if not self.run_checks:
             return
 
+        # TODO: implement a `assert_aneris_overrides_align_with_historical` function
+
     @historical_emissions.validator
     def validate_historical_emissions(
         self, attribute: attr.Attribute[Any], value: pd.DataFrame
@@ -406,7 +412,7 @@ class AR6Harmoniser:
 
         harmonised_df = pd.concat(
             apply_op_parallel_progress(
-                func_to_call=harmonise_scenario,
+                func_to_call=harmonise_single_scenario,
                 iterable_input=(
                     gdf for _, gdf in in_emissions.groupby(["model", "scenario"])
                 ),
@@ -415,7 +421,7 @@ class AR6Harmoniser:
                     max_workers=self.n_processes,
                 ),
                 history=self.historical_emissions,
-                year=self.harmonisation_year,
+                harmonisation_year=self.harmonisation_year,
                 overrides=self.aneris_overrides,
                 calc_scaling_year=self.calc_scaling_year,
             )
