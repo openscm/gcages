@@ -11,7 +11,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
+    update_index_levels_func,
+    update_levels_from_other,
+)
 from pandas_openscm.io import load_timeseries_csv
 
 from gcages.cmip7_scenariomip.harmonisation import (
@@ -30,10 +34,6 @@ from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
 )
 from gcages.completeness import get_missing_levels
-from gcages.index_manipulation import (
-    create_levels_based_on_existing,
-    set_new_single_value_levels,
-)
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
@@ -95,11 +95,9 @@ def missing_reporting_zero_hack(reaggregator, model_df, model_regions):
         zeros_hack = pd.DataFrame(
             np.zeros((mls.shape[0], sdf.shape[1])),
             columns=sdf.columns,
-            index=create_levels_based_on_existing(
-                mls, {"unit": ("variable", guess_unit)}
-            ),
+            index=update_levels_from_other(mls, {"unit": ("variable", guess_unit)}),
         )
-        zeros_hack = set_new_single_value_levels(
+        zeros_hack = set_index_levels_func(
             zeros_hack,
             {"model": model_l, "scenario": scenario},
         ).reorder_levels(sdf.index.names)

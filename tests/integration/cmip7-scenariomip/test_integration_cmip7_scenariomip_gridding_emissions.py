@@ -109,9 +109,6 @@ def get_gridding_emissions(  # noqa: PLR0913
 
     index = index_world.append(index_model_region)
     index = update_levels_from_other(index, {"unit": ("variable", get_variable_unit)})
-    # index = create_levels_based_on_existing(
-    #     index, {"unit": ("variable", get_variable_unit)}
-    # )
 
     res = set_index_levels_func(
         pd.DataFrame(
