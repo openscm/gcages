@@ -13,7 +13,6 @@ that cover the key paths from AR6.
 from __future__ import annotations
 
 import multiprocessing
-import os
 from pathlib import Path
 
 import numpy as np
@@ -148,8 +147,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
 @get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
-def test_individual_scenario(model, scenario):
-    os.environ.pop("MAGICC_EXECUTABLE_7", None)
+def test_individual_scenario(model, scenario, monkeypatch):
     exp_metadata = get_ar6_metadata_outputs(
         model=model,
         scenario=scenario,
@@ -172,6 +170,7 @@ def test_individual_scenario(model, scenario):
         ]
     )
 
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
     magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         # Has to be parallel otherwise this is too slow
@@ -242,13 +241,13 @@ def test_individual_scenario(model, scenario):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-def test_parallel(tmp_path):
+def test_parallel(tmp_path, monkeypatch):
     """Test a few scenarios in parallel, not all to save compute time"""
     # Required for progress bars
     pytest.importorskip("tqdm.auto")
     # Required for database
     pytest.importorskip("filelock")
-    os.environ.pop("MAGICC_EXECUTABLE_7", None)
+
     infilled_l = []
     exp_temperature_percentiles_l = []
     exp_metadata_l = []
@@ -287,6 +286,7 @@ def test_parallel(tmp_path):
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
     exp_metadata = pd.concat(exp_metadata_l)
 
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
     magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         n_processes=multiprocessing.cpu_count(),

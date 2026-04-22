@@ -54,9 +54,6 @@ HARMONISATION_YEAR = 2023
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
 def test_individual_scenario(model, scenario, monkeypatch):
-    monkeypatch.setenv(
-        "MAGICC_EXECUTABLE_7", str(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR / "magicc")
-    )
     # Loading infilled results
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv"
     complete = load_timeseries_csv(
@@ -99,6 +96,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     )
     exp_temperature.columns.name = "time"
 
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
