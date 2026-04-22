@@ -16,8 +16,10 @@ import pandas as pd
 from attrs import define, field
 from pandas_openscm.grouping import groupby_except
 from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
     set_levels,
     update_index_levels_func,
+    update_levels_from_other,
 )
 from pandas_openscm.indexing import multi_index_lookup
 
@@ -33,8 +35,6 @@ from gcages.cmip7_scenariomip.pre_processing.reaggregation.common import (
 from gcages.completeness import assert_all_groups_are_complete, get_missing_levels
 from gcages.index_manipulation import (
     combine_sectors,
-    create_levels_based_on_existing,
-    set_new_single_value_levels,
     split_sectors,
 )
 from gcages.internal_consistency import InternalConsistencyError
@@ -699,7 +699,7 @@ def get_example_input(  # noqa: PLR0913
         start, level="variable", on_clash="overwrite"
     )
     # Aggregate up the regions
-    start_sector_full_region_sum = set_new_single_value_levels(
+    start_sector_full_region_sum = set_index_levels_func(
         groupby_except(start_sector_full, region_level).sum(),
         {region_level: world_region},
     )
@@ -722,7 +722,7 @@ def get_example_input(  # noqa: PLR0913
     res_gridding = multi_index_lookup(all_info, complete_index)
 
     # Add unit info
-    res_gridding.index = create_levels_based_on_existing(
+    res_gridding.index = update_levels_from_other(
         res_gridding.index,  # type: ignore # fix when moving to pandas-openscm
         {unit_level: (variable_level, get_variable_unit)},
     )
@@ -1104,9 +1104,9 @@ def to_complete(  # noqa: PLR0913
 
         if not missing_indexes_emissions.empty:
             missing_indexes_emissions_split = split_sectors(missing_indexes_emissions)  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-            zeros_index_split = create_levels_based_on_existing(
+            zeros_index_split = update_levels_from_other(
                 missing_indexes_emissions_split,  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
-                {unit_level: ("species", species_unit_map)},  # type: ignore # type hint is wrong upstream (fix when moving to pandas-openscm)
+                {unit_level: ("species", species_unit_map)},
             )
             zeros_index_emissions: pd.MultiIndex = combine_sectors(  # type: ignore # need to think through type hints for combine_sectors more carefully
                 zeros_index_split,  # type: ignore # need to think through type hints for combine_sectors more carefully
@@ -1157,7 +1157,7 @@ def to_complete(  # noqa: PLR0913
             level: value
             for level, value in zip(other_levels_deduped.names, other_levels_deduped[0])
         }
-        assumed_zero = set_new_single_value_levels(
+        assumed_zero = set_index_levels_func(
             pd.DataFrame(
                 np.zeros((zeros_index.shape[0], keep.shape[1])),
                 columns=keep.columns,
@@ -1396,7 +1396,7 @@ def to_gridding_sectors(
     )
 
     sector_df_gridding_like_input = combine_sectors(
-        set_new_single_value_levels(
+        set_index_levels_func(
             sector_df_gridding.unstack().stack("sectors", future_stack=True),  # type: ignore # pandas-stubs confused
             {region_level: world_region},
         ),

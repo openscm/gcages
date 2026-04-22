@@ -14,6 +14,7 @@ from pandas_openscm.grouping import (
     groupby_except,
 )
 from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
     update_index_levels_func,
 )
 
@@ -23,7 +24,6 @@ from gcages.ar6.post_processing import (
     get_exceedance_probabilities_over_time,
     get_temperatures_in_line_with_assessment,
 )
-from gcages.index_manipulation import set_new_single_value_levels
 from gcages.post_processing import PostProcessingResult
 
 
@@ -137,7 +137,7 @@ class CMIP7ScenarioMIPPostProcessor:
         )
 
         # Peak Warming
-        peak_warming_df = set_new_single_value_levels(
+        peak_warming_df = set_index_levels_func(
             temperatures_in_line_with_assessment.max(axis="columns").to_frame("value"),
             {"metric": "max"},
         )
@@ -151,7 +151,7 @@ class CMIP7ScenarioMIPPostProcessor:
         peak_warming_quantiles = peak_warming_quantiles_df["value"]
 
         # EOC Warming
-        eoc_warming_df = set_new_single_value_levels(
+        eoc_warming_df = set_index_levels_func(
             temperatures_in_line_with_assessment[2100].to_frame("value"),
             {"metric": 2100},
         )
@@ -164,7 +164,7 @@ class CMIP7ScenarioMIPPostProcessor:
         eoc_warming_quantiles = eoc_warming_quantiles_df["value"]
 
         # Peak Year
-        peak_warming_year_df = set_new_single_value_levels(
+        peak_warming_year_df = set_index_levels_func(
             update_index_levels_func(
                 temperatures_in_line_with_assessment.idxmax(axis="columns").to_frame(
                     "value"

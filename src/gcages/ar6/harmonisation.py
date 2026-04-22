@@ -31,7 +31,11 @@ from gcages.assertions import (
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
-from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.renaming import (
+    SupportedNamingConventions,
+    convert_variable_name,
+    rename_variables,
+)
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
@@ -430,10 +434,10 @@ class AR6Harmoniser:
                 harmonisation_time=self.harmonisation_year,
             )
 
-            pd.testing.assert_index_equal(
+            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs doesn't know about check_order
                 harmonised_df.index,
                 in_emissions.index,
-                check_order=False,  # type: ignore # pandas-stubs out of date
+                check_order=False,
             )
             if harmonised_df.columns.dtype != in_emissions.columns.dtype:
                 msg = (
@@ -537,15 +541,11 @@ class AR6Harmoniser:
         ]
 
         # Update variable names
-        historical_emissions = update_index_levels_func(
+        historical_emissions = rename_variables(
             historical_emissions,
-            {
-                "variable": partial(
-                    convert_variable_name,
-                    from_convention=SupportedNamingConventions.IAMC,
-                    to_convention=SupportedNamingConventions.GCAGES,
-                )
-            },
+            from_convention=SupportedNamingConventions.IAMC,
+            to_convention=SupportedNamingConventions.GCAGES,
+            index_level="variable",
             copy=False,
         )
 

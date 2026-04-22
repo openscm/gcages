@@ -14,7 +14,10 @@ from pandas_openscm.grouping import (
     fix_index_name_after_groupby_quantile,
     groupby_except,
 )
-from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
+    update_index_levels_func,
+)
 
 from gcages.assertions import (
     assert_data_is_all_numeric,
@@ -22,7 +25,6 @@ from gcages.assertions import (
     assert_has_index_levels,
     assert_index_is_multiindex,
 )
-from gcages.index_manipulation import set_new_single_value_levels
 from gcages.post_processing import PostProcessingResult
 
 T = TypeVar("T")
@@ -111,7 +113,7 @@ def get_exceedance_probabilities_over_time(  # noqa: D103
                 unit=lambda x: "%",
             ),
         )
-        exceedance_prob_transient = set_new_single_value_levels(
+        exceedance_prob_transient = set_index_levels_func(
             exceedance_prob_transient,
             {"threshold": thresh, "threshold_unit": temperature_unit},
             copy=False,
@@ -157,7 +159,7 @@ def get_exceedance_probabilities(  # noqa: D103
                 unit=lambda x: "%",
             ),
         )
-        exceedance_prob = set_new_single_value_levels(
+        exceedance_prob = set_index_levels_func(
             exceedance_prob,
             {"threshold": thresh, "threshold_unit": temperature_unit},
             copy=False,
@@ -242,7 +244,7 @@ def categorise_scenarios(
         & (eoc_warming_quantiles_use[0.5] < 1.5)  # noqa: PLR2004
     ] = "C1: limit warming to 1.5°C (>50%) with no or limited overshoot"
 
-    category_names = set_new_single_value_levels(
+    category_names = set_index_levels_func(
         category_names, {"metric": "category_name"}, copy=False
     )
     categories = update_index_levels_func(
@@ -391,22 +393,26 @@ class AR6PostProcessor:
         )
 
         # TODO: move pandas-openscm.max to pandas-openscm
-        peak_warming = set_new_single_value_levels(
+        peak_warming = set_index_levels_func(
             temperatures_in_line_with_assessment.max(axis="columns"), {"metric": "max"}
         )
-        peak_warming_quantiles = fix_index_name_after_groupby_quantile(
-            groupby_except(peak_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
-            new_name="quantile",
+        peak_warming_quantiles: pd.Series[float] = (
+            fix_index_name_after_groupby_quantile(
+                groupby_except(peak_warming, "run_id").quantile(
+                    self.quantiles_of_interest  # type: ignore # pandas-stubs confused
+                ),
+                new_name="quantile",
+            )
         )
 
-        eoc_warming = set_new_single_value_levels(
+        eoc_warming = set_index_levels_func(
             temperatures_in_line_with_assessment[2100], {"metric": 2100}
         )
-        eoc_warming_quantiles = fix_index_name_after_groupby_quantile(
+        eoc_warming_quantiles: pd.Series[float] = fix_index_name_after_groupby_quantile(
             groupby_except(eoc_warming, "run_id").quantile(self.quantiles_of_interest),  # type: ignore # pandas-stubs confused
             new_name="quantile",
         )
-        peak_warming_year = set_new_single_value_levels(
+        peak_warming_year = set_index_levels_func(
             update_index_levels_func(
                 temperatures_in_line_with_assessment.idxmax(axis="columns"),
                 {"unit": lambda x: "yr"},
@@ -477,7 +483,7 @@ class AR6PostProcessor:
                 "metadata_exceedance_probabilities",
                 "metadata_categories",
             ]:
-                pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
+                pd.testing.assert_index_equal(
                     getattr(res, attr)
                     .index.droplevel(
                         getattr(res, attr).index.names.difference(comparison_levels)

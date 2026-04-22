@@ -42,7 +42,11 @@ import pandas_openscm
 
 import gcages.exceptions
 from gcages.databases import EMISSIONS_VARIABLES
-from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.renaming import (
+    SupportedNamingConventions,
+    convert_variable_name,
+    rename_variables,
+)
 
 # %%
 # Register the openscm accessor
@@ -162,10 +166,7 @@ except gcages.exceptions.UnrecognisedValueError:
 # ### Applying to pandas
 #
 # You can obviously apply these functions to pandas DataFrame's.
-# When combined with other packages like
-# [pandas-indexing](https://pandas-indexing.readthedocs.io/en/latest/)
-# or [pandas-openscm](https://pandas-openscm.readthedocs.io/en/latest/),
-# this can make data manipulation and conversion very straightforward.
+# As a convenience, we provide `rename_variables`.
 
 # %%
 start = pd.DataFrame(
@@ -182,6 +183,19 @@ start = pd.DataFrame(
     ),
 )
 start
+
+# %%
+rename_variables(
+    start,
+    from_convention=SupportedNamingConventions.GCAGES,
+    to_convention=SupportedNamingConventions.IAMC,
+)
+
+# %% [markdown]
+# The functions here can also be combined with other packages like
+# [pandas-indexing](https://pandas-indexing.readthedocs.io/en/latest/)
+# or [pandas-openscm](https://pandas-openscm.readthedocs.io/en/latest/),
+# to make data manipulation and conversion straightforward and flexible.
 
 # %%
 convert_gcages_variable_to_iamc = partial(
@@ -203,8 +217,8 @@ start.pix.assign(
 # ## The 'database'
 #
 # `gcages` comes with a 'database'
-# (in quotes because it's not really a database
-# like is used in web, it's just a pandas DataFrame,
+# (in quotes because it's not really a (relational) database
+# like is used in web development, it's just a pandas DataFrame,
 # although it serves the same purpose and has the same shape/behaviour).
 # This database stores the mapping between the naming conventions
 # used in different communites.

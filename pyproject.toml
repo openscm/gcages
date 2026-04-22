@@ -12,7 +12,7 @@ dependencies = [
     "numpy>=1.26.0; python_version < '3.13'",
     "numpy>=2.1.0; python_version >= '3.13'",
     "pandas>=2.2.0",
-    "pandas-openscm>=0.8.0",
+    "pandas-openscm>=0.8.1",
 ]
 readme = "README.md"
 classifiers = [
@@ -52,7 +52,7 @@ ar6 = [
     "setuptools>=60.1.0 ; python_version >= '3.12'",
     "openscm-runner>=0.13.0",
     "pandas-indexing[units]>=0.6.3",
-    "pandas-openscm[db]>=0.5.1",
+    "pandas-openscm[db]>=0.8.1",
     "pymagicc>=2.1.5",
     "scipy>=1.13.0",
     "scmdata>=0.18.0",
@@ -68,7 +68,7 @@ cmip7scenariomip = [
     # Required to allow ciceroscm to be imported via openscm-runner
     "setuptools>=60.1.0 ; python_version >= '3.12'",
     "pandas-indexing[units]>=0.6.3",
-    "pandas-openscm[db]>=0.5.1",
+    "pandas-openscm[db]>=0.8.1",
     "pymagicc>=2.1.5",
     "scipy>=1.13.0",
     "scmdata>=0.18.0",

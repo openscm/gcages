@@ -12,13 +12,15 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas_openscm.grouping import groupby_except
+from pandas_openscm.index_manipulation import (
+    set_index_levels_func,
+    update_levels_from_other,
+)
 
 from gcages.cmip7_scenariomip.gridding_emissions import to_global_workflow_emissions
 from gcages.index_manipulation import (
     combine_sectors,
     combine_species,
-    create_levels_based_on_existing,
-    set_new_single_value_levels,
     split_sectors,
 )
 from gcages.testing import assert_frame_equal, get_variable_unit_default
@@ -106,11 +108,9 @@ def get_gridding_emissions(  # noqa: PLR0913
     )
 
     index = index_world.append(index_model_region)
-    index = create_levels_based_on_existing(
-        index, {"unit": ("variable", get_variable_unit)}
-    )
+    index = update_levels_from_other(index, {"unit": ("variable", get_variable_unit)})
 
-    res = set_new_single_value_levels(
+    res = set_index_levels_func(
         pd.DataFrame(
             RNG.random((index.shape[0], timepoints.size)),
             columns=pd.Index(timepoints, name=columns_name),
@@ -260,7 +260,7 @@ def test_to_global_workflow_emissions(  # noqa: PLR0913
     tmp_split = split_sectors(gridding_emissions)
 
     co2_locator = tmp_split.index.get_level_values("species") == "CO2"
-    non_co2_exp = set_new_single_value_levels(
+    non_co2_exp = set_index_levels_func(
         combine_species(
             groupby_except(
                 tmp_split.loc[~co2_locator],
@@ -276,7 +276,7 @@ def test_to_global_workflow_emissions(  # noqa: PLR0913
         (res_co2_biosphere_name_exp, co2_biosphere_sectors_exp),
     ):
         co2_global_sector = combine_sectors(
-            set_new_single_value_levels(
+            set_index_levels_func(
                 groupby_except(
                     tmp_split.loc[
                         co2_locator
