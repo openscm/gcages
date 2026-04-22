@@ -39,6 +39,7 @@ from gcages.testing import (
     assert_frame_equal,
     get_cmip7_scenariomip_complete_emissions,
     get_cmip7_scenariomip_harmonised_emissions,
+    guess_magicc_exe,
 )
 
 pix = pytest.importorskip("pandas_indexing")
@@ -52,8 +53,10 @@ CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 
-MAGIC_EXE = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin/magicc"
-MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE = (
+CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR = (
+    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin"
+)
+CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
@@ -119,7 +122,6 @@ def missing_reporting_zero_hack(reaggregator, model_df, model_regions):
 )
 def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     """Test a few scenarios, not all to save compute time"""
-    monkeypatch.setenv("MAGICC_EXECUTABLE_7", "MAGIC_EXE")
     # LOADING SCENARIO
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_raw-scenario.csv"
     input_df = load_timeseries_csv(
@@ -299,12 +301,13 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
             "variable",
         ],
         out_columns_type=int,
+        out_columns_name="time",
     )
-    exp_temperature.columns.name = "time"
 
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
-        magicc_exe_path=MAGIC_EXE,
-        magicc_prob_distribution_path=MAGICC_CMIP7_PROBABILISTIC_CONFIG_FILE,
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
         historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
