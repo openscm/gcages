@@ -262,6 +262,8 @@ def run_scms(  # noqa: PLR0912, PLR0913
     n_processes
         Number of parallel processes to use while running
 
+        TODO: fix this passing and handling
+
     db
         Database in which to save the results
 

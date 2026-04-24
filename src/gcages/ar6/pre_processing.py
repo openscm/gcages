@@ -310,7 +310,9 @@ def run_parallel_pre_processing(  # noqa: PLR0913
         If not supplied, we use a default description.
 
     n_processes
-        Number of parallel processes to use
+        Number of processes to use for parallel processing.
+
+        Set to `None` to process serially.
 
     **kwargs
         Passed to `run_parallel`
@@ -459,7 +461,7 @@ class AR6PreProcessor:
     """
     Number of processes to use for parallel processing.
 
-    Set to `None` to process in serial.
+    Set to `None` to process serially.
     """
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -600,7 +602,7 @@ class AR6PreProcessor:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to `None` to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------

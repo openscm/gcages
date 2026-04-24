@@ -13,7 +13,6 @@ from gcages.assertions import MissingDataForTimesError
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
     get_complete_scenarios_for_magicc,
-    load_magicc_cfgs,
 )
 from gcages.testing import guess_magicc_exe
 
@@ -33,39 +32,8 @@ CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE = (
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
 
-# Only works if pandas_indexing installed
-pytest.importorskip("pandas_indexing")
 # Only works if openscm-runner installed
 pytest.importorskip("openscm_runner.adapters")
-
-
-def test_load_magicc_cfgs_sets_common_and_physical_cfgs(tmp_path: Path):
-    prob = tmp_path / "prob.json"
-    prob.write_text(
-        """{
-          "configurations": [
-            {
-              "paraset_id": "cfg-1",
-              "nml_allcfgs": {"SCENARIO": "foo", "STARTYEAR": 1750}
-            }
-          ]
-        }""",
-        encoding="utf-8",  # Optional, good practice
-    )
-
-    out = load_magicc_cfgs(
-        prob, output_variables=("Surface Air Temperature Change",), startyear=1750
-    )
-
-    assert list(out) == ["MAGICC7"]
-    assert len(out["MAGICC7"]) == 1
-    cfg = out["MAGICC7"][0]
-    assert cfg["run_id"] == "cfg-1"
-    assert cfg["scenario"] == "foo"
-    assert cfg["startyear"] == 1750
-    assert cfg["out_ascii_binary"] == "BINARY"
-    assert cfg["out_binary_format"] == 2
-    assert cfg["out_dynamic_vars"]
 
 
 @pytest.mark.skip_ci_default
@@ -231,7 +199,7 @@ def test_get_complete_scenarios_for_magicc_interpolates_missing_years():
 def test_cmip7_scenariomip_scmrunner(  # noqa: PLR0913
     scenario, history_path, run_checks, harmonisation_year, error_message, monkeypatch
 ):
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,

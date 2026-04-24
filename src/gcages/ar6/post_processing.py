@@ -349,7 +349,14 @@ class AR6PostProcessor:
             )
             assert_data_is_all_numeric(in_df)
             assert_has_data_for_times(
-                in_df, name="in_df", times=[2100], allow_nan=False
+                in_df,
+                name="in_df",
+                times=[
+                    *self.gsat_assessment_pre_industrial_period,
+                    *self.gsat_assessment_time_period,
+                    2100,
+                ],
+                allow_nan=False,
             )
 
             if self.raw_gsat_variable_in not in in_df.index.get_level_values(
@@ -557,7 +564,7 @@ class AR6PostProcessor:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to 1 to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------

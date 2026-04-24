@@ -1,4 +1,2 @@
-,,,value,value
-metric,,,category,category_name
-climate_model,model,scenario,,
+climate_model,model,scenario,category,category_name
 MAGICCv7.6.0a3,GCAM 8s,SSP3 - High Emissions,C7,C7: limit warming to 4°C (>50%)

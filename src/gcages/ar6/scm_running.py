@@ -221,7 +221,7 @@ class AR6SCMRunner:
     """
     Number of processes to use for parallel processing.
 
-    Set to `None` to process in serial.
+    Set to `None` to process serially.
     """
 
     def __call__(
@@ -426,7 +426,7 @@ class AR6SCMRunner:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to `None` to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------

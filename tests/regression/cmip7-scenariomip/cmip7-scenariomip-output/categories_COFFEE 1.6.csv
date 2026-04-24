@@ -1,4 +1,2 @@
-,,,value,value
-metric,,,category,category_name
-climate_model,model,scenario,,
+climate_model,model,scenario,category,category_name
 MAGICCv7.6.0a3,COFFEE 1.6,SSP2 - Medium-Low Emissions,C5,C5: limit warming to 2.5°C (>50%)

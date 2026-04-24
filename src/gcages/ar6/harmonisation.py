@@ -312,7 +312,7 @@ class AR6Harmoniser:
     """
     Number of processes to use for parallel processing.
 
-    Set to 1 to process in serial.
+    Set to `None` to process serially.
     """
 
     @aneris_overrides.validator
@@ -476,7 +476,7 @@ class AR6Harmoniser:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to 1 to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------
