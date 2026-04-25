@@ -340,20 +340,6 @@ class CMIP7ScenarioMIPSCMRunner:
             # Not running MAGICC, use emissions as-is
             complete_emissions = in_emissions
 
-        # if self.force_interpolate_to_yearly:
-        #     # TODO: put interpolate to annual steps in pandas-openscm
-        #     # Interpolate to ensure no nans.
-        #     for y in range(
-        #         in_emissions.columns.min(),
-        #         in_emissions.columns.max() + 1,
-        #     ):
-        #         if y not in in_emissions:
-        #             in_emissions[y] = np.nan
-        #
-        #     in_emissions = (
-        #         in_emissions.sort_index(axis="columns").T.interpolate("index").T
-        #     )
-
         # Start function to split out
         # `run_scms_gcages` ?
         openscm_runner_emissions = update_index_levels_func(
