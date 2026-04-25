@@ -170,13 +170,11 @@ def test_individual_scenario(model, scenario, monkeypatch):
         ]
     )
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         # Has to be parallel otherwise this is too slow
         n_processes=multiprocessing.cpu_count(),
         progress=False,
-        magicc_exe_path=magicc_exe,
+        magicc_exe_path=guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=AR6_MAGICC_PROBABILISTIC_CONFIG_FILE,
         historical_emissions=get_ar6_full_historical_emissions(
             AR6_INFILLING_DB_CFCS_FILE
@@ -286,8 +284,6 @@ def test_parallel(tmp_path, monkeypatch):
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
     exp_metadata = pd.concat(exp_metadata_l)
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-    magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         n_processes=multiprocessing.cpu_count(),
         # run with progress bars is the default
@@ -300,7 +296,7 @@ def test_parallel(tmp_path, monkeypatch):
         ),
         # Force some batching too
         batch_size_scenarios=2,
-        magicc_exe_path=magicc_exe,
+        magicc_exe_path=guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=AR6_MAGICC_PROBABILISTIC_CONFIG_FILE,
         historical_emissions=get_ar6_full_historical_emissions(
             AR6_INFILLING_DB_CFCS_FILE

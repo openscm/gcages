@@ -5,7 +5,6 @@ Simple climate model (SCM) running part of the AR6 workflow
 from __future__ import annotations
 
 import multiprocessing
-import os
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -23,74 +22,40 @@ from gcages.assertions import (
     assert_index_is_multiindex,
 )
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
+    DEFAULT_OUTPUT_VARIABLES,
     convert_openscm_runner_output_names_to_magicc_output_names,
     run_scms,
 )
-from gcages.scm_running.magicc import load_magicc_probabilistic_config
+from gcages.scm_running.magicc import (
+    check_magicc7_version,
+    combine_probabilistic_and_common_cfg,
+    load_magicc_probabilistic_config,
+)
 from gcages.units_helpers import assert_has_no_pint_incompatible_characters
 
-DEFAULT_OUTPUT_VARIABLES: tuple[str, ...] = (
-    # GSAT
-    "Surface Air Temperature Change",
-    # GMST
-    "Surface Air Ocean Blended Temperature Change",
-    # ERFs
-    "Effective Radiative Forcing",
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-    "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Greenhouse Gases",
-    "Effective Radiative Forcing|CO2",
-    "Effective Radiative Forcing|CH4",
-    "Effective Radiative Forcing|N2O",
-    "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Effective Radiative Forcing|Ozone",
-    # Heat uptake
-    "Heat Uptake",
-    # "Heat Uptake|Ocean",
-    # Atmospheric concentrations
-    "Atmospheric Concentrations|CO2",
-    "Atmospheric Concentrations|CH4",
-    "Atmospheric Concentrations|N2O",
-    # Carbon cycle
-    "Net Atmosphere to Land Flux|CO2",
-    "Net Atmosphere to Ocean Flux|CO2",
-    # Permafrost
-    "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-    "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-)
-"""
-Default output variables
 
-Note that it can be a bit of work
-to get these variables to actually appear in the output,
-depending on which simple climate model you're using.
-"""
-
-
-def check_ar6_magicc7_version() -> None:
+def check_ar6_magicc7_version(magicc_exe_path: Path) -> None:
     """
     Check that the MAGICC7 version is what was used in AR6
-    """
-    try:
-        import openscm_runner.adapters
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "check_ar6_magicc7_version", requirement="openscm_runner"
-        ) from exc
 
-    if openscm_runner.adapters.MAGICC7.get_version() != "v7.5.3":  # type: ignore
-        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())  # type: ignore
+    Parameters
+    ----------
+    magicc_exe_path
+        Path to the MAGICC executable to use
+
+    Raises
+    ------
+    AssertionError
+        The MAGICC version is not what we expect
+
+    MissingOptionalDependencyError
+        [openscm-runner](https://github.com/openscm/openscm-runner) is not installed
+    """
+    check_magicc7_version(magicc_exe_path, expected_version="v7.5.3")
 
 
 def load_ar6_magicc_probabilistic_config(filepath: Path) -> list[dict[str, Any]]:
@@ -123,7 +88,12 @@ def load_ar6_magicc_probabilistic_config(filepath: Path) -> list[dict[str, Any]]
 
     cfgs = load_magicc_probabilistic_config(filepath)
 
-    return cfgs
+    # Common config that affect MAGICC behaviour
+    common_cfg = {"startyear": 1750}
+
+    run_config = combine_probabilistic_and_common_cfg(cfgs, common_cfg=common_cfg)
+
+    return run_config
 
 
 @define
@@ -224,6 +194,13 @@ class AR6SCMRunner:
     Set to `None` to process serially.
     """
 
+    magicc_exe_path: Path | None = None
+    """
+    Path to the MAGICC executable to use
+
+    Only required if we're running MAGICC
+    """
+
     def __call__(
         self, in_emissions: pd.DataFrame, force_rerun: bool = False
     ) -> pd.DataFrame:
@@ -280,6 +257,20 @@ class AR6SCMRunner:
                 complete_index=self.historical_emissions.index.droplevel("unit"),
             )
 
+        if self.force_interpolate_to_yearly:
+            # TODO: put interpolate to annual steps in pandas-openscm
+            # Interpolate to ensure no nans.
+            for y in range(
+                in_emissions.columns.min(),
+                in_emissions.columns.max() + 1,
+            ):
+                if y not in in_emissions:
+                    in_emissions[y] = np.nan
+
+            in_emissions = (
+                in_emissions.sort_index(axis="columns").T.interpolate("index").T
+            )
+
         openscm_runner_emissions = update_index_levels_func(
             in_emissions,
             {
@@ -290,32 +281,19 @@ class AR6SCMRunner:
                 )
             },
         )
-        if self.force_interpolate_to_yearly:
-            # TODO: put interpolate to annual steps in pandas-openscm
-            # Interpolate to ensure no nans.
-            for y in range(
-                openscm_runner_emissions.columns.min(),
-                openscm_runner_emissions.columns.max() + 1,
-            ):
-                if y not in openscm_runner_emissions:
-                    openscm_runner_emissions[y] = np.nan
-
-            openscm_runner_emissions = (
-                openscm_runner_emissions.sort_index(axis="columns")
-                .T.interpolate("index")
-                .T
-            )
 
         scm_results_maybe = run_scms(
             openscm_runner_emissions,
             climate_models_cfgs=self.climate_models_cfgs,
             output_variables=self.output_variables,
             scenario_group_levels=["model", "scenario"],
+            # TODO: fix value in run_scms
             n_processes=self.n_processes if self.n_processes is not None else 1,
             db=self.db,
             verbose=self.verbose,
             batch_size_scenarios=self.batch_size_scenarios,
             force_rerun=force_rerun,
+            magicc_exe_path=self.magicc_exe_path,
         )
 
         if self.db is not None:
@@ -364,8 +342,9 @@ class AR6SCMRunner:
         output_variables: tuple[str, ...] = DEFAULT_OUTPUT_VARIABLES,
         batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
+        # TODO: Add helper for loading historical_emissions for MAGICC
         historical_emissions: pd.DataFrame | None = None,
-        harmonisation_year: int | None = None,
+        harmonisation_year: int = 2015,
         verbose: bool = True,
         run_checks: bool = True,
         progress: bool = True,
@@ -433,16 +412,13 @@ class AR6SCMRunner:
         :
             Initialised SCM runner
         """
-        os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
-        check_ar6_magicc7_version()
+        check_ar6_magicc7_version(magicc_exe_path)
 
         magicc_ar6_prob_cfg = load_ar6_magicc_probabilistic_config(
             magicc_prob_distribution_path
         )
 
-        startyear = 1750
         common_cfg = {
-            "startyear": startyear,
             "out_dynamic_vars": convert_openscm_runner_output_names_to_magicc_output_names(  # noqa: E501
                 output_variables
             ),
@@ -450,7 +426,10 @@ class AR6SCMRunner:
             "out_binary_format": 2,
         }
 
-        run_config = [{**common_cfg, **base_cfg} for base_cfg in magicc_ar6_prob_cfg]
+        run_config = combine_probabilistic_and_common_cfg(
+            magicc_ar6_prob_cfg, common_cfg=common_cfg
+        )
+
         magicc_full_distribution_n_config = 600
         if len(run_config) != magicc_full_distribution_n_config:
             raise AssertionError(len(run_config))
@@ -467,4 +446,5 @@ class AR6SCMRunner:
             n_processes=n_processes,
             force_interpolate_to_yearly=True,  # MAGICC safer with annual input
             res_column_type=int,  # annual output by default
+            magicc_exe_path=magicc_exe_path,
         )

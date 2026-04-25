@@ -79,7 +79,6 @@ def test_individual_scenario(model, scenario, monkeypatch):
         },
     )
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
