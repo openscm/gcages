@@ -342,6 +342,7 @@ class CMIP7ScenarioMIPSCMRunner:
 
         # Start function to split out
         # `run_scms_gcages` ?
+        # `run_scms_with_db_cache` ?
         openscm_runner_emissions = update_index_levels_func(
             complete_emissions,
             {
