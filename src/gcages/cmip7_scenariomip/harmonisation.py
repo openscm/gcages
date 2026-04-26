@@ -122,6 +122,8 @@ def create_cmip7_scenariomip_global_harmoniser(
     n_processes
         Number of processes to use for parallel processing.
 
+        Set to `None` to process serially.
+
     Returns
     -------
     :

@@ -1,4 +1,2 @@
-,,,value,value
-metric,,,category,category_name
-climate_model,model,scenario,,
+climate_model,model,scenario,category,category_name
 MAGICCv7.6.0a3,REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,C2,C2: return warming to 1.5°C (>50%) after a high overshoot

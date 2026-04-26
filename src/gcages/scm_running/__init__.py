@@ -2,10 +2,13 @@
 General simple climate model (SCM) running tools
 """
 
+# TODO: read this and clean up
 from __future__ import annotations
 
+import contextlib
 import os
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any, Optional, cast
 
 import pandas as pd
@@ -15,6 +18,8 @@ from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from pandas_openscm.parallelisation import ParallelOpConfig
 
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.scm_running.default_variables import DEFAULT_OUTPUT_VARIABLES
+from gcages.scm_running.magicc import temporary_env_var
 
 
 def convert_openscm_runner_output_names_to_magicc_output_names(
@@ -65,9 +70,28 @@ def convert_openscm_runner_output_names_to_magicc_output_names(
     return tuple(res_l)
 
 
-def batch_df(  # noqa: D103
+def batch_df(
     df: pd.DataFrame, batch_index: pd.MultiIndex, batch_size: int | None
 ) -> list[pd.DataFrame]:
+    """
+    Convert a [pd.DataFrame][pandas.DataFrame] into batches
+
+    Parameters
+    ----------
+    df
+        [pd.DataFrame][pandas.DataFrame] to batch
+
+    batch_index
+        Index to use for batching
+
+    batch_size
+        Batch size to use
+
+    Returns
+    -------
+    :
+        Created batches
+    """
     # TOOD: move this to pandas-openscm
     if batch_size is None:
         batches = [df]
@@ -223,7 +247,7 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
     return batch_to_run
 
 
-def run_scms(  # noqa: PLR0912, PLR0913
+def run_scms(  # noqa: PLR0912, PLR0913, PLR0915
     scenarios: pd.DataFrame,
     climate_models_cfgs: dict[str, list[dict[str, Any]]],
     output_variables: tuple[str, ...],
@@ -235,6 +259,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
     progress: bool = True,
     batch_size_scenarios: int | None = None,
     force_rerun: bool = False,
+    magicc_exe_path: Path | None = None,
 ) -> pd.DataFrame | None:
     """
     Run simple climate models (SCMs)
@@ -262,6 +287,8 @@ def run_scms(  # noqa: PLR0912, PLR0913
     n_processes
         Number of parallel processes to use while running
 
+        TODO: fix this passing and handling
+
     db
         Database in which to save the results
 
@@ -288,6 +315,11 @@ def run_scms(  # noqa: PLR0912, PLR0913
 
     force_rerun
         Should we force the scenarios to be re-run, even if they are already in `db`
+
+    magicc_exe_path
+        Path to the MAGICC executable to use
+
+        Only required if we're running MAGICC
 
     Returns
     -------
@@ -388,13 +420,21 @@ def run_scms(  # noqa: PLR0912, PLR0913
             res_l = []
 
         for scenario_batch in scenario_batches:
-            batch_res = run_batch(
-                batch=scenario_batch,
-                climate_models_cfgs={climate_model: cfg_use},
-                output_variables=output_variables,
-            )
+            if climate_model.startswith("MAGICC"):
+                contextblock = temporary_env_var(
+                    "MAGICC_EXECUTABLE_7", str(magicc_exe_path)
+                )
+            else:
+                contextblock = contextlib.nullcontext
 
-            if climate_model == "MAGICC7":
+            with contextblock:
+                batch_res = run_batch(
+                    batch=scenario_batch,
+                    climate_models_cfgs={climate_model: cfg_use},
+                    output_variables=output_variables,
+                )
+
+            if climate_model.startswith("MAGICC"):
                 # Chop off the extra years
                 batch_res = batch_res.iloc[:, :-magicc_extra_years]
                 # Chop out regional results
@@ -415,3 +455,13 @@ def run_scms(  # noqa: PLR0912, PLR0913
     res = pd.concat(res_l)
 
     return res
+
+
+__all__ = [
+    "DEFAULT_OUTPUT_VARIABLES",
+    "batch_df",
+    "convert_openscm_runner_output_names_to_magicc_output_names",
+    "get_scenarios_to_run_after_checking_cache",
+    "run_batch",
+    "run_scms",
+]

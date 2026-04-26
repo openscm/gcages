@@ -219,8 +219,9 @@ def do_pre_processing(  # noqa: PLR0912, PLR0913, PLR0915
     if run_checks:
         indf_reported_times_nan = indf_reported_times.isnull().any(axis="columns")
         if indf_reported_times_nan.any():
-            issue_rows = indf.loc[indf_reported_times_nan, :]
-            msg = f"NaNs after dropping unreported times:\n{issue_rows}"
+            issue_points = indf.loc[indf_reported_times_nan, :]
+            issue_points = issue_points.loc[:, issue_points.isnull().any(axis="rows")]
+            msg = f"NaNs after dropping unreported times:\n{issue_points}"
             raise AssertionError(msg)
 
     indf_clean_units = strip_pint_incompatible_characters_from_units(
@@ -552,7 +553,7 @@ class CMIP7ScenarioMIPPreProcessor:
     """
     Number of processes to use for parallel processing.
 
-    Set to `None` to process in serial.
+    Set to `None` to process serially.
     """
 
     def __call__(

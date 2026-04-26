@@ -486,7 +486,7 @@ class AR6Infiller:
     """
     Number of processes to use for parallel processing.
 
-    Set to `None` to process in serial.
+    Set to `None` to process serially.
     """
 
     def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
@@ -622,7 +622,7 @@ class AR6Infiller:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to `None` to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------

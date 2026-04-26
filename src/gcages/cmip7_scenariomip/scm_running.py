@@ -9,9 +9,7 @@ TODO: reduce duplication with AR6 SCM runner
 
 from __future__ import annotations
 
-import json
 import multiprocessing
-import os
 from functools import partial
 from pathlib import Path
 from typing import Any, cast
@@ -32,141 +30,80 @@ from gcages.cmip7_scenariomip.harmonisation import (
     load_cmip7_scenariomip_historical_emissions,
 )
 from gcages.completeness import assert_all_groups_are_complete
-from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
+from gcages.hashing import get_file_hash
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
+    DEFAULT_OUTPUT_VARIABLES,
     convert_openscm_runner_output_names_to_magicc_output_names,
     run_scms,
 )
+from gcages.scm_running.magicc import (
+    check_magicc7_version,
+    combine_probabilistic_and_common_cfg,
+    load_magicc_probabilistic_config,
+)
 from gcages.units_helpers import assert_has_no_pint_incompatible_characters
 
-SCM_OUTPUT_VARIABLES_DEFAULT: tuple[str, ...] = (
-    # GSAT
-    "Surface Air Temperature Change",
-    # # GMST
-    # "Surface Air Ocean Blended Temperature Change",
-    # ERFs
-    "Effective Radiative Forcing",
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-    "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Greenhouse Gases",
-    "Effective Radiative Forcing|CO2",
-    "Effective Radiative Forcing|CH4",
-    "Effective Radiative Forcing|N2O",
-    "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Effective Radiative Forcing|Ozone",
-    "Effective Radiative Forcing|Aviation|Cirrus",
-    "Effective Radiative Forcing|Aviation|Contrail",
-    "Effective Radiative Forcing|Aviation|H2O",
-    "Effective Radiative Forcing|Black Carbon on Snow",
-    # 'Effective Radiative Forcing|CH4 Oxidation Stratospheric',
-    "CH4OXSTRATH2O_ERF",
-    "Effective Radiative Forcing|Land-use Change",
-    # "Effective Radiative Forcing|CFC11",
-    # "Effective Radiative Forcing|CFC12",
-    # "Effective Radiative Forcing|HCFC22",
-    # "Effective Radiative Forcing|HFC125",
-    # "Effective Radiative Forcing|HFC134a",
-    # "Effective Radiative Forcing|HFC143a",
-    # "Effective Radiative Forcing|HFC227ea",
-    # "Effective Radiative Forcing|HFC23",
-    # "Effective Radiative Forcing|HFC245fa",
-    # "Effective Radiative Forcing|HFC32",
-    # "Effective Radiative Forcing|HFC4310mee",
-    # "Effective Radiative Forcing|CF4",
-    # "Effective Radiative Forcing|C6F14",
-    # "Effective Radiative Forcing|C2F6",
-    # "Effective Radiative Forcing|SF6",
-    # # Heat uptake
-    # "Heat Uptake",
-    # "Heat Uptake|Ocean",
-    # Atmospheric concentrations
-    "Atmospheric Concentrations|CO2",
-    "Atmospheric Concentrations|CH4",
-    "Atmospheric Concentrations|N2O",
-    # # Carbon cycle
-    # "Net Atmosphere to Land Flux|CO2",
-    # "Net Atmosphere to Ocean Flux|CO2",
-    # # permafrost
-    # "Net Land to Atmosphere Flux|CO2|Earth System Feedbacks|Permafrost",
-    # "Net Land to Atmosphere Flux|CH4|Earth System Feedbacks|Permafrost",
-)
-"""
-Default variables to get from SCMs
-"""
 
-
-def load_magicc_cfgs(
-    prob_distribution_path: Path,
-    output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
-    startyear: int = 1750,
-) -> dict[str, list[dict[str, Any]]]:
+def check_cmip7_scenariomip_magicc7_version(magicc_exe_path: Path) -> None:
     """
-    Load MAGICC's configuration
+    Check that the MAGICC7 version is what was used in CMIP7 ScenarioMIP
 
     Parameters
     ----------
-    prob_distribution_path
-        Path to the file containing the probabilistic distribution
+    magicc_exe_path
+        Path to the MAGICC executable to use
 
-    output_variables
-        Output variables
+    Raises
+    ------
+    AssertionError
+        The MAGICC version is not what we expect
 
-    startyear
-        Starting year of the runs
+    MissingOptionalDependencyError
+        [openscm-runner](https://github.com/openscm/openscm-runner) is not installed
+    """
+    check_magicc7_version(magicc_exe_path, expected_version="v7.6.0a3")
+
+
+def load_cmip7_scenariomip_magicc_probabilistic_config(
+    filepath: Path,
+) -> list[dict[str, Any]]:
+    """
+    Load the probabilistic config used with MAGICC in CMIP7 ScenarioMIP
+
+    Parameters
+    ----------
+    filepath
+        Filepath from which to load the probabilistic configuration
 
     Returns
     -------
     :
-        Config that can be used to run MAGICC
+        Probabilistic configuration used with MAGICC in CMIP7 ScenarioMIP
+
+    Raises
+    ------
+    AssertionError
+        `filepath` points to a file that does not have the expected hash
     """
-    with open(prob_distribution_path) as fh:
-        cfgs_raw = json.load(fh)
+    fp_hash = get_file_hash(filepath, algorithm="sha256")
+    fp_hash_exp = "b386c89ddb3996a21b93658cb4a36efa68f6bed6ea979017c0eadcdc65aa6e72"
+    if fp_hash != fp_hash_exp:
+        msg = (
+            f"The sha256 hash of {filepath} is {fp_hash}. "
+            f"This does not match what we expect ({fp_hash_exp=})."
+        )
+        raise AssertionError(msg)
 
-    cfgs_physical = [
-        {
-            "run_id": c["paraset_id"],
-            **{k.lower(): v for k, v in c["nml_allcfgs"].items()},
-        }
-        for c in cfgs_raw["configurations"]
-    ]
+    cfgs = load_magicc_probabilistic_config(filepath)
 
-    common_cfg = {
-        "startyear": startyear,
-        # Note: endyear handled in gcages, which I don't love but is fine for now
-        "out_dynamic_vars": convert_openscm_runner_output_names_to_magicc_output_names(
-            output_variables
-        ),
-        "out_ascii_binary": "BINARY",
-        "out_binary_format": 2,
-    }
+    # Common config that affect MAGICC behaviour
+    common_cfg = {"startyear": 1750}
 
-    run_config = [{**common_cfg, **physical_cfg} for physical_cfg in cfgs_physical]
-    climate_models_cfgs = {"MAGICC7": run_config}
+    run_config = combine_probabilistic_and_common_cfg(cfgs, common_cfg=common_cfg)
 
-    return climate_models_cfgs
-
-
-def check_cmip7_scenariomip_magicc7_version() -> None:
-    """
-    Check that the MAGICC7 version is what was used in CMIP7 ScenarioMIP
-    """
-    try:
-        import openscm_runner.adapters
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "check_cmip7_scenariomip_magicc7_version", requirement="openscm_runner"
-        ) from exc
-
-    if openscm_runner.adapters.MAGICC7.get_version() != "v7.6.0a3":  # type: ignore
-        raise AssertionError(openscm_runner.adapters.MAGICC7.get_version())  # type: ignore
+    return run_config
 
 
 def get_complete_scenarios_for_magicc(
@@ -313,7 +250,14 @@ class CMIP7ScenarioMIPSCMRunner:
     """
     Number of processes to use for parallel processing.
 
-    Set to `None` to process in serial.
+    Set to `None` to process serially.
+    """
+
+    magicc_exe_path: Path | None = None
+    """
+    Path to the MAGICC executable to use
+
+    Only required if we're running MAGICC
     """
 
     def __call__(  # noqa: PLR0912
@@ -379,8 +323,11 @@ class CMIP7ScenarioMIPSCMRunner:
                 complete_emissions.columns = complete_emissions.columns.astype(int)
                 # Validate MAGICC requirement
                 magicc_start_year = 2015
-                if int(min(complete_emissions.columns.to_numpy())) != magicc_start_year:
-                    msg = "Emissions starting year must be set to `2015`"
+                if complete_emissions.columns.min() != magicc_start_year:
+                    msg = (
+                        "Emissions starting year must be set to `2015` "
+                        "when running MAGICC7 without providing `historical_emissions`"
+                    )
                     raise AssertionError(msg)
             else:
                 # History provided merge with scenarios
@@ -393,6 +340,9 @@ class CMIP7ScenarioMIPSCMRunner:
             # Not running MAGICC, use emissions as-is
             complete_emissions = in_emissions
 
+        # Start function to split out
+        # `run_scms_gcages` ?
+        # `run_scms_with_db_cache` ?
         openscm_runner_emissions = update_index_levels_func(
             complete_emissions,
             {
@@ -404,36 +354,24 @@ class CMIP7ScenarioMIPSCMRunner:
             },
         )
 
-        # if self.force_interpolate_to_yearly:
-        #     # TODO: put interpolate to annual steps in pandas-openscm
-        #     # Interpolate to ensure no nans.
-        #     for y in range(
-        #         openscm_runner_emissions.columns.min(),
-        #         openscm_runner_emissions.columns.max() + 1,
-        #     ):
-        #         if y not in openscm_runner_emissions:
-        #             openscm_runner_emissions[y] = np.nan
-        #
-        #     openscm_runner_emissions = (
-        #         openscm_runner_emissions.sort_index(axis="columns")
-        #         .T.interpolate("index")
-        #         .T
-        #     )
         scm_results_maybe = run_scms(
             scenarios=openscm_runner_emissions,
             climate_models_cfgs=self.climate_models_cfgs,
             output_variables=self.output_variables,
             scenario_group_levels=["model", "scenario"],
+            # TODO: fix value in run_scms
             n_processes=self.n_processes if self.n_processes is not None else 1,
             db=self.db,
             verbose=self.verbose,
             batch_size_scenarios=self.batch_size_scenarios,
-            force_rerun=True,
+            force_rerun=force_rerun,
+            magicc_exe_path=self.magicc_exe_path,
         )
 
         if self.db is not None:
             # Results aren't kept in memory during running, so have to load them now.
             # User can use `run_scms` directly if they want to process differently.
+            # TODO: only load the scenarios we ran
             out_maybe = self.db.load()
             if out_maybe is None:
                 raise TypeError(out_maybe)
@@ -447,6 +385,7 @@ class CMIP7ScenarioMIPSCMRunner:
             out = scm_results_maybe
 
         out.columns = out.columns.astype(self.res_column_type)
+        # End function to split out
 
         if self.run_checks:
             # All scenarios have output
@@ -474,9 +413,11 @@ class CMIP7ScenarioMIPSCMRunner:
         cls,
         magicc_exe_path: Path,
         magicc_prob_distribution_path: Path,
-        output_variables: tuple[str, ...] = SCM_OUTPUT_VARIABLES_DEFAULT,
+        output_variables: tuple[str, ...] = DEFAULT_OUTPUT_VARIABLES,
         batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
+        # TODO: switch to `historical_emissions`
+        # and add helper for loading historical_emissions for MAGICC
         historical_emissions_path: Path | None = None,
         harmonisation_year: int = 2023,
         verbose: bool = True,
@@ -539,15 +480,14 @@ class CMIP7ScenarioMIPSCMRunner:
         n_processes
             Number of processes to use for parallel processing.
 
-            Set to `None` to process in serial.
+            Set to `None` to process serially.
 
         Returns
         -------
         :
             Initialised SCM runner
         """
-        os.environ["MAGICC_EXECUTABLE_7"] = str(magicc_exe_path)
-        check_cmip7_scenariomip_magicc7_version()
+        check_cmip7_scenariomip_magicc7_version(magicc_exe_path)
 
         if historical_emissions_path is not None:
             # Load history
@@ -575,17 +515,32 @@ class CMIP7ScenarioMIPSCMRunner:
                 ],
                 drop=True,
             )
+
         else:
             historical_emissions = None
 
-        magicc_prob_cfg = load_magicc_cfgs(
-            prob_distribution_path=magicc_prob_distribution_path,
-            output_variables=output_variables,
-            startyear=1750,
+        magicc_prob_cfg = load_cmip7_scenariomip_magicc_probabilistic_config(
+            magicc_prob_distribution_path,
         )
 
+        common_cfg = {
+            "out_dynamic_vars": convert_openscm_runner_output_names_to_magicc_output_names(  # noqa: E501
+                output_variables
+            ),
+            "out_ascii_binary": "BINARY",
+            "out_binary_format": 2,
+        }
+
+        run_config = combine_probabilistic_and_common_cfg(
+            magicc_prob_cfg, common_cfg=common_cfg
+        )
+
+        magicc_full_distribution_n_config = 600
+        if len(run_config) != magicc_full_distribution_n_config:
+            raise AssertionError(len(run_config))
+
         return cls(
-            climate_models_cfgs=magicc_prob_cfg,
+            climate_models_cfgs={"MAGICC7": run_config},
             output_variables=output_variables,
             batch_size_scenarios=batch_size_scenarios,
             db=db,
@@ -595,4 +550,5 @@ class CMIP7ScenarioMIPSCMRunner:
             run_checks=run_checks,
             n_processes=n_processes,
             res_column_type=int,  # annual output by default
+            magicc_exe_path=magicc_exe_path,
         )

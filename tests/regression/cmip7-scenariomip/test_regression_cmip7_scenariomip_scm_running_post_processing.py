@@ -8,12 +8,16 @@ import multiprocessing
 from functools import partial
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.indexing import mi_loc
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
+from gcages.cmip7_scenariomip.post_processing import (
+    create_cmip7_scenariomip_postprocessor,
+)
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
 )
@@ -53,16 +57,13 @@ HARMONISATION_YEAR = 2023
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
-def test_individual_scenario(model, scenario, monkeypatch):
-    # Loading infilled results
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv"
+def test_individual_scenario(model, scenario):
     complete = load_timeseries_csv(
-        file,
+        CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv",
         lower_column_names=True,
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
-    # Select scenario and drop aggregated/cumulative rows
     complete = complete.loc[
         pix.ismatch(scenario=scenario)
         & ~pix.ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
@@ -78,10 +79,21 @@ def test_individual_scenario(model, scenario, monkeypatch):
         },
     )
 
-    # Loading expected results
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_GSAT.csv"
+    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
+        output_variables=("Surface Air Temperature Change",),
+        historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+        harmonisation_year=HARMONISATION_YEAR,
+        n_processes=multiprocessing.cpu_count() - 2,
+        run_checks=True,
+        progress=True,
+    )
+
+    scm_results = scm_runner(complete)
+
     exp_temperature = load_timeseries_csv(
-        file,
+        CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_GSAT.csv",
         lower_column_names=True,
         index_columns=[
             "climate_model",
@@ -93,40 +105,29 @@ def test_individual_scenario(model, scenario, monkeypatch):
             "variable",
         ],
         out_columns_type=int,
+        out_columns_name="time",
     )
-    exp_temperature.columns.name = "time"
-
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
-    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
-        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
-        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
-        output_variables=("Surface Air Temperature Change",),
-        historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
-        harmonisation_year=HARMONISATION_YEAR,
-        n_processes=multiprocessing.cpu_count(),
-    )
-
-    scm_results = scm_runner(complete)
 
     assert_frame_equal(
-        scm_results[
-            scm_results.index.get_level_values("variable").str.contains(
-                "Surface Air Temperature Change"
-            )
-        ].iloc[:10],
+        mi_loc(
+            scm_results,
+            exp_temperature.index.droplevel(
+                exp_temperature.index.names.difference(["variable", "run_id"])
+            ),
+        ),
         exp_temperature,
+        rtol=1e-5,
     )
 
-    # Post-processing
-    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = create_cmip7_scenariomip_postprocessor(
+        progress=False,
+        n_processes=None,
+    )
     post_processed = post_processor(scm_results)
 
-    # Loading and assessing quantiles timeseries results
-    file = (
-        CMIP7_SCENARIOMIP_OUT_DIR / f"assessed-warming-timeseries-quantiles_{model}.csv"
-    )
     exp_quantiles = load_timeseries_csv(
-        file,
+        CMIP7_SCENARIOMIP_OUT_DIR
+        / f"assessed-warming-timeseries-quantiles_{model}.csv",
         lower_column_names=True,
         index_columns=[
             "climate_model",
@@ -140,29 +141,23 @@ def test_individual_scenario(model, scenario, monkeypatch):
         out_columns_type=int,
         out_columns_name="time",
     )
-    exp_quantiles.index = exp_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
+
+    exp_quantiles = update_index_levels_func(
+        exp_quantiles, {"quantile": partial(np.round, decimals=4)}
     )
-    processed_quantiles = post_processed.timeseries_quantile.iloc[:, 250:]
-    processed_quantiles.index = processed_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
+    processed_quantiles = update_index_levels_func(
+        post_processed.timeseries_quantile, {"quantile": partial(np.round, decimals=4)}
     )
+    assert_frame_equal(
+        processed_quantiles.loc[:, exp_quantiles.columns], exp_quantiles, rtol=1e-5
+    )
+
+    exp_categories = pd.read_csv(
+        CMIP7_SCENARIOMIP_OUT_DIR / f"categories_{model}.csv",
+        index_col=["climate_model", "model", "scenario"],
+    )
+    exp_categories.columns.name = "metric"
 
     assert_frame_equal(
-        processed_quantiles,
-        exp_quantiles,
-        rtol=1e-8,
+        post_processed.metadata_categories.unstack("metric"), exp_categories
     )
-
-    # Loading and categories
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"categories_{model}.csv"
-    exp_categories = pd.read_csv(file)
-
-    assert post_processed.metadata_categories.values[0] == exp_categories["value.1"][2]
-    assert post_processed.metadata_categories.values[1] == exp_categories["value"][2]

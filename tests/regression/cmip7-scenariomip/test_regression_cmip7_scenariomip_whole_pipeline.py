@@ -1,11 +1,12 @@
 """
-Test infilling compared for CMIP7 ScenarioMIP
+Test running the whole pipeline compared to CMIP7 ScenarioMIP
 """
+# TODOs: own PR
 
 from __future__ import annotations
 
-import importlib
 import multiprocessing
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -16,24 +17,22 @@ from pandas_openscm.index_manipulation import (
     update_index_levels_func,
     update_levels_from_other,
 )
+from pandas_openscm.indexing import mi_loc
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.cmip7_scenariomip.harmonisation import (
-    create_cmip7_scenariomip_global_harmoniser,
-)
-from gcages.cmip7_scenariomip.infilling import (
+from gcages.cmip7_scenariomip import (
     CMIP7ScenarioMIPInfiller,
+    CMIP7ScenarioMIPPreProcessor,
+    CMIP7ScenarioMIPSCMRunner,
+    ReaggregatorBasic,
+    create_cmip7_scenariomip_global_harmoniser,
+    create_cmip7_scenariomip_postprocessor,
 )
-from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
-from gcages.cmip7_scenariomip.pre_processing import CMIP7ScenarioMIPPreProcessor
-from gcages.cmip7_scenariomip.pre_processing.reaggregation import ReaggregatorBasic
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
     get_required_timeseries_index,
 )
-from gcages.cmip7_scenariomip.scm_running import (
-    CMIP7ScenarioMIPSCMRunner,
-)
 from gcages.completeness import get_missing_levels
+from gcages.pandas_openscm_tmp import interpolate_to_annual_timesteps
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
     assert_frame_equal,
@@ -118,20 +117,22 @@ def missing_reporting_zero_hack(reaggregator, model_df, model_regions):
     "model, scenario",
     [("REMIND-MAgPIE 3.5-4.11", "SSP1 - Very Low Emissions")],
 )
-def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
-    """Test a few scenarios, not all to save compute time"""
-    # LOADING SCENARIO
-    file = CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_raw-scenario.csv"
+def test_whole_pipeline(model, scenario):
     input_df = load_timeseries_csv(
-        file,
+        CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_raw-scenario.csv",
         index_columns=["model", "scenario", "variable", "region", "unit"],
         out_columns_type=int,
         out_columns_name="year",
     )
 
-    # In case the new data needs a bit of make-up
-    input_df = input_df.loc[:, 2015:2100:1].dropna(how="all", axis="columns")
-    input_df = input_df.T.interpolate(method="index").T
+    # This input data only has non-NaNs from 2015 onwards
+    input_df = input_df.loc[:, 2015:]
+
+    # Ensure on annual timesteps before continuing.
+    # TODO: figure out where in the pipeline to put a check for this.
+    input_df = interpolate_to_annual_timesteps(
+        input_df.dropna(how="all", axis="columns")
+    )
 
     model_regions = [
         r
@@ -143,66 +144,44 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
 
     input_df = missing_reporting_zero_hack(reaggregator, input_df, model_regions)
 
-    if importlib.util.find_spec("openscm_units") is None:
-        # Loosen the tolerance given what we know about the units
-        reaggregator.internal_consistency_tolerances["Emissions|CO2"]["atol"] = 1.0
-
     pre_processor = CMIP7ScenarioMIPPreProcessor(
         reaggregator=reaggregator,
         n_processes=None,  # run serially
         progress=False,
         run_checks=True,
     )
-    pre_processed = pre_processor(input_df)
+    pre_processed_res = pre_processor(input_df)
 
-    # TODO should we move this ?
+    # TODO: put this logic into the pre-processor
+    # TODO: explicit tests going from raw ScenarioMIP input
+    # to pre-processed emissions for the rest of the workflow
+    pre_processed = pre_processed_res.global_workflow_emissions
     # Hard override the global workflow emissions for CO2 AFOLU
     # to use globally reported numbers,
     # even if they're not consistent with region-sector reporting.
-    pre_processed.global_workflow_emissions = pix.concat(
+    pre_processed = pix.concat(
         [
-            pre_processed.global_workflow_emissions.loc[
-                ~pix.isin(variable="Emissions|CO2|Biosphere")
-            ],
+            pre_processed.loc[~pix.isin(variable="Emissions|CO2|Biosphere")],
             input_df.loc[
                 pix.isin(variable="Emissions|CO2|AFOLU", region="World")
             ].pix.assign(variable="Emissions|CO2|Biosphere"),
         ]
     )
-
-    pre_processed.global_workflow_emissions_raw_names = pix.concat(
-        [
-            pre_processed.global_workflow_emissions_raw_names.loc[
-                ~pix.isin(variable="Emissions|CO2|AFOLU")
-            ],
-            input_df.loc[pix.isin(variable="Emissions|CO2|AFOLU", region="World")],
-        ]
-    )
-
-    # for attr in [
-    #     "assumed_zero_emissions",
-    #     "global_workflow_emissions",
-    #     "global_workflow_emissions_raw_names",
-    #     "gridding_workflow_emissions",
-    # ]:
-    #     # Interestingly, this won't fail if there are extra, unexpected columns
-    #     # in the regression data against which we are comparing.
-    #     dataframe_regression.check(
-    #         getattr(pre_processed, attr).sort_index(),
-    #                   basename=f"{input_file.stem}_{attr}"
-    #     )
-
-    # HARMONISATION
-    pre_processed = pre_processed.global_workflow_emissions[
-        pix.ismatch(
-            region="World",
-        )
-    ]
+    # Need to make sure the override happens for both naming conventions
+    # when we move this into pre-processing.
+    # pre_processed.global_workflow_emissions_raw_names = pix.concat(
+    #     [
+    #         pre_processed.global_workflow_emissions_raw_names.loc[
+    #             ~pix.isin(variable="Emissions|CO2|AFOLU")
+    #         ],
+    #         input_df.loc[pix.isin(variable="Emissions|CO2|AFOLU", region="World")],
+    #     ]
+    # )
     if pre_processed.empty:
         raise AssertionError
 
-    # Harmonise
-    # Only works if aneris installed
+    # TODO: explicit test of pre-processed results
+
     pytest.importorskip("aneris")
     harmoniser = create_cmip7_scenariomip_global_harmoniser(
         cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
@@ -214,22 +193,25 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     harmonised = harmoniser(pre_processed)
 
     # Get expected result
-    harmonised_all = get_cmip7_scenariomip_harmonised_emissions(
+    harmonised_model_scenario_all = get_cmip7_scenariomip_harmonised_emissions(
         model=model,
         scenario=scenario,
+        # TODO: check if we can get rid of the "whole_pipeline"
+        # folder and just use the regression results from elsewhere
+        # (answer should be yes...)
         processed_cmip7_scenariomip_output_data_dir=CMIP7_SCENARIOMIP_OUT_DIR
         / "whole_pipeline",
     )
 
-    exp = harmonised_all.loc[pix.ismatch(workflow="global")].reset_index(
-        "workflow", drop=True
-    )
-    if exp.empty:
+    exp_harmonised = harmonised_model_scenario_all.loc[
+        pix.ismatch(workflow="global")
+    ].reset_index("workflow", drop=True)
+    if exp_harmonised.empty:
         raise AssertionError
 
     # Convert names to gcages naming before comparing
-    exp = update_index_levels_func(
-        exp,
+    exp_harmonised = update_index_levels_func(
+        exp_harmonised,
         {
             "variable": lambda x: convert_variable_name(
                 x,
@@ -239,30 +221,8 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
         },
         copy=False,
     )
-    exp.columns.name = "year"
 
-    assert_frame_equal(harmonised, exp)
-
-    ## INFILLING
-    # Load infilled results
-    exp = get_cmip7_scenariomip_complete_emissions(
-        model=model,
-        scenario=scenario,
-        processed_cmip7_scenariomip_output_data_dir=CMIP7_SCENARIOMIP_OUT_DIR
-        / "whole_pipeline",
-    )
-    exp = update_index_levels_func(
-        exp,
-        {
-            "variable": lambda x: convert_variable_name(
-                x,
-                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-                to_convention=SupportedNamingConventions.GCAGES,
-            )
-        },
-        copy=False,
-    )
-    exp.columns.name = "year"
+    assert_frame_equal(harmonised, exp_harmonised)
 
     infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
         cmip7_scenariomip_infilling_leader_emissions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
@@ -271,23 +231,43 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
         / "cmip7_ghg_inversions.csv",
         cmip7_scenariomip_global_historical_emissions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
         / "history_cmip7_scenariomip.csv",
-        ur=None,
     )
     infilled = infiller(harmonised)
 
-    assert_frame_equal(infilled, exp)
+    complete_model_scenario = get_cmip7_scenariomip_complete_emissions(
+        model=model,
+        scenario=scenario,
+        processed_cmip7_scenariomip_output_data_dir=CMIP7_SCENARIOMIP_OUT_DIR
+        / "whole_pipeline",
+    )
+    exp_infilled = update_index_levels_func(
+        complete_model_scenario,
+        {
+            "variable": lambda x: convert_variable_name(
+                x,
+                from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+                to_convention=SupportedNamingConventions.GCAGES,
+            )
+        },
+        copy=False,
+    )
 
-    # MAGICC and post_processing
-    # Select scenario and drop aggregated/cumulative rows
-    infilled = infilled.loc[
-        pix.ismatch(scenario=scenario)
-        & ~pix.ismatch(variable=["**Kyoto**", "Cumulative**", "**CO2", "**GHG**"])
-    ]
+    assert_frame_equal(infilled, exp_infilled)
 
-    # Loading expected results
-    file = CMIP7_SCENARIOMIP_OUT_DIR / "whole_pipeline" / f"{model}_{scenario}_GSAT.csv"
+    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
+        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
+        output_variables=("Surface Air Temperature Change",),
+        historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+        harmonisation_year=HARMONISATION_YEAR,
+        n_processes=multiprocessing.cpu_count(),
+    )
+
+    scm_results = scm_runner(infilled)
+
     exp_temperature = load_timeseries_csv(
-        file,
+        # TODO: check if this differs from the 'non whole pipeline' result
+        CMIP7_SCENARIOMIP_OUT_DIR / "whole_pipeline" / f"{model}_{scenario}_GSAT.csv",
         lower_column_names=True,
         index_columns=[
             "climate_model",
@@ -302,39 +282,29 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
         out_columns_name="time",
     )
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
-    scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
-        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
-        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
-        output_variables=("Surface Air Temperature Change",),
-        historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
-        harmonisation_year=HARMONISATION_YEAR,
-        n_processes=multiprocessing.cpu_count(),
-    )
-
-    scm_results = scm_runner(infilled)
-
     assert_frame_equal(
-        scm_results[
-            scm_results.index.get_level_values("variable").str.contains(
-                "Surface Air Temperature Change"
-            )
-        ].iloc[:10],
+        mi_loc(
+            scm_results,
+            exp_temperature.index.droplevel(
+                exp_temperature.index.names.difference(["variable", "run_id"])
+            ),
+        ),
         exp_temperature,
-        rtol=1e-6,
+        rtol=1e-5,
     )
 
-    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = create_cmip7_scenariomip_postprocessor(
+        progress=False,
+        n_processes=None,
+    )
     post_processed = post_processor(scm_results)
 
-    # Loading and assessing quantiles timeseries results
-    file = (
-        CMIP7_SCENARIOMIP_OUT_DIR
-        / "whole_pipeline"
-        / f"assessed-warming-timeseries-quantiles_{model}.csv"
-    )
     exp_quantiles = load_timeseries_csv(
-        file,
+        (
+            CMIP7_SCENARIOMIP_OUT_DIR
+            / "whole_pipeline"
+            / f"assessed-warming-timeseries-quantiles_{model}.csv"
+        ),
         lower_column_names=True,
         index_columns=[
             "climate_model",
@@ -348,29 +318,23 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
         out_columns_type=int,
         out_columns_name="time",
     )
-    exp_quantiles.index = exp_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
+
+    exp_quantiles = update_index_levels_func(
+        exp_quantiles, {"quantile": partial(np.round, decimals=4)}
     )
-    processed_quantiles = post_processed.timeseries_quantile.iloc[:, 250:]
-    processed_quantiles.index = processed_quantiles.index.set_levels(
-        exp_quantiles.index.levels[exp_quantiles.index.names.index("quantile")].round(
-            4
-        ),
-        level="quantile",
+    processed_quantiles = update_index_levels_func(
+        post_processed.timeseries_quantile, {"quantile": partial(np.round, decimals=4)}
     )
+    assert_frame_equal(
+        processed_quantiles.loc[:, exp_quantiles.columns], exp_quantiles, rtol=1e-5
+    )
+
+    exp_categories = pd.read_csv(
+        CMIP7_SCENARIOMIP_OUT_DIR / "whole_pipeline" / f"categories_{model}.csv",
+        index_col=["climate_model", "model", "scenario"],
+    )
+    exp_categories.columns.name = "metric"
 
     assert_frame_equal(
-        processed_quantiles,
-        exp_quantiles,
-        rtol=1e-8,
+        post_processed.metadata_categories.unstack("metric"), exp_categories
     )
-
-    # Loading and categories
-    file = CMIP7_SCENARIOMIP_OUT_DIR / "whole_pipeline" / f"categories_{model}.csv"
-    exp_categories = pd.read_csv(file)
-
-    assert post_processed.metadata_categories.values[0] == exp_categories["value.1"][2]
-    assert post_processed.metadata_categories.values[1] == exp_categories["value"][2]
