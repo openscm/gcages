@@ -57,7 +57,7 @@ HARMONISATION_YEAR = 2023
 @get_key_testing_model_scenario_parameters(
     KEY_CMIP7_SCENARIOMIP_TESTING_MODEL_SCENARIOS
 )
-def test_individual_scenario(model, scenario, monkeypatch):
+def test_individual_scenario(model, scenario):
     complete = load_timeseries_csv(
         CMIP7_SCENARIOMIP_OUT_DIR / f"{model}_{scenario}_complete.csv",
         lower_column_names=True,
@@ -105,8 +105,8 @@ def test_individual_scenario(model, scenario, monkeypatch):
             "variable",
         ],
         out_columns_type=int,
+        out_columns_name="time",
     )
-    exp_temperature.columns.name = "time"
 
     assert_frame_equal(
         mi_loc(
@@ -141,13 +141,12 @@ def test_individual_scenario(model, scenario, monkeypatch):
         out_columns_type=int,
         out_columns_name="time",
     )
-    processed_quantiles = post_processed.timeseries_quantile.iloc[:, 250:]
 
     exp_quantiles = update_index_levels_func(
         exp_quantiles, {"quantile": partial(np.round, decimals=4)}
     )
     processed_quantiles = update_index_levels_func(
-        processed_quantiles, {"quantile": partial(np.round, decimals=4)}
+        post_processed.timeseries_quantile, {"quantile": partial(np.round, decimals=4)}
     )
     assert_frame_equal(
         processed_quantiles.loc[:, exp_quantiles.columns], exp_quantiles, rtol=1e-5
