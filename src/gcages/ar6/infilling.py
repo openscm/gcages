@@ -139,6 +139,8 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
     filepath
         Filepath from which to load the emissions
 
+        This should be the infilling database that was used for infilling CFCs.
+
     Returns
     -------
     :

@@ -336,6 +336,7 @@ markers = [
     "skip_ci_default: marks tests as being skipped in CI by default",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
+    "magicc_v753: tests requiring MAGICC 7.5.3",
     "magicc_v760a3: tests requiring MAGICC 7.6.0a3",
 ]
 
