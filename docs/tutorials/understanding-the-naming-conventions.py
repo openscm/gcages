@@ -222,6 +222,20 @@ start.pix.assign(
 # although it serves the same purpose and has the same shape/behaviour).
 # This database stores the mapping between the naming conventions
 # used in different communites.
+#
+# At present, this covers the full set of emissions
+# which are used by simple climate models.
+# Whether these are supported by individual workflows
+# (e.g. the AR6 workflow, see
+# [here](../how-to-guides/how-to-run-the-ar6-workflowy))
+# or the global-only part of the CMIP7 ScenarioMIP workflow, see
+# [here](../how-to-guides/how-to-run-the-cmip7-scenariomip-workflow))
+# is more complicated and nuanced.
+# The pre-processors and harmonisers for these workflows
+# will help guide what is actually supported via their internal validation.
+# Once the infilling and simple climate model running stages are reached,
+# then the full set of variables shown here
+# is always supported (strictly speaking, required).
 
 # %%
 # The database in full
