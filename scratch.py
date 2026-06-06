@@ -13,40 +13,46 @@
 # ---
 
 # %% [markdown]
-# # How to run the CMIP7 ScenarioMIP workflow
-#
-# Here we demonstrate how to run the workflow
-# that was used in CMIP7's ScenarioMIP.
-# <!--
-# If you want a simpler interface for doing this,
-# please see the
-# [climate-processor](https://github.com/iiasa/climate-processor) package,
-# which provides a [facade](https://refactoring.guru/design-patterns/facade)
-# around gcages.
-# -->
-#
-# Note: this is not yet complete, we will add further steps in future.
+# Running SCI scenarios through CMIP7 ScenarioMIP global-like workflow.
 
 # %% [markdown]
 # ## Imports
 
 # %% editable=true slideshow={"slide_type": ""}
+from __future__ import annotations
+
 import multiprocessing
 import os
 import platform
 from pathlib import Path
 
+import numpy as np
 import openscm_units
+import pandas as pd
 import pandas_indexing as pix
 import pandas_openscm
 import pint
+from pandas_openscm.index_manipulation import update_index_levels_func
 
 from gcages.cmip7_scenariomip.harmonisation import (
     create_cmip7_scenariomip_global_harmoniser,
+    load_cmip7_scenariomip_historical_emissions,
 )
-from gcages.cmip7_scenariomip.infilling import CMIP7ScenarioMIPInfiller
+from gcages.cmip7_scenariomip.infilling import (
+    CMIP7ScenarioMIPInfiller,
+    load_cmip7_scenariomip_ghg_inversions,
+    load_cmip7_scenariomip_historical_emissions,
+    load_cmip7_scenariomip_infilling_db,
+)
 from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import CMIP7ScenarioMIPSCMRunner
+from gcages.harmonisation.common import assert_harmonised
+from gcages.renaming import (
+    SupportedNamingConventions,
+    convert_variable_name,
+    rename_variables,
+)
+from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 # %%
 # Setup pint
@@ -101,7 +107,6 @@ if not EXAMPLE_INPUT_FILE.exists():
         raise AssertionError
 
 # %% editable=true slideshow={"slide_type": ""}
-import pandas as pd
 
 #
 # start = pd.read_excel("SCI-2025_v1.0_pathways_ensemble_global.xlsx", sheet_name="data")
@@ -146,7 +151,6 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
 )
 
 # %% editable=true slideshow={"slide_type": ""}
-import numpy as np
 
 for y in range(2010, 2100 + 1):
     if y not in emissions:
@@ -170,21 +174,53 @@ emissions_usable = emissions.loc[
 ]
 emissions = emissions_usable.T.interpolate(method="index").T
 
-emissions_in_history = emissions.loc[
+history_variables_renamed = [
+    convert_variable_name(
+        v,
+        to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+        from_convention=SupportedNamingConventions.GCAGES,
+    )
+    for v in harmoniser_global.historical_emissions.index.unique("variable")
+]
+
+emissions_in_history = emissions.loc[pix.isin(variable=history_variables_renamed)]
+emissions_in_history = rename_variables(
+    emissions_in_history,
+    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+    to_convention=SupportedNamingConventions.GCAGES,
+)
+emissions_in_history = strip_pint_incompatible_characters_from_units(
+    emissions_in_history, units_index_level="unit"
+)
+
+models_included = []
+new_idx_levels = []
+for model, scenario in emissions_in_history.index.droplevel(
+    ["region", "variable", "unit"]
+).unique():
+    if model in models_included:
+        continue
+
+    models_included.append(model)
+    new_idx_levels.append((model, scenario))
+
+emissions_run = emissions_in_history.loc[
     pandas_openscm.indexing.multi_index_match(
-        emissions.index, harmoniser_global.historical_emissions.index.droplevel("unit")
+        emissions_in_history.index,
+        pd.MultiIndex.from_tuples(new_idx_levels, names=["model", "scenario"]),
     )
 ]
-assert False, "cut to limited set of scenarios before trying this"
 
-
-harmonised_global = harmoniser_global(emissions_in_history)
+harmonised_global = harmoniser_global(emissions_run)
 harmonised_global
 
 
 # %%
 BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
 CMIP7_SCENARIOMIP_INFILLING_FILE = BASE_DIR / "infilling_db_cmip7_scenariomip.csv"
+# Need to do this better
+# (check into chapter repo)
+CMIP7_SCENARIOMIP_INFILLING_FILE = Path("infilling_db_cmip7_scenariomip_20566343.csv")
 GHG_INVERSION_FILE = BASE_DIR / "cmip7_ghg_inversions.csv"
 
 # %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
@@ -202,55 +238,114 @@ if not GHG_INVERSION_FILE.exists():
 # With the infilling databases, we can initialise our infiller.
 
 # %%
-infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
-    cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,
-    cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
-    cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+# Change this to infill everything except CO2 fossil?
+
+# Hardcode as we are matching CMIP7 ScenarioMIP exactly.
+# Users can copy and modify themselves if they wish
+# (or we can introduce a lower layer if lots of users want it)
+PI_YEAR = 1750
+HARMONISATION_YEAR = 2023
+
+ur = openscm_units.unit_registry
+
+# Still embargoed
+# Have to use https://zenodo.org/records/20566343
+# so that all emissions are there
+infilling_db = load_cmip7_scenariomip_infilling_db(
+    filepath=CMIP7_SCENARIOMIP_INFILLING_FILE,
+    check_hash=False,  # TODO: update when available
 )
+
+# CMIP7 GHG inversions
+cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
+    filepath=GHG_INVERSION_FILE,
+)
+# History
+historical_emissions = load_cmip7_scenariomip_historical_emissions(
+    filepath=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
+    check_hash=True,
+)
+
+# Use gcages naming convention.
+infilling_db = update_index_levels_func(
+    infilling_db,
+    {
+        "variable": lambda x: convert_variable_name(
+            x,
+            from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            to_convention=SupportedNamingConventions.GCAGES,
+        )
+    },
+    copy=False,
+)
+cmip7_ghg_inversions = update_index_levels_func(
+    cmip7_ghg_inversions,
+    {
+        "variable": lambda x: convert_variable_name(
+            x,
+            from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+            to_convention=SupportedNamingConventions.GCAGES,
+        )
+    },
+    copy=False,
+)
+historical_emissions = update_index_levels_func(
+    historical_emissions,
+    {
+        "variable": lambda x: convert_variable_name(
+            x,
+            from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+            to_convention=SupportedNamingConventions.GCAGES,
+        )
+    },
+    copy=False,
+)
+
+assert_harmonised(
+    infilling_db,
+    history=historical_emissions.reset_index(
+        level=[
+            lvl
+            for lvl in ["model", "scenario"]
+            if lvl in historical_emissions.index.names
+        ],
+        drop=True,
+    ),
+    harmonisation_time=HARMONISATION_YEAR,
+    history_unit_level="unit",
+    ur=ur,
+)
+
+# Notes: currently this uses RMSClosest under the hood.
+# That's probably not a bad decision, and avoids the OC-BC decoupling from AR6.
+# We should check though and make an active, rather than passive decision.
+# We likely also want to use an updated infilling DB rather than the ScenarioMIP one,
+# which was just whatever scenarios we had at the time.
+infiller = CMIP7ScenarioMIPInfiller(
+    infilling_db=infilling_db,
+    historical_emissions=historical_emissions,
+    cmip7_ghg_inversions=cmip7_ghg_inversions,
+    harmonisation_year=HARMONISATION_YEAR,
+    pre_industrial_year=PI_YEAR,
+    run_checks=True,
+    ur=ur,
+)
+# Not usable, we have to add in the extra infilling
+# so it's not the same as CMIP7 ScenarioMIP.
+# infiller = CMIP7ScenarioMIPInfiller.from_cmip7_scenariomip_config(
+#     cmip7_scenariomip_infilling_leader_emissions_file=CMIP7_SCENARIOMIP_INFILLING_FILE,  # noqa: E501
+#     cmip7_ghg_inversions_file=GHG_INVERSION_FILE,
+#     cmip7_scenariomip_global_historical_emissions_file=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,  # noqa: E501
+# )
 
 # %% [markdown]
 # And infill
 
 # %% editable=true slideshow={"slide_type": ""}
+# Be careful, this will change when we fix up the infiller.
 complete = infiller(harmonised_global)
+complete.to_feather("complete.feather")
 complete
-
-# %% [markdown]
-# You can see infilled pathways compared to raw pathways in the below.
-#
-# This is not a deep analysis.
-# If you want to see the full details of how the infilling works,
-# see [Lamboll et al., 2020](https://doi.org/10.5194/gmd-13-5259-2020).
-
-# %% editable=true slideshow={"slide_type": ""}
-pdf = (
-    pix.concat(
-        [
-            res_pre_processed.global_workflow_emissions.loc[:, 2023:].pix.assign(
-                stage="pre_processed"
-            ),
-            harmonised_global.pix.assign(stage="harmonised"),
-            complete.pix.assign(stage="infilled"),
-        ]
-    )
-    .loc[pix.ismatch(variable=["**CO2|Fossil", "**CH4", "**N2O", "**CO"])]
-    .melt(ignore_index=False, var_name="year")
-    .reset_index()
-)
-
-fg = relplot_in_emms(
-    data=pdf,
-    hue="scenario",
-    style="stage",
-    dashes={
-        "pre_processed": (3, 3),
-        "harmonised": "",
-        "infilled": (1, 1),
-    },
-)
-
-fg.axes.flatten()[0].axhline(0.0, linestyle="--", color="gray")
-fg.axes.flatten()[1].set_ylim(ymin=0.0)
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## SCM Running
@@ -330,10 +425,11 @@ scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
 # You will likely want to skip this step if running yourself.
 
 # %% editable=true slideshow={"slide_type": ""}
-if os.environ.get("READTHEDOCS", False):
-    scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
-        "MAGICC7"
-    ][:10]
+# if os.environ.get("READTHEDOCS", False):
+n_cfgs = 10
+scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs["MAGICC7"][
+    :n_cfgs
+]
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # And then run
