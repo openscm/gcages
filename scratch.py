@@ -150,6 +150,10 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
     n_processes=None,  # run serially for this demo
 )
 
+# %%
+# TODO: turn off aneris logging
+# TODO: use better progress bar
+
 # %% editable=true slideshow={"slide_type": ""}
 
 for y in range(2010, 2100 + 1):
@@ -204,10 +208,10 @@ else:
     ).unique():
         if model in models_included:
             continue
-    
+
         models_included.append(model)
         new_idx_levels.append((model, scenario))
-    
+
     emissions_run = emissions_in_history.loc[
         pandas_openscm.indexing.multi_index_match(
             emissions_in_history.index,
@@ -215,9 +219,27 @@ else:
         )
     ]
 
+
+# %%
+neg_vals = (emissions_run.loc[~pix.ismatch(variable="**CO2**")] < 0).any(axis=1)
+unusable_because_of_neg = (
+    neg_vals[neg_vals].index.droplevel(["region", "variable", "unit"]).drop_duplicates()
+)
+emissions_run.loc[~pix.ismatch(variable="**CO2**")].loc[neg_vals]
+
+# %%
+# We could do this smarter and just round.
+# One for next time.
+emissions_run = emissions_run.loc[
+    ~pandas_openscm.indexing.multi_index_match(
+        emissions_run.index, unusable_because_of_neg
+    )
+]
+emissions_run
+
+# %%
 harmonised_global = harmoniser_global(emissions_run)
 harmonised_global
-
 
 # %%
 BASE_DIR = Path("tests/regression/cmip7-scenariomip/cmip7-scenariomip-workflow-inputs")
@@ -368,6 +390,12 @@ complete
 # FaIR should be pre-installed
 
 # %%
+# TODO: use in-memory disk for MAGICC workers.
+# Consider using API to speed things up/simplify
+# (need to talk to Jared about deploy keys, cost etc.).
+# Figure out list of output variables
+
+# %%
 # combine to create complete timeseries using sum of gridded
 # and the global harmonised timeseries or provide both as input
 # complete_scenarios = pd.concat([harmonised, infilled])
@@ -506,7 +534,9 @@ post_processed_results.metadata_quantile.loc[
 # Assessed surface temperatures.
 
 # %% editable=true slideshow={"slide_type": ""}
-post_processed_results.timeseries_quantile.loc[pix.isin(model="TIAM-ECN 1.1"), 2000:].openscm.plot_plume(
+post_processed_results.timeseries_quantile.loc[
+    pix.isin(model="TIAM-ECN 1.1"), 2000:
+].openscm.plot_plume(
     style_var="variable",
     quantiles_plumes=(
         (0.5, 0.8),
