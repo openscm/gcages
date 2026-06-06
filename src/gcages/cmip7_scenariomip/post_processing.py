@@ -252,7 +252,7 @@ class CMIP7ScenarioMIPPostProcessor:
                 0.90,
                 0.95,
             ),
-            exceedance_global_warming_levels=(1.0, 4.01, 0.5),
+            exceedance_global_warming_levels=np.arange(1.0, 4.01, 0.5),
             run_checks=True,
         )
 

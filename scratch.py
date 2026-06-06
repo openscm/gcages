@@ -193,23 +193,27 @@ emissions_in_history = strip_pint_incompatible_characters_from_units(
     emissions_in_history, units_index_level="unit"
 )
 
-models_included = []
-new_idx_levels = []
-for model, scenario in emissions_in_history.index.droplevel(
-    ["region", "variable", "unit"]
-).unique():
-    if model in models_included:
-        continue
-
-    models_included.append(model)
-    new_idx_levels.append((model, scenario))
-
-emissions_run = emissions_in_history.loc[
-    pandas_openscm.indexing.multi_index_match(
-        emissions_in_history.index,
-        pd.MultiIndex.from_tuples(new_idx_levels, names=["model", "scenario"]),
-    )
-]
+run_all = True
+if run_all:
+    emissions_run = emissions_in_history
+else:
+    models_included = []
+    new_idx_levels = []
+    for model, scenario in emissions_in_history.index.droplevel(
+        ["region", "variable", "unit"]
+    ).unique():
+        if model in models_included:
+            continue
+    
+        models_included.append(model)
+        new_idx_levels.append((model, scenario))
+    
+    emissions_run = emissions_in_history.loc[
+        pandas_openscm.indexing.multi_index_match(
+            emissions_in_history.index,
+            pd.MultiIndex.from_tuples(new_idx_levels, names=["model", "scenario"]),
+        )
+    ]
 
 harmonised_global = harmoniser_global(emissions_run)
 harmonised_global
@@ -409,6 +413,18 @@ elif platform.system() == "Windows":
 # With the set up done, we can initialise our SCM runner.
 
 # %%
+# mkdir scm-output-db
+
+# %%
+from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
+
+scm_output_db = OpenSCMDB(
+    backend_data=FeatherDataBackend(),
+    backend_index=FeatherIndexBackend(),
+    db_dir=Path("scm-output-db"),
+)
+
+# %%
 scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
     # Generally, you want to run SCMs in parallel
     n_processes=multiprocessing.cpu_count(),
@@ -417,6 +433,7 @@ scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
     historical_emissions_path=CMIP7_SCENARIOMIP_GLOBAL_HISTORICAL_EMISSIONS_FILE,
     output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
     batch_size_scenarios=15,
+    db=scm_output_db,
 )
 
 # %% [markdown]
@@ -426,7 +443,7 @@ scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
 
 # %% editable=true slideshow={"slide_type": ""}
 # if os.environ.get("READTHEDOCS", False):
-n_cfgs = 10
+n_cfgs = 600
 scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs["MAGICC7"][
     :n_cfgs
 ]
@@ -443,7 +460,7 @@ scm_results
 
 # %%
 scm_results.loc[
-    pix.isin(variable=["Effective Radiative Forcing"])
+    pix.isin(variable=["Effective Radiative Forcing"], model="TIAM-ECN 1.1")
 ].openscm.plot_plume_after_calculating_quantiles(
     style_var="variable",
     quantile_over="run_id",
@@ -489,10 +506,12 @@ post_processed_results.metadata_quantile.loc[
 # Assessed surface temperatures.
 
 # %% editable=true slideshow={"slide_type": ""}
-post_processed_results.timeseries_quantile.loc[:, 2000:].openscm.plot_plume(
+post_processed_results.timeseries_quantile.loc[pix.isin(model="TIAM-ECN 1.1"), 2000:].openscm.plot_plume(
     style_var="variable",
     quantiles_plumes=(
         (0.5, 0.8),
         ((0.05, 0.95), 0.3),
     ),
 )
+
+# %%
