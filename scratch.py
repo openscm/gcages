@@ -208,10 +208,10 @@ else:
     ).unique():
         if model in models_included:
             continue
-
+    
         models_included.append(model)
         new_idx_levels.append((model, scenario))
-
+    
     emissions_run = emissions_in_history.loc[
         pandas_openscm.indexing.multi_index_match(
             emissions_in_history.index,
@@ -219,21 +219,20 @@ else:
         )
     ]
 
+emissions_run = emissions_run.loc[pix.isin(model="REMIND 2.1", scenario="R2p1-SSP2-1100")]
+emissions_run
+
 
 # %%
 neg_vals = (emissions_run.loc[~pix.ismatch(variable="**CO2**")] < 0).any(axis=1)
-unusable_because_of_neg = (
-    neg_vals[neg_vals].index.droplevel(["region", "variable", "unit"]).drop_duplicates()
-)
+unusable_because_of_neg = neg_vals[neg_vals].index.droplevel(["region", "variable", "unit"]).drop_duplicates()
 emissions_run.loc[~pix.ismatch(variable="**CO2**")].loc[neg_vals]
 
 # %%
 # We could do this smarter and just round.
 # One for next time.
 emissions_run = emissions_run.loc[
-    ~pandas_openscm.indexing.multi_index_match(
-        emissions_run.index, unusable_because_of_neg
-    )
+~pandas_openscm.indexing.multi_index_match(emissions_run.index, unusable_because_of_neg)
 ]
 emissions_run
 
@@ -441,9 +440,6 @@ elif platform.system() == "Windows":
 # With the set up done, we can initialise our SCM runner.
 
 # %%
-# mkdir scm-output-db
-
-# %%
 from pandas_openscm.db import FeatherDataBackend, FeatherIndexBackend, OpenSCMDB
 
 scm_output_db = OpenSCMDB(
@@ -534,9 +530,7 @@ post_processed_results.metadata_quantile.loc[
 # Assessed surface temperatures.
 
 # %% editable=true slideshow={"slide_type": ""}
-post_processed_results.timeseries_quantile.loc[
-    pix.isin(model="TIAM-ECN 1.1"), 2000:
-].openscm.plot_plume(
+post_processed_results.timeseries_quantile.loc[pix.isin(model="TIAM-ECN 1.1"), 2000:].openscm.plot_plume(
     style_var="variable",
     quantiles_plumes=(
         (0.5, 0.8),

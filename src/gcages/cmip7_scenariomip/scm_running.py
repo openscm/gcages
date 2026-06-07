@@ -435,7 +435,18 @@ class CMIP7ScenarioMIPSCMRunner:
         if self.db is not None:
             # Results aren't kept in memory during running, so have to load them now.
             # User can use `run_scms` directly if they want to process differently.
-            out_maybe = self.db.load()
+            # Have to pass in the emissions index in here
+            # so we only load the emissions we actually ran.
+            out_maybe = self.db.load(
+                # TODO:
+                openscm_runner_emissions.index.droplevel(
+                    openscm_runner_emissions.index.names.difference(
+                        # Ok to hard-code, that's what we check above
+                        # Could introduce run_group_levels or similar
+                        ["model", "scenario"]
+                    )
+                )
+            )
             if out_maybe is None:
                 raise TypeError(out_maybe)
 

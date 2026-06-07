@@ -403,7 +403,11 @@ def run_scms(  # noqa: PLR0912, PLR0913
                 ]
 
             if db is not None:
-                db.save(batch_res)
+                db.save(
+                    batch_res,
+                    # TODO: fix this
+                    allow_overwrite=True,
+                )
             else:
                 res_l.append(batch_res)
 
