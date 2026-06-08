@@ -94,19 +94,6 @@ pandas_openscm.register_pandas_accessors()
 # docs specifically on this to come we hope).
 
 # %% editable=true slideshow={"slide_type": ""}
-EXAMPLE_INPUT_FILE = Path(
-    "tests/regression/cmip7-scenariomip/test-data/salted-202507-scenariomip-input.csv"
-)
-
-# %% editable=true slideshow={"slide_type": ""} tags=["remove_input"]
-# Some trickery to make sure we pick up files in the right path,
-# even when building the docs :)
-if not EXAMPLE_INPUT_FILE.exists():
-    EXAMPLE_INPUT_FILE = Path("../..") / EXAMPLE_INPUT_FILE
-    if not EXAMPLE_INPUT_FILE.exists():
-        raise AssertionError
-
-# %% editable=true slideshow={"slide_type": ""}
 
 #
 # start = pd.read_excel("SCI-2025_v1.0_pathways_ensemble_global.xlsx", sheet_name="data")
@@ -150,12 +137,7 @@ harmoniser_global = create_cmip7_scenariomip_global_harmoniser(
     n_processes=None,  # run serially for this demo
 )
 
-# %%
-# TODO: turn off aneris logging
-# TODO: use better progress bar
-
 # %% editable=true slideshow={"slide_type": ""}
-
 for y in range(2010, 2100 + 1):
     if y not in emissions:
         emissions[y] = np.nan
@@ -170,73 +152,108 @@ unusable_too_late_start = (
     .sort_values()
 )
 unusable_too_late_start = unusable_too_late_start[unusable_too_late_start > 2023]
+print(f"Unusuable because they start after 2023:\n{unusable_too_late_start}")
 emissions_usable = emissions.loc[
     ~pandas_openscm.indexing.multi_index_match(
         emissions.index,
         unusable_too_late_start.index,
     )
 ]
-emissions = emissions_usable.T.interpolate(method="index").T
+emissions = (
+    emissions_usable.T.interpolate(method="index")
+    .T.sort_index(axis="columns")
+    .loc[:, 2023:]
+)
+if emissions.isnull().any().any():
+    raise AssertionError
 
-history_variables_renamed = [
-    convert_variable_name(
-        v,
-        to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-        from_convention=SupportedNamingConventions.GCAGES,
-    )
-    for v in harmoniser_global.historical_emissions.index.unique("variable")
-]
 
-emissions_in_history = emissions.loc[pix.isin(variable=history_variables_renamed)]
-emissions_in_history = rename_variables(
-    emissions_in_history,
+# %%
+emissions_renamed = rename_variables(
+    emissions.loc[
+        pix.ismatch(
+            variable=[
+                "Emissions|*",
+                "Emissions|HFC|**",
+                # Almost certainly need some reaggregation for some scenarios
+                "Emissions|CO2|Energy and Industrial Processes",
+                "Emissions|CO2|AFOLU",
+            ]
+        )
+        & ~pix.isin(
+            variable=[
+                "Emissions|F-Gases",
+                "Emissions|PFC",
+                "Emissions|HFC",
+                "Emissions|Kyoto Gases",
+                "Emissions|CO2",
+            ]
+        )
+    ],
     from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
     to_convention=SupportedNamingConventions.GCAGES,
 )
-emissions_in_history = strip_pint_incompatible_characters_from_units(
-    emissions_in_history, units_index_level="unit"
+emissions_renamed = strip_pint_incompatible_characters_from_units(
+    emissions_renamed, units_index_level="unit"
 )
 
+sorted(emissions_renamed.index.droplevel(["model", "scenario", "region"]).unique())
+
+# %%
 run_all = True
 if run_all:
-    emissions_run = emissions_in_history
+    emissions_run = emissions_renamed
 else:
     models_included = []
     new_idx_levels = []
-    for model, scenario in emissions_in_history.index.droplevel(
+    for model, scenario in emissions_renamed.index.droplevel(
         ["region", "variable", "unit"]
     ).unique():
         if model in models_included:
             continue
-    
+
         models_included.append(model)
         new_idx_levels.append((model, scenario))
-    
-    emissions_run = emissions_in_history.loc[
+
+    emissions_run = emissions_renamed.loc[
         pandas_openscm.indexing.multi_index_match(
             emissions_in_history.index,
             pd.MultiIndex.from_tuples(new_idx_levels, names=["model", "scenario"]),
         )
     ]
 
-emissions_run = emissions_run.loc[pix.isin(model="REMIND 2.1", scenario="R2p1-SSP2-1100")]
+# emissions_run = emissions_run.loc[pix.isin(model="REMIND 2.1", scenario="R2p1-SSP2-1100")]
 emissions_run
 
-
 # %%
+# Round to get rid of spurious negatives
+emissions_run.loc[
+    pix.ismatch(variable="**HFC**")
+    & (emissions_run.round(3) == 0.0).any(axis="columns")
+] = 0.0
 neg_vals = (emissions_run.loc[~pix.ismatch(variable="**CO2**")] < 0).any(axis=1)
-unusable_because_of_neg = neg_vals[neg_vals].index.droplevel(["region", "variable", "unit"]).drop_duplicates()
-emissions_run.loc[~pix.ismatch(variable="**CO2**")].loc[neg_vals]
+unusable_because_of_neg = (
+    neg_vals[neg_vals].index.droplevel(["region", "variable", "unit"]).drop_duplicates()
+)
+print(
+    f"Unusuable because of inexplicable negatives:\n{emissions_run.loc[~pix.ismatch(variable='**CO2**')].loc[neg_vals].min(axis=1)}"
+)
 
-# %%
-# We could do this smarter and just round.
-# One for next time.
 emissions_run = emissions_run.loc[
-~pandas_openscm.indexing.multi_index_match(emissions_run.index, unusable_because_of_neg)
+    ~pandas_openscm.indexing.multi_index_match(
+        emissions_run.index, unusable_because_of_neg
+    )
 ]
 emissions_run
 
 # %%
+# TODO: turn off aneris logging
+# TODO: include total number in progress bar
+
+# %%
+if emissions_run.isnull().any().any():
+    raise AssertionError
+
 harmonised_global = harmoniser_global(emissions_run)
 harmonised_global
 
@@ -370,7 +387,11 @@ infiller = CMIP7ScenarioMIPInfiller(
 # Be careful, this will change when we fix up the infiller.
 complete = infiller(harmonised_global)
 complete.to_feather("complete.feather")
+complete.to_parquet("complete.parquet.gzip", compression="gzip")
 complete
+
+# %%
+assert False, "check output variables"
 
 # %% [markdown] editable=true slideshow={"slide_type": ""}
 # ## SCM Running
@@ -530,7 +551,9 @@ post_processed_results.metadata_quantile.loc[
 # Assessed surface temperatures.
 
 # %% editable=true slideshow={"slide_type": ""}
-post_processed_results.timeseries_quantile.loc[pix.isin(model="TIAM-ECN 1.1"), 2000:].openscm.plot_plume(
+post_processed_results.timeseries_quantile.loc[
+    pix.isin(model="TIAM-ECN 1.1"), 2000:
+].openscm.plot_plume(
     style_var="variable",
     quantiles_plumes=(
         (0.5, 0.8),
