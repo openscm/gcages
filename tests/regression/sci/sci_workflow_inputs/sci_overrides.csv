@@ -1,0 +1,621 @@
+model,region,variable,method
+AIM/CGE 2.0,World,Emissions|CO,reduce_ratio_2150_cov
+AIM/CGE 2.0,World,Emissions|CO2,reduce_ratio_2080
+AIM/CGE 2.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM/CGE 2.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM/CGE 2.0,World,Emissions|HFC|HFC125,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC134a,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC143a,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC227ea,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC23,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC32,constant_ratio
+AIM/CGE 2.0,World,Emissions|HFC|HFC43-10,constant_ratio
+AIM/CGE 2.0,World,Emissions|OC,reduce_ratio_2150_cov
+AIM/CGE 2.0,World,Emissions|SF6,constant_ratio
+AIM/CGE 2.0,World,Emissions|VOC,reduce_ratio_2150_cov
+AIM/CGE 2.1,World,Emissions|CO2,reduce_ratio_2080
+AIM/CGE 2.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM/CGE 2.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM/CGE 2.1,World,Emissions|CO,reduce_ratio_2150_cov
+AIM/CGE 2.1,World,Emissions|HFC|HFC125,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC134a,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC143a,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC227ea,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC23,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC32,constant_ratio
+AIM/CGE 2.1,World,Emissions|HFC|HFC43-10,constant_ratio
+AIM/CGE 2.1,World,Emissions|OC,reduce_ratio_2150_cov
+AIM/CGE 2.1,World,Emissions|SF6,constant_ratio
+AIM/CGE 2.1,World,Emissions|VOC,reduce_ratio_2150_cov
+AIM/CGE V2.2,World,Emissions|CO2,reduce_ratio_2080
+AIM/CGE V2.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM/CGE V2.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM/CGE V2.2,World,Emissions|CO,reduce_ratio_2150_cov
+AIM/CGE V2.2,World,Emissions|HFC|HFC125,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC134a,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC143a,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC227ea,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC23,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC32,constant_ratio
+AIM/CGE V2.2,World,Emissions|HFC|HFC43-10,constant_ratio
+AIM/CGE V2.2,World,Emissions|OC,reduce_ratio_2150_cov
+AIM/CGE V2.2,World,Emissions|SF6,constant_ratio
+AIM/CGE V2.2,World,Emissions|VOC,reduce_ratio_2150_cov
+AIM/Hub-Global 2.0,World,Emissions|CO,reduce_ratio_2150_cov
+AIM/Hub-Global 2.0,World,Emissions|CO2,reduce_ratio_2080
+AIM/Hub-Global 2.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM/Hub-Global 2.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC125,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC134a,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC143a,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC227ea,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC23,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC32,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|HFC|HFC43-10,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|OC,reduce_ratio_2150_cov
+AIM/Hub-Global 2.0,World,Emissions|SF6,constant_ratio
+AIM/Hub-Global 2.0,World,Emissions|VOC,reduce_ratio_2150_cov
+AIM/Hub-Global 2.4,World,Emissions|CO,reduce_ratio_2150_cov
+AIM/Hub-Global 2.4,World,Emissions|CO2,reduce_ratio_2080
+AIM/Hub-Global 2.4,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM/Hub-Global 2.4,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM/Hub-Global 2.4,World,Emissions|OC,reduce_ratio_2150_cov
+AIM/Hub-Global 2.4,World,Emissions|SF6,constant_ratio
+AIM/Hub-Global 2.4,World,Emissions|VOC,reduce_ratio_2150_cov
+C-ROADS-5.005,World,Emissions|CO,reduce_ratio_2150_cov
+C-ROADS-5.005,World,Emissions|CO2,reduce_ratio_2080
+C-ROADS-5.005,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+C-ROADS-5.005,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+C-ROADS-5.005,World,Emissions|HFC|HFC125,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC134a,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC143a,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC227ea,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC23,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC32,constant_ratio
+C-ROADS-5.005,World,Emissions|HFC|HFC43-10,constant_ratio
+C-ROADS-5.005,World,Emissions|OC,reduce_ratio_2150_cov
+C-ROADS-5.005,World,Emissions|SF6,constant_ratio
+C-ROADS-5.005,World,Emissions|VOC,reduce_ratio_2150_cov
+CGEM-ESM 1.0,World,Emissions|CO,reduce_ratio_2150_cov
+CGEM-ESM 1.0,World,Emissions|CO2,reduce_ratio_2080
+CGEM-ESM 1.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+CGEM-ESM 1.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+CGEM-ESM 1.0,World,Emissions|OC,reduce_ratio_2150_cov
+CGEM-ESM 1.0,World,Emissions|SF6,constant_ratio
+CGEM-ESM 1.0,World,Emissions|VOC,reduce_ratio_2150_cov
+COFFEE 1.1,World,Emissions|CO2,reduce_ratio_2080
+COFFEE 1.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+COFFEE 1.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+COFFEE 1.5,World,Emissions|CO2,reduce_ratio_2080
+COFFEE 1.5,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+COFFEE 1.5,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+EPPA 6,World,Emissions|CO,reduce_ratio_2150_cov
+EPPA 6,World,Emissions|CO2,reduce_ratio_2080
+EPPA 6,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+EPPA 6,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+EPPA 6,World,Emissions|OC,reduce_ratio_2150_cov
+EPPA 6,World,Emissions|SF6,constant_ratio
+EPPA 6,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM 4.2,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM 4.2,World,Emissions|CO2,reduce_ratio_2080
+GCAM 4.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 4.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 4.2,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM 4.2,World,Emissions|SF6,constant_ratio
+GCAM 4.2,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM 5.2,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM 5.2,World,Emissions|CO2,reduce_ratio_2080
+GCAM 5.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 5.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 5.2,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM 5.2,World,Emissions|SF6,constant_ratio
+GCAM 5.2,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM 5.3,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM 5.3,World,Emissions|CO2,reduce_ratio_2080
+GCAM 5.3,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 5.3,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 5.3,World,Emissions|HFC|HFC125,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC134a,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC143a,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC227ea,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC23,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC32,constant_ratio
+GCAM 5.3,World,Emissions|HFC|HFC43-10,constant_ratio
+GCAM 5.3,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM 5.3,World,Emissions|SF6,constant_ratio
+GCAM 5.3,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM 6.0 NGFS,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM 6.0 NGFS,World,Emissions|CO2,reduce_ratio_2080
+GCAM 6.0 NGFS,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 6.0 NGFS,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC125,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC134a,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC143a,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC227ea,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC23,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|HFC|HFC32,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM 6.0 NGFS,World,Emissions|SF6,constant_ratio
+GCAM 6.0 NGFS,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM 7.0,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM 7.0,World,Emissions|CO2,reduce_ratio_2080
+GCAM 7.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 7.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 7.0,World,Emissions|HFC|HFC125,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC134a,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC143a,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC227ea,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC23,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC32,constant_ratio
+GCAM 7.0,World,Emissions|HFC|HFC43-10,constant_ratio
+GCAM 7.0,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM 7.0,World,Emissions|SF6,constant_ratio
+GCAM 7.0,World,Emissions|VOC,reduce_ratio_2150_cov
+GCAM-PR 5.3,World,Emissions|CO,reduce_ratio_2150_cov
+GCAM-PR 5.3,World,Emissions|CO2,reduce_ratio_2080
+GCAM-PR 5.3,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM-PR 5.3,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM-PR 5.3,World,Emissions|HFC|HFC125,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC134a,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC143a,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC227ea,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC23,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC32,constant_ratio
+GCAM-PR 5.3,World,Emissions|HFC|HFC43-10,constant_ratio
+GCAM-PR 5.3,World,Emissions|OC,reduce_ratio_2150_cov
+GCAM-PR 5.3,World,Emissions|VOC,reduce_ratio_2150_cov
+GEM-E3 V2021,World,Emissions|CO2,reduce_ratio_2080
+GEM-E3 V2021,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GEM-E3 V2021,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GEM-E3 V2021,World,Emissions|SF6,constant_ratio
+GEM-E3 V2023,World,Emissions|CO2,reduce_ratio_2080
+GEM-E3 V2023,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GEM-E3 V2023,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMACLIM 2.0,World,Emissions|CO2,reduce_ratio_2080
+IMACLIM 2.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMACLIM 2.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.0,World,Emissions|CO,reduce_ratio_2150_cov
+IMAGE 3.0,World,Emissions|CO2,reduce_ratio_2080
+IMAGE 3.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.0,World,Emissions|HFC|HFC125,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC227ea,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC23,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC32,constant_ratio
+IMAGE 3.0,World,Emissions|HFC|HFC43-10,constant_ratio
+IMAGE 3.0,World,Emissions|OC,reduce_ratio_2150_cov
+IMAGE 3.0,World,Emissions|SF6,constant_ratio
+IMAGE 3.0,World,Emissions|VOC,reduce_ratio_2150_cov
+IMAGE 3.0.1,World,Emissions|CO,reduce_ratio_2150_cov
+IMAGE 3.0.1,World,Emissions|CO2,reduce_ratio_2080
+IMAGE 3.0.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.0.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.0.1,World,Emissions|HFC|HFC125,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC227ea,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC23,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC32,constant_ratio
+IMAGE 3.0.1,World,Emissions|HFC|HFC43-10,constant_ratio
+IMAGE 3.0.1,World,Emissions|OC,reduce_ratio_2150_cov
+IMAGE 3.0.1,World,Emissions|SF6,constant_ratio
+IMAGE 3.0.1,World,Emissions|VOC,reduce_ratio_2150_cov
+IMAGE 3.0.2,World,Emissions|CO,reduce_ratio_2150_cov
+IMAGE 3.0.2,World,Emissions|CO2,reduce_ratio_2080
+IMAGE 3.0.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.0.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.0.2,World,Emissions|OC,reduce_ratio_2150_cov
+IMAGE 3.0.2,World,Emissions|VOC,reduce_ratio_2150_cov
+IMAGE 3.0.2,World,Emissions|HFC|HFC125,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC227ea,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC23,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC32,constant_ratio
+IMAGE 3.0.2,World,Emissions|HFC|HFC43-10,constant_ratio
+IMAGE 3.0.2,World,Emissions|SF6,constant_ratio
+IMAGE 3.2,World,Emissions|CO2,reduce_ratio_2080
+IMAGE 3.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.2,World,Emissions|CO,reduce_ratio_2150_cov
+IMAGE 3.2,World,Emissions|HFC|HFC125,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC227ea,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC23,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC32,constant_ratio
+IMAGE 3.2,World,Emissions|HFC|HFC43-10,constant_ratio
+IMAGE 3.2,World,Emissions|OC,reduce_ratio_2150_cov
+IMAGE 3.2,World,Emissions|SF6,constant_ratio
+IMAGE 3.2,World,Emissions|VOC,reduce_ratio_2150_cov
+IMAGE 3.3,World,Emissions|CO2,reduce_ratio_2080
+IMAGE 3.3,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.3,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.3,World,Emissions|CO,reduce_ratio_2150_cov
+IMAGE 3.3,World,Emissions|OC,reduce_ratio_2150_cov
+IMAGE 3.3,World,Emissions|SF6,constant_ratio
+IMAGE 3.3,World,Emissions|VOC,reduce_ratio_2150_cov
+IMAGE 3.3,World,Emissions|HFC|HFC125,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC227ea,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC23,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC32,constant_ratio
+IMAGE 3.3,World,Emissions|HFC|HFC43-10,constant_ratio
+MERGE-ETL 6.0,World,Emissions|CO2,reduce_ratio_2080
+MERGE-ETL 6.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MERGE-ETL 6.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MERGE-ETL 6.0,World,Emissions|HFC|HFC125,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC134a,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC143a,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC227ea,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC23,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC32,constant_ratio
+MERGE-ETL 6.0,World,Emissions|HFC|HFC43-10,constant_ratio
+MERGE-ETL 6.0,World,Emissions|SF6,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGE-GLOBIOM 1.0,World,Emissions|CO2,reduce_ratio_2080
+MESSAGE-GLOBIOM 1.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGE-GLOBIOM 1.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC125,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC134a,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC227ea,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC23,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC32,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGE-GLOBIOM 1.0,World,Emissions|SF6,constant_ratio
+MESSAGE-GLOBIOM 1.0,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.0,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM 1.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.0,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.0,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.0,World,Emissions|SF6,constant_ratio
+MESSAGEix-GLOBIOM 1.0,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM 1.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.1,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC125,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC134a,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC227ea,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC32,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1,World,Emissions|SF6,constant_ratio
+MESSAGEix-GLOBIOM 1.1,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|HFC|HFC125,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|HFC|HFC134a,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|HFC|HFC227ea,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|SF6,constant_ratio
+MESSAGEix-GLOBIOM 1.1-BMT-R12,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.2,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.2,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM 1.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM 1.2,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 1.2,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC125,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC134a,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC227ea,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC32,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|SF6,constant_ratio
+MESSAGEix-GLOBIOM 2.0-M-R12-NGFS,World,Emissions|VOC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|CO,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|CO2,reduce_ratio_2080
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC125,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC134a,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC227ea,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC32,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|OC,reduce_ratio_2150_cov
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|SF6,constant_ratio
+MESSAGEix-GLOBIOM GEI 1.0,World,Emissions|VOC,reduce_ratio_2150_cov
+MINES 0.1.0,World,Emissions|CO,reduce_ratio_2150_cov
+MINES 0.1.0,World,Emissions|CO2,reduce_ratio_2080
+MINES 0.1.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MINES 0.1.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MINES 0.1.0,World,Emissions|HFC|HFC125,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC134a,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC143a,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC227ea,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC23,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC32,constant_ratio
+MINES 0.1.0,World,Emissions|HFC|HFC43-10,constant_ratio
+MINES 0.1.0,World,Emissions|OC,reduce_ratio_2150_cov
+MINES 0.1.0,World,Emissions|SF6,constant_ratio
+MINES 0.1.0,World,Emissions|VOC,reduce_ratio_2150_cov
+POLES ADVANCE,World,Emissions|CO2,reduce_ratio_2080
+POLES ADVANCE,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES ADVANCE,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES ADVANCE,World,Emissions|HFC|HFC125,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC134a,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC143a,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC227ea,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC23,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC32,constant_ratio
+POLES ADVANCE,World,Emissions|HFC|HFC43-10,constant_ratio
+POLES ADVANCE,World,Emissions|SF6,constant_ratio
+POLES CD-LINKS,World,Emissions|CO2,reduce_ratio_2080
+POLES CD-LINKS,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES CD-LINKS,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES EMF30,World,Emissions|CO,reduce_ratio_2150_cov
+POLES EMF30,World,Emissions|CO2,reduce_ratio_2080
+POLES EMF30,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES EMF30,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES EMF30,World,Emissions|HFC|HFC125,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC134a,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC143a,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC227ea,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC23,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC32,constant_ratio
+POLES EMF30,World,Emissions|HFC|HFC43-10,constant_ratio
+POLES EMF30,World,Emissions|OC,reduce_ratio_2150_cov
+POLES EMF30,World,Emissions|SF6,constant_ratio
+POLES EMF30,World,Emissions|VOC,reduce_ratio_2150_cov
+POLES EMF33,World,Emissions|CO,reduce_ratio_2150_cov
+POLES EMF33,World,Emissions|CO2,reduce_ratio_2080
+POLES EMF33,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES EMF33,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES EMF33,World,Emissions|HFC|HFC125,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC134a,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC143a,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC227ea,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC23,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC32,constant_ratio
+POLES EMF33,World,Emissions|HFC|HFC43-10,constant_ratio
+POLES EMF33,World,Emissions|OC,reduce_ratio_2150_cov
+POLES EMF33,World,Emissions|SF6,constant_ratio
+POLES EMF33,World,Emissions|VOC,reduce_ratio_2150_cov
+POLES GECO2019,World,Emissions|CO,reduce_ratio_2150_cov
+POLES GECO2019,World,Emissions|CO2,reduce_ratio_2080
+POLES GECO2019,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES GECO2019,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES GECO2019,World,Emissions|OC,reduce_ratio_2150_cov
+POLES GECO2019,World,Emissions|SF6,constant_ratio
+POLES GECO2019,World,Emissions|VOC,reduce_ratio_2150_cov
+POLES-JRC ENGAGE,World,Emissions|CO2,reduce_ratio_2080
+POLES-JRC ENGAGE,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+POLES-JRC ENGAGE,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+POLES-JRC ENGAGE,World,Emissions|CO,reduce_ratio_2150_cov
+POLES-JRC ENGAGE,World,Emissions|OC,reduce_ratio_2150_cov
+POLES-JRC ENGAGE,World,Emissions|SF6,constant_ratio
+POLES-JRC ENGAGE,World,Emissions|VOC,reduce_ratio_2150_cov
+PROMETHEUS 1.2,World,Emissions|CO2,reduce_ratio_2080
+PROMETHEUS 1.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+PROMETHEUS V1,World,Emissions|CO2,reduce_ratio_2080
+PROMETHEUS V1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 1.6,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND 1.6,World,Emissions|CO2,reduce_ratio_2080
+REMIND 1.6,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND 1.6,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 1.6,World,Emissions|HFC|HFC125,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC23,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC32,constant_ratio
+REMIND 1.6,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND 1.6,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND 1.6,World,Emissions|SF6,constant_ratio
+REMIND 1.6,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND 1.7,World,Emissions|CO2,reduce_ratio_2080
+REMIND 1.7,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND 1.7,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 1.7,World,Emissions|HFC|HFC125,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC23,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC32,constant_ratio
+REMIND 1.7,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND 1.7,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND 1.7,World,Emissions|SF6,constant_ratio
+REMIND 1.7,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND 1.7,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND 2.1,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND 2.1,World,Emissions|CO2,reduce_ratio_2080
+REMIND 2.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND 2.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 2.1,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND 2.1,World,Emissions|SF6,constant_ratio
+REMIND 2.1,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND 3.0,World,Emissions|CO2,reduce_ratio_2080
+REMIND 3.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND 3.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 3.0,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND 3.0,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND 3.0,World,Emissions|SF6,constant_ratio
+REMIND 3.0,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND 3.5,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND 3.5,World,Emissions|CO2,reduce_ratio_2080
+REMIND 3.5,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND 3.5,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND 3.5,World,Emissions|HFC|HFC125,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC23,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC32,constant_ratio
+REMIND 3.5,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND 3.5,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND 3.5,World,Emissions|SF6,constant_ratio
+REMIND 3.5,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-Buildings 2.0,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-Buildings 2.0,World,Emissions|CO2,reduce_ratio_2080
+REMIND-Buildings 2.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-Buildings 2.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-Buildings 2.0,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-Buildings 2.0,World,Emissions|SF6,constant_ratio
+REMIND-Buildings 2.0,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.5,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.5,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 1.5,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 1.5,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC125,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC23,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC32,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.5,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 1.5,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.7-3.0,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.7-3.0,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 1.7-3.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 1.7-3.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 1.7-3.0,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.7-3.0,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC125,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC23,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC32,constant_ratio
+REMIND-MAgPIE 1.7-3.0,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND-MAgPIE 2.0-4.1,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.0-4.1,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 2.0-4.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 2.0-4.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 2.0-4.1,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.0-4.1,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 2.0-4.1,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.2,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.2,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 2.1-4.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 2.1-4.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 2.1-4.2,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.2,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 2.1-4.2,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.3,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.3,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 2.1-4.3,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 2.1-4.3,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 2.1-4.3,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 2.1-4.3,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 2.1-4.3,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2-4.6,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2-4.6,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 3.2-4.6,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 3.2-4.6,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 3.2-4.6,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2-4.6,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 3.2-4.6,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 3.2.0-4.8.0,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.3-4.8,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.3-4.8,World,Emissions|CO2,reduce_ratio_2080
+REMIND-MAgPIE 3.3-4.8,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-MAgPIE 3.3-4.8,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC125,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC134a,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC143a,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC227ea,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC23,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC32,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|HFC|HFC43-10,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-MAgPIE 3.3-4.8,World,Emissions|SF6,constant_ratio
+REMIND-MAgPIE 3.3-4.8,World,Emissions|VOC,reduce_ratio_2150_cov
+REMIND-Transport 2.1,World,Emissions|CO,reduce_ratio_2150_cov
+REMIND-Transport 2.1,World,Emissions|CO2,reduce_ratio_2080
+REMIND-Transport 2.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+REMIND-Transport 2.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+REMIND-Transport 2.1,World,Emissions|OC,reduce_ratio_2150_cov
+REMIND-Transport 2.1,World,Emissions|SF6,constant_ratio
+REMIND-Transport 2.1,World,Emissions|VOC,reduce_ratio_2150_cov
+TIAM-ECN 1.1,World,Emissions|CO2,reduce_ratio_2080
+TIAM-ECN 1.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+TIAM-ECN 1.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+TIAM-ECN 1.2,World,Emissions|CO2,reduce_ratio_2080
+TIAM-ECN 1.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+TIAM-ECN 1.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH 4.6,World,Emissions|CO,reduce_ratio_2150_cov
+WITCH 4.6,World,Emissions|CO2,reduce_ratio_2080
+WITCH 4.6,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH 4.6,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH 4.6,World,Emissions|HFC|HFC125,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC134a,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC143a,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC227ea,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC23,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC32,constant_ratio
+WITCH 4.6,World,Emissions|HFC|HFC43-10,constant_ratio
+WITCH 4.6,World,Emissions|OC,reduce_ratio_2150_cov
+WITCH 4.6,World,Emissions|SF6,constant_ratio
+WITCH 4.6,World,Emissions|VOC,reduce_ratio_2150_cov
+WITCH 5.0,World,Emissions|CO,reduce_ratio_2150_cov
+WITCH 5.0,World,Emissions|CO2,reduce_ratio_2080
+WITCH 5.0,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH 5.0,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH 5.0,World,Emissions|HFC|HFC125,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC134a,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC143a,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC227ea,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC23,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC32,constant_ratio
+WITCH 5.0,World,Emissions|HFC|HFC43-10,constant_ratio
+WITCH 5.0,World,Emissions|OC,reduce_ratio_2150_cov
+WITCH 5.0,World,Emissions|SF6,constant_ratio
+WITCH 5.0,World,Emissions|VOC,reduce_ratio_2150_cov
+WITCH-GLOBIOM 3.1,World,Emissions|CO,reduce_ratio_2150_cov
+WITCH-GLOBIOM 3.1,World,Emissions|CO2,reduce_ratio_2080
+WITCH-GLOBIOM 3.1,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH-GLOBIOM 3.1,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC125,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC134a,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC143a,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC227ea,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC23,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC32,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|HFC|HFC43-10,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|OC,reduce_ratio_2150_cov
+WITCH-GLOBIOM 3.1,World,Emissions|SF6,constant_ratio
+WITCH-GLOBIOM 3.1,World,Emissions|VOC,reduce_ratio_2150_cov
+WITCH-GLOBIOM 4.2,World,Emissions|CO,reduce_ratio_2150_cov
+WITCH-GLOBIOM 4.2,World,Emissions|CO2,reduce_ratio_2080
+WITCH-GLOBIOM 4.2,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH-GLOBIOM 4.2,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC125,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC134a,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC143a,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC227ea,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC23,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC32,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|HFC|HFC43-10,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|OC,reduce_ratio_2150_cov
+WITCH-GLOBIOM 4.2,World,Emissions|SF6,constant_ratio
+WITCH-GLOBIOM 4.2,World,Emissions|VOC,reduce_ratio_2150_cov
+WITCH-GLOBIOM 4.4,World,Emissions|CO2,reduce_ratio_2080
+WITCH-GLOBIOM 4.4,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH-GLOBIOM 4.4,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
