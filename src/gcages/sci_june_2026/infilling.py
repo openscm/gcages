@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 @define
-class SCIInfiller:
+class SCIJune2026Infiller:
     """
     Infiller that follows the same logic as was used in SCI
 
@@ -137,7 +137,7 @@ class SCIInfiller:
         harmonisation_year: int = 2023,
         ur: UnitRegistry | None = None,
         run_checks: bool = True,
-    ) -> SCIInfiller:
+    ) -> SCIJune2026Infiller:
         """
         Initialise from the config used in AR6
 

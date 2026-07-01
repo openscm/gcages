@@ -27,7 +27,7 @@ from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 
 @define
-class SCIPreProcessor:
+class SCIJune2026PreProcessor:
     """
     Pre-processor that follows the same logic as was used in SCI
 
@@ -154,8 +154,6 @@ class SCIPreProcessor:
         rows_to_drop = ~keep_condition.all(axis=1)
         in_emissions = in_emissions.drop(non_co2.index[rows_to_drop])
 
-        # TODO Should we check that emissions_out complies
-        # with CMIP7_SCENARIOMIP conventions?
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Interpolate to annual steps
@@ -163,7 +161,6 @@ class SCIPreProcessor:
             if y not in res:
                 res.loc[:, y] = nan
 
-        # TODO Should we check that we have data starting before the harmonisation year?
         res = (
             res.T.interpolate(method="index")
             .T.sort_index(axis="columns")
@@ -190,7 +187,7 @@ class SCIPreProcessor:
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
-    ) -> SCIPreProcessor:
+    ) -> SCIJune2026PreProcessor:
         """
         Initialise from config that was used in AR6
 
@@ -240,7 +237,6 @@ class SCIPreProcessor:
                 "Emissions|HFC|HFC143a",
                 "Emissions|HFC|HFC227ea",
                 "Emissions|HFC|HFC23",
-                # 'Emissions|HFC|HFC245ca',  # Not in the SCI database as June 2026
                 "Emissions|HFC|HFC245fa",
                 "Emissions|HFC|HFC32",
                 "Emissions|HFC|HFC43-10",

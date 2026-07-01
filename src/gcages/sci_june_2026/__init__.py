@@ -5,23 +5,24 @@ SCI components
 from __future__ import annotations
 
 from gcages.sci_june_2026.harmonisation import (
-    SCIHarmoniser,
+    create_scijune2026_global_harmoniser,
     load_historical_emissions,
 )
 from gcages.sci_june_2026.infilling import (
-    SCIInfiller,
+    SCIJune2026Infiller,
 )
 from gcages.sci_june_2026.pre_processing import (
-    SCIPreProcessor,
+    SCIJune2026PreProcessor,
 )
 from gcages.sci_june_2026.scm_running import (
-    SCISCMRunner,
+    SCIJune2026SCMRunner,
 )
 
 __all__ = [
-    "SCIHarmoniser",
-    "SCIInfiller",
-    "SCIPreProcessor",
-    "SCISCMRunner",
+    "SCIJune2026Harmoniser",
+    "SCIJune2026Infiller",
+    "SCIJune2026PreProcessor",
+    "SCIJune2026SCMRunner",
+    "create_scijune2026_global_harmoniser",
     "load_historical_emissions",
 ]

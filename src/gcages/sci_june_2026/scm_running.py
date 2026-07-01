@@ -102,9 +102,9 @@ Default variables to get from SCMs
 
 
 @define
-class SCISCMRunner:
+class SCIJune2026SCMRunner:
     """
-    SCI Simple climate model runner
+    SCIJune2026 Simple climate model runner
 
     """
 
@@ -262,17 +262,6 @@ class SCISCMRunner:
             # Not running MAGICC, use emissions as-is
             complete_emissions = in_emissions
 
-        # openscm_runner_emissions = update_index_levels_func(
-        #     complete_emissions,
-        #     {
-        #         "variable": partial(
-        #             convert_variable_name,
-        #             from_convention=SupportedNamingConventions.GCAGES,
-        #             to_convention=SupportedNamingConventions.OPENSCM_RUNNER,
-        #         )
-        #     },
-        # )
-
         openscm_runner_emissions = rename_variables(
             complete_emissions,
             from_convention=SupportedNamingConventions.GCAGES,
@@ -344,7 +333,7 @@ class SCISCMRunner:
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
-    ) -> SCISCMRunner:
+    ) -> SCIJune2026SCMRunner:
         """
         Initialise from the config used in CMIP7 ScenarioMIP
 
