@@ -17,12 +17,19 @@ def main() -> None:
     """
     Extract the unique testing scenarios
     """
-    infile = Path("SCI-2025_v1.1_beta_pathways_ensemble_global_emissions.xlsx")
-    start = pd.read_excel(infile, sheet_name="data")
-    # infile = Path("SCI-2025_v1.1_beta_pathways_ensemble_global_emissions.feather")
-    # start = pd.read_feather(infile)
+    # infile = Path("SCI-2025_v1.1_beta_pathways_ensemble_global_emissions.xlsx")
+    # start = pd.read_excel(infile, sheet_name="data")
+    # # infile = Path("SCI-2025_v1.1_beta_pathways_ensemble_global_emissions.feather")
+    # # start = pd.read_feather(infile)
+    #
+    # outfile = Path("SCI-2026-June-unique-testing-pathways.csv")
 
-    outfile = Path("SCI-2026-June-unique-testing-pathways.csv")
+    infile = Path(
+        "tests/regression/ar6/ar6-output/AR6_Scenarios_Database_World_ALL_CLIMATE_v1.1.csv"
+    )
+    start = pd.read_csv(infile)
+
+    outfile = Path("AR6-unique-testing-pathways.csv")
 
     # This defines what our 'starting set to consider is'.
     #
