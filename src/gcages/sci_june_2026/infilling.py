@@ -133,7 +133,7 @@ class SCIJune2026Infiller:
         infilling_leader_emissions_file: Path,
         ghg_inversions_file: Path,
         historical_emissions_file: Path,
-        pi_year: int = 1750,
+        pre_industrial_year: int = 1750,
         harmonisation_year: int = 2023,
         ur: UnitRegistry | None = None,
         run_checks: bool = True,
@@ -154,7 +154,7 @@ class SCIJune2026Infiller:
         historical_emissions_file
             File containing the historical emissions used for harmonisation
 
-        pi_year
+        pre_industrial_year
             Pre-Industrial Year
 
         harmonisation_year
@@ -169,7 +169,7 @@ class SCIJune2026Infiller:
         Returns
         -------
         :
-            Initialised CMIP7ScenarioMIPInfiller
+            Initialised SCIJune2026Infiller
         """
         if ur is None:
             try:
@@ -187,7 +187,6 @@ class SCIJune2026Infiller:
             lower_column_names=True,
             index_columns=["model", "scenario", "region", "variable", "unit"],
             out_columns_type=int,
-            # out_columns_name="year",
         )
 
         # CMIP7 GHG inversions
@@ -196,7 +195,6 @@ class SCIJune2026Infiller:
             lower_column_names=True,
             index_columns=["model", "scenario", "region", "variable", "unit"],
             out_columns_type=int,
-            # out_columns_name="year",
         )
         # History
         historical_emissions = load_historical_emissions(
@@ -204,17 +202,6 @@ class SCIJune2026Infiller:
         )
 
         # Use gcages naming convention.
-        # infilling_db = update_index_levels_func(
-        #     infilling_db,
-        #     {
-        #         "variable": lambda x: convert_variable_name(
-        #             x,
-        #             from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-        #             to_convention=SupportedNamingConventions.GCAGES,
-        #         )
-        #     },
-        #     copy=False,
-        # )
         infilling_db = rename_variables(
             infilling_db,
             from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
@@ -227,18 +214,12 @@ class SCIJune2026Infiller:
             to_convention=SupportedNamingConventions.GCAGES,
         )
 
-        # historical_emissions = rename_variables(
-        #     historical_emissions,
-        #     from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-        #     to_convention=SupportedNamingConventions.GCAGES,
-        # )
-
         return cls(
             infilling_db=infilling_db,
             historical_emissions=historical_emissions,
             ghg_inversions=ghg_inversions,
             harmonisation_year=harmonisation_year,
-            pre_industrial_year=pi_year,
+            pre_industrial_year=pre_industrial_year,
             run_checks=run_checks,
             ur=ur,
         )

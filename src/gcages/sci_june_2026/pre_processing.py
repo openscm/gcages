@@ -49,11 +49,6 @@ class SCIJune2026PreProcessor:
     are not automatically set to zero.
     """
 
-    harmonisation_year: int
-    """
-    Harmonisation year to consider
-    """
-
     reclassifications: Mapping[str, tuple[str, ...]] | None = None
     """
     Variables that should be reclassified as being part of another variable
@@ -133,6 +128,10 @@ class SCIJune2026PreProcessor:
         )
 
         if self.reclassifications is not None:
+            # TODO: switch to using something like the ScenarioMIP reaggregator.
+            # The reason we want to use this is that we want to check reporting
+            # consistency and re-aggregation together,
+            # so we can give sensible error messages.
             in_emissions = rp(  # type: ignore
                 in_emissions,
                 func_to_call=reclassify_variables,
@@ -140,17 +139,14 @@ class SCIJune2026PreProcessor:
                 reclassifications=self.reclassifications,
             )
 
-        # TODO: Should we have this inside here?? Should we raise an error?
         # Negative value handling
         co2_locator = ismatch(variable="**CO2**")
         # Daniel's suggestion is to drop the unexpected negative values rows
         # but not the whole scenario
         non_co2 = in_emissions.loc[~co2_locator]
         keep_condition = (
-            (non_co2 > 0)
-            | (non_co2 < self.negative_value_not_small_threshold)
-            | non_co2.isnull()
-        )
+            non_co2 > self.negative_value_not_small_threshold
+        ) | non_co2.isnull()
         rows_to_drop = ~keep_condition.all(axis=1)
         in_emissions = in_emissions.drop(non_co2.index[rows_to_drop])
 
@@ -161,11 +157,7 @@ class SCIJune2026PreProcessor:
             if y not in res:
                 res.loc[:, y] = nan
 
-        res = (
-            res.T.interpolate(method="index")
-            .T.sort_index(axis="columns")
-            .loc[:, self.harmonisation_year :]
-        )
+        res = res.T.interpolate(method="index").T.sort_index(axis="columns")
 
         # Convert to gcages naming conventions
         res = rename_variables(
@@ -182,7 +174,6 @@ class SCIJune2026PreProcessor:
     @classmethod
     def from_standard_config(
         cls,
-        harmonisation_year: int = 2023,
         negative_value_not_small_threshold: float = -0.001,
         run_checks: bool = True,
         progress: bool = True,
@@ -193,9 +184,6 @@ class SCIJune2026PreProcessor:
 
         Parameters
         ----------
-        harmonisation_year
-            Harmonisation year to consider
-
         negative_value_not_small_threshold
             Negative values considered to be too large to be ignored/kept
 
@@ -263,7 +251,6 @@ class SCIJune2026PreProcessor:
 
         return cls(
             emissions_out=emissions_out,
-            harmonisation_year=harmonisation_year,
             negative_value_not_small_threshold=negative_value_not_small_threshold,
             reclassifications=reclassifications,
             run_checks=run_checks,
