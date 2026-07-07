@@ -1,0 +1,1567 @@
+model,scenario,climate_model,region,unit,variable,metric,quantile,value
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.152901016892388
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2118807154840918
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.2905203136063637
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.4748863151099478
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.567242214889228
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.6376896984656075
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.867269071802924
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.1177095309177183
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.3055398752538143
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8092068038493275
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.876959231606576
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.967295801949574
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.2022390006174413
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.319947878874384
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.3944212142715888
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.6659544101757573
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.9900601341846715
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.233139427191357
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2036.5
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2037.0
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2037.6666666666667
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2044.5
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2048.5
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.0
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2052.5
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2059.5
+AIM/CGE 2.0,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2064.75
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.5457114034306856
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.630058218176039
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.74252063783651
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.0411998345140097
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.1937375198019837
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.29254403967213
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.6418491305543426
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.0551362387475964
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.365101569892537
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.5310599143913812
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.614985228982801
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.7268856484380275
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.0356292381886227
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.193159912128457
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.291793149696546
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.6418491305543426
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.0551362387475964
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.365101569892537
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2093.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2093.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2093.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2093.65
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2097.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+AIM/CGE 2.0,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,3.4887573961958305
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.747183852341025
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,4.091752460534618
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,4.644131780133276
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.930260740269132
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,5.033900629695447
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,5.562550620209983
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,6.537477118585054
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,7.268671992366357
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,3.4887573961958305
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.747183852341025
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,4.091752460534618
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,4.644131780133276
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.930260740269132
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,5.033900629695447
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,5.562550620209983
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,6.537477118585054
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,7.268671992366357
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+AIM/CGE 2.0,SSP5-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.605892652564722
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.7225320399516495
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.87805122313422
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.2928729685734783
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.5622748678182385
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.6555672994965374
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.928659335994716
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.454839980827698
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.8494754644524343
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.605892652564722
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.7225320399516495
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.87805122313422
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.2928729685734783
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.5622748678182385
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.6555672994965374
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.928659335994716
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.454839980827698
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.8494754644524343
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2551925622793338
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3159933357631832
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3970610337416491
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5954583350171636
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.6948612649714383
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7872126459976398
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.1070915379223663
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.4573138846463847
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.7199806446893984
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1537372547368738
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.218397027112957
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.3046100569477346
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.5627293669981015
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.6867802027683558
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.7762717544105633
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.1030270856863766
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.45487521330479
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.7187613090186016
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.65
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2072.0
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2094.0
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2095.0
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2097.0
+AIM/CGE 2.1,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.5
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2599435526789775
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.314786917168964
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3879114031556123
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5772569419197824
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.6855711353601408
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7609900402004013
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.01821424925602
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.3492785763402138
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.59757682165336
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.150174828054627
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2002838960851738
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.2670959867925695
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.5294406574180384
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.6821663510518254
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.7482397953522546
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.987856523427099
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.3310639408428613
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.5884695039046832
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2049.0
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2049.0
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2049.0
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2050.3
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2053.5
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2071.4
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3163637613847134
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3906481147895733
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4896939193293863
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7344235805627926
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.855333696243264
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.9404105132401783
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.256357040536769
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.63093168659902
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.9118626711457085
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1710933299309203
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2482468350415734
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.3511181751891108
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.6412248192590415
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.7861564799798355
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.8733442609282869
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.202779443500006
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.598785128376962
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.89578939203468
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2065.5
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2069.0
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2069.35
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2075.0
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2085.0
+AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2092.5
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.1792399125173367
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.23332061707283
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.305428223146821
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.4706005442700762
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.5661893948389776
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.6586665462521188
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.8996532173374956
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.134947263057123
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.311417797346844
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9205814312225232
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.9775161680221398
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.0534291504216284
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.2775373021272642
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.3914168187639702
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.471993958685004
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.7397840504174855
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.026755454957448
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.241984008362421
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.5
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.0
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2046.3333333333333
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2048.65
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.0
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2052.5
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2059.5
+AIM/Hub-Global 2.0,SDI-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2064.75
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.9414048974110574
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.130089377067857
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.3816686832769225
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.9255816388477474
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.165814096739169
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.215025855264626
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.687494041382839
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.505689263474552
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.119335680043337
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.9414048974110574
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.130089377067857
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.3816686832769225
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.9255816388477474
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.165814096739169
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.215025855264626
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.687494041382839
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.505689263474552
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.119335680043337
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+AIM/Hub-Global 2.4,GEO7-Current Trends,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.507117918809794
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.6273450141256856
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.7876478078802074
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.1892834371876893
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.426531024514389
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.521413928234796
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.835166052716068
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.3484849473558294
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.733474118335651
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.4408917772447354
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.575985370948198
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.756110162552815
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.181714110946869
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.426531024514389
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.521413928234796
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.835166052716068
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.3484849473558294
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.733474118335651
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2075.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2081.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2089.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2097.55
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+CGEM-ESM 1.0,China-2060-SSP2-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3730510616822178
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4491232549341475
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5505528459367206
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7891940191200668
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.9224312257043388
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.017357478451098
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.297461279561608
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.6241139549578403
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.869103461505014
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1368111722621044
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2026636739500356
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.290467009533944
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.5412359925645849
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.6857307123780036
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.7811087592204309
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.07057033941072
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.418192226063318
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.6789086410527685
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2059.25
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2059.5
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2059.833333333333
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2065.85
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2069.0
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2069.0
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2070.833333333333
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2074.5
+COFFEE 1.1,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2077.25
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.4077304361378058
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4800259231618231
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.576419905860513
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.8436169154320576
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.9898103741400817
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.048591274275289
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.304884570976702
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.704146345491304
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.003592676377256
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.250493001292488
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3269960451234983
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4290001035648454
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.7401250572460658
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.90657176400479
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9564645572740749
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.2137143927424425
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.6408827505760004
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.9612590189511687
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2069.0
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2069.0
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2069.0
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2070.3
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2071.0
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2071.7
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2076.333333333333
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2083.0
+COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2088.0
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2396908208676862
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.309825660692122
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4033387804580368
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6411102872397272
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7696885930715316
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.858252456661276
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.1630615940238487
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.5392750461363223
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.821435135220678
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9781844782836808
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.0578269887789136
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.1640170027725574
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.4449002854170596
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.575430758801379
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.656377303116515
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.9977004744362985
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.4089391451803266
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.7173681482383483
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2050.75
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2053.5
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.1666666666665
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2059.65
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2064.5
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2069.0
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2071.5
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2076.5
+GCAM 4.2,SSP1-19,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2080.25
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.626223539100683
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,2.798582709119802
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.028394935811961
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.396439572681375
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.555592512406421
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,3.648900961806599
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.137399305925567
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,4.852684196894915
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,5.389147865121927
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.626223539100683
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,2.798582709119802
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.028394935811961
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.396439572681375
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.555592512406421
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,3.648900961806599
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.137399305925567
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,4.852684196894915
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,5.389147865121927
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GCAM 5.2,NGFS Phase 1-Current Policies,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.902722523317961
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.0658744722998805
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.283410404275773
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.71127266091634
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.914960039010946
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,3.962203530156817
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.384479721754423
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.171920818025411
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,5.762501640228653
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.902722523317961
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.0658744722998805
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.283410404275773
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.71127266091634
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.914960039010946
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,3.962203530156817
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.384479721754423
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.171920818025411
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,5.762501640228653
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GCAM 5.3,Deep-Mitigation-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3445260096778338
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4271789665398524
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5373829090225442
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7926164850949915
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.9265953410538568
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.006902594472713
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.31637376483235
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.734404562466599
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.0479276606922863
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.197189412433573
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2894857825154795
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4125476092913551
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.7221922845509952
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.880984242541242
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9658667859310144
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.290841965154525
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.719085482659904
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.040268120788939
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2059.65
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2062.0
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2065.4
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2073.333333333333
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2084.0
+GCAM 5.3,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2092.0
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2355427748215804
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.309017828682856
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4069845671645569
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6206321998431334
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.735273149559558
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.8023499856568777
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.0199596199866665
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.302517069498897
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.51443515663307
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9851851990172428
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.0543540476229198
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.146579179097156
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.4204388533958263
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.561527172968073
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.6047935512300366
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.824525409486012
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.171833548027337
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.432314651933331
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2041.5
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2044.0
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2047.3333333333333
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.0
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.35
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2055.333333333333
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2066.0
+GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2074.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.157966106650416
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,2.174573293297024
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,2.1967162088258343
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.4858224936386777
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.7010150954678287
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.7716165882195947
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,3.049237437225364
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.585462171998884
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.987630723079024
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.157966106650416
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,2.174573293297024
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,2.1967162088258343
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.4858224936386777
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.7010150954678287
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.7716165882195947
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,3.049237437225364
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.585462171998884
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.987630723079024
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.629436488184125
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,2.8132261227561344
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.0582789688521466
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.4657180463910184
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.648023695669535
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,3.7130865263590063
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.140968826380841
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,4.86238144363066
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,5.403440906568026
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.629436488184125
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,2.8132261227561344
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.0582789688521466
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.4657180463910184
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.648023695669535
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,3.7130865263590063
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.140968826380841
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,4.86238144363066
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,5.403440906568026
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GCAM-PR 5.3,ParisReinforce-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3485968680830496
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4233479877744688
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.523016147363028
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.788144474743324
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.940870608845758
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.9977732371000765
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.267343164105428
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.731810401808527
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.0801608300858523
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1938153243256118
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2854246639087863
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4075704500196862
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.751672065314564
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.940870608845758
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9917561592073176
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.2530167881702883
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.723214576247444
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.0758629173053107
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2055.5
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2079.5
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GEM-E3 V2021,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3918392381852778
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4726822993923017
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5804730476683333
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.860604758260867
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.005387861956765
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.06815366560838
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.3956414214124737
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.902779945990389
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.283133839423826
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2500342672674023
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3456678896941563
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4731793862631613
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.8265031077203269
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.0042701712078053
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.0636620421414347
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.3884065988093823
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.898439052428534
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.280963392642898
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2065.5
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2081.5
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2096.1
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3313592718643077
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4085378284211134
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5114425704968546
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.8368836357924525
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.049212961000852
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.1270551680434537
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.366107099355621
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.79575715522318
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.117994697123849
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2767016342272286
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3712537929658204
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4973233379506097
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.83599574491035
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.049212961000852
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.1270551680434537
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.366107099355621
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.79575715522318
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.117994697123849
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2059.5
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2071.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2086.333333333333
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2097.9
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+IMAGE 3.0,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.493731432744335
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.608719585571644
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.7620371226747222
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.183024628277122
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.4275078453936594
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.5084687941585826
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.800469618441645
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.3031822182120463
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.680216668039847
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.4537441770621673
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.5778273997956846
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.7432716967737076
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.178578912189882
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.4275078453936594
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.5084687941585826
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.800469618441645
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.3031822182120463
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.680216668039847
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2067.5
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2076.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2087.333333333333
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2097.55
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.430061986490217
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.526467715696694
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.6550086879719963
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.000563213771763
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.1940910648840477
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.260401217510178
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.513843368573284
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.9306824714666897
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.243311798636745
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.4250534909623265
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.5231287186781
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.653895688965798
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.000563213771763
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.1940910648840477
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.260401217510178
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.513843368573284
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.9306824714666897
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.243311798636745
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2070.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2080.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2093.333333333333
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+IMAGE 3.0.1,SSP3-34,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.270876120455988
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,2.4509893003923127
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,2.691140206974079
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.105654352773752
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.278598100608269
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,3.3309676041839555
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,3.734540985273781
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,4.400657555397222
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,4.900244982989804
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.270876120455988
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,2.4509893003923127
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,2.691140206974079
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.105654352773752
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.278598100608269
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,3.3309676041839555
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,3.734540985273781
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,4.400657555397222
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,4.900244982989804
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+IMAGE 3.2,SSP2021-SSP1-Baseline,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.551896053174335
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.6534899731685202
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.7889485331607669
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.075127606804533
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.2380109905966625
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.31765108350491
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.576319804740669
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.9659470260570355
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.25816744204431
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.39671340774519
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.48604768920422
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.6051600644829265
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.9027725963926767
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.087998635687963
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.1688544676435897
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.4142696583048733
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.816648121205378
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.118431968380757
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2070.0
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2070.0
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2070.0
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2076.5
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2080.5
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2081.35
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2082.333333333333
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2083.0
+MERGE-ETL 6.0,DAC-2°C-66%,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2083.5
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.229376714152104
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3001859961288451
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.394598372097833
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6347048808181706
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7737363786779556
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.8314641557808595
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.0487373985421597
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.399468491118632
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.6625168105509864
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8830583939329959
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.9654356565188992
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.0752720066334365
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.388241449531466
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.5623238212447592
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.6155316944919966
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.8467793753109267
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.242134624141185
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.5386510607638795
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.75
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.5
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2047.1666666666667
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2055.5
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2059.5
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2060.0
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2063.6666666666665
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2071.0
+MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2076.5
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.83837257645387
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.0423305368999904
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.314274484161484
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.778087609197284
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.012640424162874
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.085925419759658
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.52741460978099
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.35370544466911
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,5.973423570835201
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.83837257645387
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.0423305368999904
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.314274484161484
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.778087609197284
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.012640424162874
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.085925419759658
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.52741460978099
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.35370544466911
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,5.973423570835201
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.4967446241631166
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.590986840873362
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.716643129820356
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.0466268607994182
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.216688036077966
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.270594148954453
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.585766894202872
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.113234300610519
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.5088348554162545
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.334411741968935
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.4415844564667604
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.5844814091305277
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.971554571770996
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.1713478315255728
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.2201355988767686
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.530173829686229
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.079878461900533
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.492156936061261
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2061.75
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2064.5
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2068.1666666666665
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2077.8
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2082.0
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2082.35
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2085.833333333333
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2091.5
+MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2095.75
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.1844222339459898
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2576655543087547
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3553233147924413
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5938209403480004
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7474427782805009
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.8076346060840316
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.9922523398855896
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.3291760687688763
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.5818688654313413
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9047217944499412
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.9796118936708292
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.0794653592986805
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.3748751569221562
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.5445404870059531
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.5974341131923182
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.8264496957781584
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.2272382029497697
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.527829583328479
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.5
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.0
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2046.3333333333333
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2048.65
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.0
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2056.5
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2071.5
+MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2082.75
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2193767240746762
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2867508460307315
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3765830086388051
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.597061289909926
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7252904333142902
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.789039522739299
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.0152428506356834
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.356022449846176
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.611607149254046
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8480093015744603
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.9262733180252636
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.030625339959668
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.334325459467287
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.5070858101707971
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.5447102692362054
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.7558296101131623
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.176953386584905
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.4927962189387127
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.5
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.0
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2046.3333333333333
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2048.65
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.35
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2055.333333333333
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2066.0
+MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2074.0
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3264404310813895
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4016367452566298
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5018984974902838
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7471205007530883
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.878780250098156
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.9399744959809488
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.2280663718961846
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.675796882294576
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.0115947650933705
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1358066763204526
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2248021616339468
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.3434628087186056
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.6853568807060573
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.868274530258261
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9118340887297616
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.1708904027647717
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.641491300815728
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.9944419743539465
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2055.5
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2059.0
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2059.0
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2065.833333333333
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2079.5
+MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2089.75
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.336531140197586
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4145235458030787
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5185134199437358
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.800969862678091
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.952541714297164
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.0061295919724333
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.295252563515651
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.7765159699224435
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.1374635247275378
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2103271886388494
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3007138829310716
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.421229475320701
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.7688724454676632
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.9481534192229384
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.992578177984484
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.274331926188527
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.763963587526169
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.1311873335294007
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2065.5
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2081.0
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2093.35
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2095.0
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2097.0
+MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.5
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3384926697063653
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4174010737694744
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5226122791869532
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.819501413240485
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.97708959518042
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.026924093902461
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.3186213827963527
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.813676864132441
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.1849684751345078
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2070402915808724
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.303087610401459
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.431150702162241
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.790991819779176
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.9739177043055427
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.0154174354164813
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.2998587114597395
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.802419261330473
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.179339673733523
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2066.15
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2082.0
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2094.0
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2095.0
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2097.0
+MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.5
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2261560839459331
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2918173758491138
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3793657650533546
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6033370195524967
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.703279083309582
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7524808735424602
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.036350524369331
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.43215957931894
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.7290163705311463
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.056649807948208
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.1400940415677838
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.2513530197272182
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.5544170200436445
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.6940085966417673
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.730508814338997
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.9930521475903609
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.406180553251557
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.7160268574974555
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.0
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2066.85
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.652294174024997
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,2.841111466981292
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.092867857589684
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.4985036525152275
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.702002005554716
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,3.7853269592026
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.217031884360819
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,4.967284876031945
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,5.52997461978529
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.652294174024997
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,2.841111466981292
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.092867857589684
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.4985036525152275
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.702002005554716
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,3.7853269592026
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.217031884360819
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,4.967284876031945
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,5.52997461978529
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.5490234075508449
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.649504135191084
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.7834784387114029
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.1445094827027824
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.338900018354221
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.39735848445933
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.7180788331627763
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.2763222901364517
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.695004882866708
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.4308645061506438
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.5433340987222648
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.6932935554844262
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,2.095569312744599
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.306279750421446
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.362108633184284
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.6870874864758654
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.2577274821243045
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.6857074788606345
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2072.25
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2075.5
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2079.833333333333
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2083.3
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2088.0
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2092.35
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2094.1666666666665
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2096.5
+MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.25
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.5004631609351904
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.5967262926272947
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.7250771348834335
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,2.053887968000325
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.2265089461420717
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.283111759559348
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.5903948665773227
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,3.106614868469371
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.4937798698884075
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.3399992256246387
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.4457358406039715
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.5867179939097484
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.972748157743744
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.1762070875675046
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.227523161580119
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.530583504239775
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,3.070728051066842
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.4758364611871437
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2068.5
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2069.0
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2069.6666666666665
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2077.8
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2082.0
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2082.0
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2085.0
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2091.0
+MINES 0.1.0,China-NZP-SSP2-com,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2095.5
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.1772322496030294
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.22459749438987
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.2877511541056572
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.440795812070781
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.5342645232595578
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.612476911250588
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.818329575003218
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.043765589599934
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.2128426005474706
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.7760584486924139
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.8240936317534082
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.8881405425014007
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.0533599842286552
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.1390586288360065
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.19944266968631
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.4068750199488933
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.6493734188651488
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,1.8312472180523405
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2036.5
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2037.0
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2037.6666666666667
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2038.65
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2039.5
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2042.8
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2049.833333333333
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2053.5
+POLES ADVANCE,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2056.25
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3083258313855246
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3945615798400954
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.509542577779523
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.8268434679705603
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.006605540688803
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.048909530712783
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.2811013808190364
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.7364228914533006
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.077914024428999
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.0690727711359882
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.1696746092488957
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.3038103933994387
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.6981352306827682
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.9061178665359448
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9493274143192647
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.210445946569008
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.6901834477689883
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.049986573668974
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2051.5
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2054.0
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2057.333333333333
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2065.5
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2069.0
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2069.0
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2073.1666666666665
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2081.5
+POLES GECO2019,COMMIT-2°C-2020,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2087.75
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2643665451115869
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3338544030180095
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.426504880226573
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6300768538688126
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7390495188591104
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.8133895617191973
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.0941427482850767
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.469791104967416
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.751527372479171
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1024325884085182
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.1748966126968683
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.2715153117480018
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.531112115882884
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.6512696328729033
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.7371863229175553
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.076280331950669
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.459073655166772
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.7461686475788487
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2041.25
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.5
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2046.5
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2048.65
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.0
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2052.5
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2065.833333333333
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2079.5
+POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2089.75
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.875661703835623
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.080179486484206
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.352869863348982
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.769746828414676
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,3.986229772219575
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.112977751662298
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.628560558005163
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.4319639136266575
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.034516430342778
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.875661703835623
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.080179486484206
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.352869863348982
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.769746828414676
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,3.986229772219575
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.112977751662298
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.628560558005163
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.4319639136266575
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.034516430342778
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+REMIND 1.6,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.18973314334263
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2386859374029455
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3039563294833658
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.4623904257884492
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.5655701104028978
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.6541289975780118
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.8695618013321509
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.1031354273710665
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.278315646900254
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.788218595038743
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.8303264249331715
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.8864701981257429
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.0544800261040554
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.154488676353339
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.239717558855147
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.4967722414463087
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.7859020040694873
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.0027493260368714
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2037.25
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2037.5
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2037.8333333333333
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2044.5
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2048.0
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2048.0
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2050.0
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2054.0
+REMIND 1.7,ADVANCE-2020-1.5°C-2100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2057.0
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3549903568670585
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.433137699597274
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.5373341565708945
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.801165822139431
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.938098211995768
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.0253895654219893
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.3654140687006406
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.806377193549206
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.1370995371856303
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2659351714100937
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3473562944787834
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4559177919037034
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.7502255156651838
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.9000885182142568
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9883685431873412
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.339659589561616
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.7909245060657906
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.1293731934439224
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2061.5
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2064.0
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2067.333333333333
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2077.45
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2082.0
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2082.35
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2085.833333333333
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2091.5
+REMIND 1.7,ADVANCE-2020-medium-2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2095.75
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.1698004277840723
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2190532959216194
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.284723786771682
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.435787524630221
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.5353717896021577
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.6247417014403378
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.8447364155469743
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.086207884818612
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.26731148677234
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8334736196211995
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.8801365474885718
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.9423537846450682
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.1256404423398594
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.2309804359469287
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.3188072733098437
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.5908358295056697
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.8955857297139536
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.1241481548701677
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2036.5
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2037.0
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2037.6666666666667
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2038.65
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2043.5
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2048.0
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2051.6666666666665
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2059.0
+REMIND 1.7,CEMICS-1.5°C-CDR12,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2064.5
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.8646518903660017
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.0749376950019216
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.3553187678498158
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,3.7906619132459287
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.014312243699021
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.1307910926338485
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.630504103631941
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.437690410465919
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.043080140591401
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.8646518903660017
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.0749376950019216
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.3553187678498158
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,3.7906619132459287
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.014312243699021
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.1307910926338485
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.630504103631941
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.437690410465919
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.043080140591401
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+REMIND 1.7,CEMICS-Ref,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2271290486069963
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.291638720942358
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3776516173895064
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5668706910073007
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.6699604225770577
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7451625250857985
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.976790121970205
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.251202687177209
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.457012111082463
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9811142988892594
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.0453345586103444
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.1309615715717911
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.356232838248237
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.4554936101890004
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.5051221039395095
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.7424849618067149
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.0366436189991943
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.2572626118935544
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.75
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.5
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2047.1666666666667
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.0
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.5
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2050.0
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2053.333333333333
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2060.0
+REMIND 2.1,CEMICS-GDPgrowth-1.5°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2065.0
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.300417007793666
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3724825480569445
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4685699350746486
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7181296178708645
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.8390674826252815
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.918029857810244
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.233829415280824
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.6183055129052297
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.906662586123535
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.2345914282680095
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.3114245706898389
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4138687605856113
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.6932864963096974
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.824575917951437
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.9000024441049408
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.2195471995118448
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.6097361834438426
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.9023779213928416
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2053.25
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2058.5
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2065.5
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2084.6
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2093.0
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2093.0
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2094.1666666666665
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2096.5
+REMIND 2.1,CEMICS-GDPgrowth-2.0°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.25
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2009728784587763
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2662136108872697
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.353201254125261
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5466681892639902
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.668539697618448
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7535816228764851
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.9638730186237123
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.221305177436831
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.41437929654667
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8901187428355775
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.9495636105593456
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.028823434191036
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.2434451849483026
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.3992465213969412
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.4758551990580806
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.6350752680070857
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.8976758892329637
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.094626355152372
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2040.75
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2043.5
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2047.1666666666667
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.65
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2050.0
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2053.15
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2060.5
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2063.5
+REMIND 2.1,ECEMF-DIAG-C400-lin,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2065.75
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2150471362444677
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.2708098880771777
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3451602238541245
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.5279134062607531
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.634858197614601
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7142582752599695
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.936563280253884
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.192326197836896
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.384148386024155
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8458966638116613
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.90030257594257
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.9728437921171148
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.1764067182260465
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.2729625370418507
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.3448012037312551
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.6075032590598763
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.8901292987147151
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.102098828455844
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2039.75
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2042.5
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2046.1666666666667
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2048.0
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2048.5
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2049.0
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2052.333333333333
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2059.0
+REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2064.0
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.236566734031196
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.298292689987238
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3805939645952945
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.565961884587705
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.67051908382637
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7479528713927508
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,1.9606832084311192
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.198453417628146
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.3767810745259164
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.8081810636417747
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,0.8594611418087983
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,0.9278345793648296
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.1192862410618691
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.2124808887519127
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.2886696980488948
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.5455046210019918
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,1.8078091236729388
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.004537500676149
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2037.75
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2038.5
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2039.5
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2044.55
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2047.5
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2048.0
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2049.6666666666665
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2053.0
+REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2055.5
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.3287876716409053
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.4001630493922896
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4953302197274687
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.7078957235496122
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.832884999116832
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.9150929966381955
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.175347680241762
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.524795100024396
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.7868806648613718
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.012193561125163
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.075141314783773
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.1590716529952534
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.4296157688541131
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.590512681155559
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.672909715431009
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.959961579776748
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.3684783904871107
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.674865998519884
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.0
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2049.5
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2053.15
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2062.833333333333
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2070.5
+REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2076.25
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2398033911227988
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3058598309824434
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.3939350841286364
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6017967716813626
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7222843053287142
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.7958840597171826
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.0121407895461454
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.291160735920665
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.500425695701555
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,0.9390048010591522
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.00381924682297
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.090238507841394
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.3339022625802517
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.480839377198732
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.5352915117220616
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,1.712659612558653
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.0100032061259627
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.233010901301445
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2048.25
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2048.5
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2048.833333333333
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2049.65
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2053.5
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2057.35
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2059.833333333333
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2063.5
+REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2066.25
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2853577872564177
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3605353491963812
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4607720984496662
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.6834026716909
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,1.7967224019979768
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,1.89654838196824
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.243022983985165
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.641067434897997
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,2.939600773082622
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1970995004026437
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2750342762350648
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.378947310678293
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.651978145009769
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,1.7857049056242922
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,1.8834509367123813
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.237775601034073
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.6379190051273422
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,2.9380265581972944
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2041.5
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2044.0
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2047.3333333333333
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2055.5
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2076.0
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2093.35
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2095.0
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2097.0
+REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2098.5
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,3.032170168925912
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.276161785872028
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.601483941800183
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,4.238847204601241
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.504051532642596
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.5340159903052495
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,5.043791203178579
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.987685349229315
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.695605958767366
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,3.032170168925912
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.276161785872028
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.601483941800183
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,4.238847204601241
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.504051532642596
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.5340159903052495
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,5.043791203178579
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.987685349229315
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.695605958767366
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+WITCH 4.6,DISCRATE-Reference-dr2p,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,1.2670272798989566
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,1.3555260400517553
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,1.4735243869221533
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,1.8179769934888712
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,2.015975924002734
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,2.085262411113452
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,2.3764757990332512
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,2.8660704983929213
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,3.2332665229126745
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,1.1578626778519898
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,1.2648800764137376
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,1.4075699411627345
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,1.796001927712489
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,2.0087446391367205
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,2.0790737661769745
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,2.3764757990332512
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,2.8660704983929213
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,3.2332665229126745
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2053.25
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2058.5
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2065.5
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2085.25
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2094.0
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2096.1
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+WITCH 5.0,COMMIT-Bridge,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.970905357600739
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.219036492282692
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.549878005191963
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,4.200265966996358
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.469789886711198
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.485024363157888
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.974129578721978
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.9269092455752
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.641493995715117
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.970905357600739
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.219036492282692
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.549878005191963
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,4.200265966996358
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.469789886711198
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.485024363157888
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.974129578721978
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.9269092455752
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.641493995715117
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.05,2.9408957573361656
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1,3.175925012771407
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.1666666666666666,3.489297353351729
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.33,4.120692570464481
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.5,4.382520312592358
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.67,4.393966723535471
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.8333333333333334,4.877630219633878
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.9,5.825526919728916
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),max,0.95,6.536449444800196
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.05,2.9408957573361656
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1,3.175925012771407
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.1666666666666666,3.489297353351729
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.33,4.120692570464481
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.5,4.382520312592358
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.67,4.393966723535471
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.8333333333333334,4.877630219633878
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.9,5.825526919728916
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,K,Surface Temperature (GSAT),2100,0.95,6.536449444800196
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.05,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.1666666666666666,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.33,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.5,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.67,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.8333333333333334,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.9,2100.0
+WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,MAGICCv7.6.0a3,World,yr,Surface Temperature (GSAT),max_year,0.95,2100.0

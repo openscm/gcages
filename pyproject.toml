@@ -384,6 +384,10 @@ ignore = [
     "E501",
     "PLR2004",
 ]
+"docs/how-to-guides/how-to-run-the-scijune2026-workflow.py" = [
+    "E501",
+    "PLR2004",
+]
 "scripts/*" = [
     "S101",
 ]

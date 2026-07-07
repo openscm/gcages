@@ -18,7 +18,7 @@ def main() -> None:
     Extract the unique testing scenarios
     """
     infile = Path(
-        "scripts/SCI-2025_v1.1_beta.2_pathways_ensemble_global_emissions.xlsx"
+        "scripts/SCI-2025_v1.1_beta.3_pathways_ensemble_global_emissions.xlsx"
     )
     start = pd.read_excel(infile, sheet_name="data")
     # infile = Path("SCI-2025_v1.1_beta_pathways_ensemble_global_emissions.feather")
