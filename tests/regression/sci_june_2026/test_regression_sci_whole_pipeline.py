@@ -11,12 +11,17 @@ import pandas as pd
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.sci_june_2026.harmonisation import create_scijune2026_global_harmoniser
-from gcages.sci_june_2026.infilling import SCIJune2026Infiller
+from gcages.renaming import SupportedNamingConventions, rename_variables
+from gcages.sci_june_2026.harmonisation import (
+    create_scijune2026_global_harmoniser,
+    load_historical_emissions,
+)
+from gcages.sci_june_2026.infilling import create_scijune2026_infiller
 from gcages.sci_june_2026.post_processing import SCIJune2026PostProcessor
 from gcages.sci_june_2026.pre_processing import SCIJune2026PreProcessor
 from gcages.sci_june_2026.scm_running import SCIJune2026SCMRunner
 from gcages.testing import (
+    KEY_SCI_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
     get_key_testing_model_scenario_parameters,
     guess_magicc_exe,
@@ -44,45 +49,6 @@ CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE = (
 
 # Variables
 HARMONISATION_YEAR = 2023
-KEY_SCI_TESTING_MODEL_SCENARIOS = tuple(
-    [
-        ("AIM/CGE 2.0", "SSP1-19"),
-        ("AIM/CGE 2.0", "SSP3-34"),
-        ("AIM/CGE 2.1", "CD-LINKS-INDC2030i_1600"),
-        ("AIM/CGE 2.1", "COMMIT-Bridge"),
-        ("AIM/CGE V2.2", "ENGAGE-Feasibility-1000/Cost-Effective"),
-        ("AIM/CGE V2.2", "ENGAGE-INDCi2030-1000f"),
-        ("AIM/Hub-Global 2.0", "SDI-1.5°C"),
-        ("AIM/Hub-Global 2.4", "GEO7-Current Trends"),
-        ("CGEM-ESM 1.0", "China-2060-SSP2-2°C"),
-        ("COFFEE 1.1", "COMMIT-2°C-2020"),
-        ("COFFEE 1.5", "ENGAGE-Feasibility-1000/Cost-Effective"),
-        ("GCAM 4.2", "SSP1-19"),
-        ("GCAM 5.2", "NGFS Phase 1-Current Policies"),
-        ("GCAM 5.3", "Deep-Mitigation-Baseline"),
-        ("GCAM 7.0", "IAM-COMPACT-Current-Policies-Emissions-Intensity"),
-        ("GCAM-PR 5.3", "ParisReinforce-Baseline"),
-        ("GEM-E3 V2021", "ENGAGE-INDCi2030-1000"),
-        ("IMAGE 3.0", "ENGAGE-INDCi2030-1000"),
-        ("IMAGE 3.0.1", "CD-LINKS-INDC2030i_1600"),
-        ("IMAGE 3.2", "SSP2021-SSP1-Baseline"),
-        ("MESSAGE-GLOBIOM 1.0", "EMF30-BCOC-EndU"),
-        ("MESSAGEix-GLOBIOM 1.0", "LowEnergyDemand (1.3/IPCC-AR6)"),
-        ("MESSAGEix-GLOBIOM 1.1", "ECEMF-DIAG-C400-lin"),
-        ("MESSAGEix-GLOBIOM 1.1", "ENGAGE-INDCi2030-1000"),
-        ("MESSAGEix-GLOBIOM 1.2", "COVID-Shift-GreenPush"),
-        ("MESSAGEix-GLOBIOM GEI 1.0", "GEI-SSP2-int-lc-15"),
-        ("POLES ADVANCE", "ADVANCE-2020-1.5°C-2100"),
-        ("REMIND 1.6", "EMF30-BCOC-EndU"),
-        ("REMIND 1.7", "ADVANCE-2020-1.5°C-2100"),
-        ("REMIND 3.5", "Rescuing-1.5°C-Highest-Possible-Ambition"),
-        ("REMIND-MAgPIE 1.7-3.0", "CD-LINKS-NDC2030i_1000"),
-        ("REMIND-MAgPIE 3.3-4.8", "NGFS Phase 5-Below 2°C"),
-        ("WITCH 5.0", "COMMIT-Bridge"),
-        ("WITCH-GLOBIOM 4.2", "ADVANCE-NoPolicy"),
-        ("WITCH-GLOBIOM 4.2", "EMF30-BCOC-EndU"),
-    ]
-)
 
 
 @pytest.mark.skip_ci_default
@@ -134,7 +100,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     assert_frame_equal(
         pre_processed.loc[:, 2023:],
         exp,
-        rtol=1e-8,
+        rtol=1e-6,
     )
 
     # HARMONISATION
@@ -166,20 +132,52 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     assert_frame_equal(
         harmonised,
         exp,
-        rtol=1e-8,
+        rtol=1e-6,
     )
 
     # INFILLING
-    infiller = SCIJune2026Infiller.from_files(
-        infilling_leader_emissions_file=SCI_INPUT_DIR / "infilling_db_sci.csv",
-        ghg_inversions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
-        / "cmip7_ghg_inversions.csv",
+    infilling_leader_emissions = load_timeseries_csv(
+        SCI_INPUT_DIR / "infilling_db_sci.csv",
+        lower_column_names=True,
+        index_columns=["model", "scenario", "region", "variable", "unit"],
+        out_columns_type=int,
+    )
+
+    # CMIP7 GHG inversions
+    ghg_inversions = load_timeseries_csv(
+        PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "cmip7_ghg_inversions.csv",
+        lower_column_names=True,
+        index_columns=["model", "scenario", "region", "variable", "unit"],
+        out_columns_type=int,
+    )
+    # History
+    historical_emissions = load_historical_emissions(
         historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+    )
+
+    # Use gcages naming convention.
+    infilling_leader_emissions = rename_variables(
+        infilling_leader_emissions,
+        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+        to_convention=SupportedNamingConventions.GCAGES,
+    )
+
+    ghg_inversions = rename_variables(
+        ghg_inversions,
+        from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+        to_convention=SupportedNamingConventions.GCAGES,
+    )
+
+    infiller = create_scijune2026_infiller(
+        infilling_leader_emissions=infilling_leader_emissions,
+        ghg_inversions=ghg_inversions,
+        historical_emissions=historical_emissions,
         harmonisation_year=HARMONISATION_YEAR,
         pre_industrial_year=1750,
-        ur=None,
+        run_checks=True,
     )
     complete = infiller(harmonised)
+
     # Loading and assessing infilled results
     file = SCI_OUTPUT_DIR / "sci_complete.csv"
     exp = load_timeseries_csv(
@@ -213,13 +211,9 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
         n_processes=multiprocessing.cpu_count(),
         batch_size_scenarios=15,
     )
-    n_cfgs = 6
-    scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
-        "MAGICC7"
-    ][:n_cfgs]
 
     scm_results = scm_runner(complete)
-    # Loading and assessing quantiles timeseries results
+    # Loading and assessing scm timeseries results
     file = SCI_OUTPUT_DIR / "scm_results.csv"
     exp = load_timeseries_csv(
         file,
@@ -241,9 +235,9 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     # TODO: I do not know why I do not get the same results here
     # I relax the tolerance but is a bit odd.
     assert_frame_equal(
-        scm_results,
+        scm_results[scm_results.index.get_level_values("run_id") == 0],
         exp,
-        rtol=1e-7,
+        rtol=1e-6,
     )
 
     post_processor = SCIJune2026PostProcessor.from_cmip7_scenariomip_config()

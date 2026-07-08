@@ -30,6 +30,8 @@ def main() -> None:
     #
     # For SCI, the maximum set of emissions we can consider is the set below.
     # Any variations beyond these, we don't care about.
+    # Note: the variables below would have to be adjusted
+    # if the input data were in a different naming convention.
     starting_filter = (
         pix.ismatch(region="World")
         & pix.ismatch(

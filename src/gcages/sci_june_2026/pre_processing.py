@@ -41,14 +41,6 @@ class SCIJune2026PreProcessor:
     but any names which are not in this list will be removed as part of pre-processing.
     """
 
-    negative_value_not_small_threshold: float
-    """
-    Threshold which defines when a negative value is not small
-
-    Non-CO2 emissions less than this that are negative
-    are not automatically set to zero.
-    """
-
     reclassifications: Mapping[str, tuple[str, ...]] | None = None
     """
     Variables that should be reclassified as being part of another variable
@@ -127,6 +119,21 @@ class SCIJune2026PreProcessor:
             n_processes=self.n_processes,
         )
 
+        # Negative values checking
+        co2_locator = ismatch(variable="**CO2**")
+        non_co2 = in_emissions.loc[~co2_locator]
+        keep_condition = (non_co2 >= 0.0) | non_co2.isnull()
+        rows_to_drop = ~keep_condition.all(axis=1)
+
+        if rows_to_drop.any():
+            negatives = (
+                non_co2.loc[rows_to_drop]
+                .reset_index()[["model", "scenario", "region", "variable"]]
+                .to_string(index=False)
+            )
+            msg = f"Below threshold values found in: \n {negatives}"
+            raise ValueError(msg)
+
         if self.reclassifications is not None:
             # TODO: switch to using something like the ScenarioMIP reaggregator.
             # The reason we want to use this is that we want to check reporting
@@ -138,17 +145,6 @@ class SCIJune2026PreProcessor:
                 progress_bar_desc="For each model-scenario, reclassifying variables",
                 reclassifications=self.reclassifications,
             )
-
-        # Negative value handling
-        co2_locator = ismatch(variable="**CO2**")
-        # Daniel's suggestion is to drop the unexpected negative values rows
-        # but not the whole scenario
-        non_co2 = in_emissions.loc[~co2_locator]
-        keep_condition = (
-            non_co2 > self.negative_value_not_small_threshold
-        ) | non_co2.isnull()
-        rows_to_drop = ~keep_condition.all(axis=1)
-        in_emissions = in_emissions.drop(non_co2.index[rows_to_drop])
 
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
@@ -174,7 +170,6 @@ class SCIJune2026PreProcessor:
     @classmethod
     def from_standard_config(
         cls,
-        negative_value_not_small_threshold: float = -0.001,
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
@@ -184,9 +179,6 @@ class SCIJune2026PreProcessor:
 
         Parameters
         ----------
-        negative_value_not_small_threshold
-            Negative values considered to be too large to be ignored/kept
-
         run_checks
             Should checks of the input and output data be performed?
 
@@ -206,38 +198,37 @@ class SCIJune2026PreProcessor:
         :
             Initialised Pre-processor
         """
-        emissions_out = tuple(
-            v
-            for v in (
-                "Emissions|BC",
-                "Emissions|C2F6",
-                "Emissions|C6F14",
-                "Emissions|CF4",
-                "Emissions|CO",
-                # "Emissions|CO2", # Not used
-                "Emissions|CO2|AFOLU",
-                "Emissions|CO2|Energy and Industrial Processes",
-                "Emissions|CH4",
-                # "Emissions|F-Gases",  # Not used
-                # "Emissions|HFC",  # Not used
-                "Emissions|HFC|HFC125",
-                "Emissions|HFC|HFC134a",
-                "Emissions|HFC|HFC143a",
-                "Emissions|HFC|HFC227ea",
-                "Emissions|HFC|HFC23",
-                "Emissions|HFC|HFC245fa",
-                "Emissions|HFC|HFC32",
-                "Emissions|HFC|HFC43-10",
-                # "Emissions|Kyoto Gases",  # Not used
-                "Emissions|N2O",
-                "Emissions|NH3",
-                "Emissions|NOx",
-                "Emissions|OC",
-                # "Emissions|PFC",  # Not used
-                "Emissions|SF6",
-                "Emissions|Sulfur",
-                "Emissions|VOC",
-            )
+        # In the CMIP7_SCENARIOMIP naming convention,
+        # i.e. what we expect to receive as input
+        emissions_out = (
+            "Emissions|BC",
+            "Emissions|C2F6",
+            "Emissions|C6F14",
+            "Emissions|CF4",
+            "Emissions|CO",
+            # "Emissions|CO2", # Not used
+            "Emissions|CO2|AFOLU",
+            "Emissions|CO2|Energy and Industrial Processes",
+            "Emissions|CH4",
+            # "Emissions|F-Gases",  # Not used
+            # "Emissions|HFC",  # Not used
+            "Emissions|HFC|HFC125",
+            "Emissions|HFC|HFC134a",
+            "Emissions|HFC|HFC143a",
+            "Emissions|HFC|HFC227ea",
+            "Emissions|HFC|HFC23",
+            "Emissions|HFC|HFC245fa",
+            "Emissions|HFC|HFC32",
+            "Emissions|HFC|HFC43-10",
+            # "Emissions|Kyoto Gases",  # Not used
+            "Emissions|N2O",
+            "Emissions|NH3",
+            "Emissions|NOx",
+            "Emissions|OC",
+            # "Emissions|PFC",  # Not used
+            "Emissions|SF6",
+            "Emissions|Sulfur",
+            "Emissions|VOC",
         )
         reclassifications = {
             "Emissions|CO2|Energy and Industrial Processes": (
@@ -245,13 +236,11 @@ class SCIJune2026PreProcessor:
                 "Emissions|CO2|Waste",
                 "Emissions|CO2|Other Capture and Removal",
                 "Emissions|CO2|Product Use",
-                "Emissions|CO2|Energy and Industrial Processes|Incomplete",
             )
         }
 
         return cls(
             emissions_out=emissions_out,
-            negative_value_not_small_threshold=negative_value_not_small_threshold,
             reclassifications=reclassifications,
             run_checks=run_checks,
             n_processes=n_processes,

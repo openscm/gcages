@@ -21,17 +21,12 @@ SCI_OUTPUT_DIR = HERE / "sci_workflow_expected_outputs"
 pix = pytest.importorskip("pandas_indexing")
 
 
-@pytest.mark.parametrize(
-    "input_file",
-    (
-        pytest.param(
-            HERE / "sci_workflow_inputs" / "SCI-2026-June-unique-testing-pathways.csv",
-            id="SCI-2026-June-unique-testing-pathways",
-        ),
-    ),
-)
 @get_key_testing_model_scenario_parameters(KEY_SCI_TESTING_MODEL_SCENARIOS)
-def test_pre_processing_regression(input_file, model, scenario):
+def test_pre_processing_regression(model, scenario):
+    input_file = (
+        HERE / "sci_workflow_inputs" / "SCI-2026-June-unique-testing-pathways.csv"
+    )
+
     input_df = load_timeseries_csv(
         input_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],

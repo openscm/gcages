@@ -61,18 +61,6 @@ def test_individual_scenario(model, scenario, monkeypatch):
         out_columns_type=int,
     )
     complete = input_df.loc[pix.ismatch(model=model, scenario=scenario)]
-    # Select scenario and drop aggregated/cumulative rows
-    # complete = update_index_levels_func(
-    #     complete,
-    #     {
-    #         "variable": partial(
-    #             convert_variable_name,
-    #             from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-    #             to_convention=SupportedNamingConventions.GCAGES,
-    #         )
-    #     },
-    # )
-    #
 
     monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     scm_runner = SCIJune2026SCMRunner.from_files(
@@ -84,12 +72,34 @@ def test_individual_scenario(model, scenario, monkeypatch):
         n_processes=multiprocessing.cpu_count(),
         batch_size_scenarios=15,
     )
-    n_cfgs = 6
-    scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
-        "MAGICC7"
-    ][:n_cfgs]
 
     scm_results = scm_runner(complete)
+    # Loading and assessing scm timeseries results
+    file = SCI_OUTPUT_DIR / "scm_results.csv"
+    exp = load_timeseries_csv(
+        file,
+        lower_column_names=True,
+        index_columns=[
+            "climate_model",
+            "model",
+            "region",
+            "run_id",
+            "scenario",
+            "unit",
+            "variable",
+        ],
+        out_columns_type=int,
+        out_columns_name="time",
+    )
+    exp = exp.loc[pix.ismatch(model=model, scenario=scenario)]
+
+    # TODO: I do not know why I do not get the same results here
+    # I relax the tolerance but is a bit odd.
+    assert_frame_equal(
+        scm_results[scm_results.index.get_level_values("run_id") == 0],
+        exp,
+        rtol=1e-6,
+    )
 
     # Post-processing
     post_processor = SCIJune2026PostProcessor.from_cmip7_scenariomip_config()

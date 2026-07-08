@@ -33,19 +33,13 @@ CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
 HARMONISATION_YEAR = 2023
 
 
-@pytest.mark.parametrize(
-    "input_file",
-    (
-        pytest.param(
-            Path(__file__).parents[0]
-            / "sci_workflow_expected_outputs"
-            / "sci_pre-processed.csv",
-            id="sci_pre-processed",
-        ),
-    ),
-)
 @get_key_testing_model_scenario_parameters(KEY_SCI_TESTING_MODEL_SCENARIOS)
-def test_individual_scenario_global(input_file, model, scenario):
+def test_individual_scenario_global(model, scenario):
+    input_file = (
+        Path(__file__).parents[0]
+        / "sci_workflow_expected_outputs"
+        / "sci_pre-processed.csv"
+    )
     input_df = load_timeseries_csv(
         input_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
@@ -87,18 +81,12 @@ def test_individual_scenario_global(input_file, model, scenario):
 
 
 @pytest.mark.slow
-@pytest.mark.parametrize(
-    "input_file",
-    (
-        pytest.param(
-            Path(__file__).parents[0]
-            / "sci_workflow_expected_outputs"
-            / "sci_pre-processed.csv",
-            id="sci_pre-processed",
-        ),
-    ),
-)
 def test_key_testing_scenarios_all_at_once_parallel(input_file):
+    input_file = (
+        Path(__file__).parents[0]
+        / "sci_workflow_expected_outputs"
+        / "sci_pre-processed.csv",
+    )
     pre_processed = load_timeseries_csv(
         input_file,
         index_columns=["model", "scenario", "variable", "region", "unit"],
