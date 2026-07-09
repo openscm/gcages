@@ -4,7 +4,7 @@ Emissions variables database
 
 from __future__ import annotations
 
-import importlib
+import importlib.resources
 
 import pandas as pd
 
