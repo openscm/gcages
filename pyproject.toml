@@ -107,7 +107,7 @@ dev = [
     # Required for liccheck, see https://github.com/dhatim/python-license-check/pull/113
     "setuptools==75.6.0",
     "tomli==2.2.1 ; python_full_version < '3.11'",
-    "tomli-w>=1.2.0",
+    "tomli-w==1.2.0",
     "towncrier==24.8.0",
     "tqdm>=4.67.1",
     "typing-extensions>=4.12.2",

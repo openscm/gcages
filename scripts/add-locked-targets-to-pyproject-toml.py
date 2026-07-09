@@ -16,7 +16,11 @@ import subprocess
 from pathlib import Path
 
 import tomli_w
-import tomllib
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 
 def parse_uv_export_output(raw: str) -> list[str]:
