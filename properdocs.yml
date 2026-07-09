@@ -70,6 +70,7 @@ plugins:
           paths: [src]
           inventories:
             # Cross-ref helpers (lots included here, remove what you don't want)
+            - https://aneris.readthedocs.io/en/stable/objects.inv
             - https://www.attrs.org/en/stable/objects.inv
             - https://unidata.github.io/cftime/objects.inv
             - https://ipython.readthedocs.io/en/stable/objects.inv
@@ -79,6 +80,8 @@ plugins:
             - https://numpy.org/doc/stable/objects.inv
             - https://openscm-units.readthedocs.io/en/stable/objects.inv
             - https://pandas.pydata.org/docs/objects.inv
+            - https://pandas-openscm.readthedocs.io/en/stable/objects.inv
+            - https://pandas-indexing.readthedocs.io/en/stable/objects.inv
             - https://pint.readthedocs.io/en/stable/objects.inv
             - https://www.fatiando.org/pooch/latest/objects.inv
             - https://docs.python.org/3/objects.inv
