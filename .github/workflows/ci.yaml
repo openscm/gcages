@@ -74,15 +74,19 @@ jobs:
       matrix:
         os: [ "ubuntu-latest" ]
         # Test against all security and bugfix versions: https://devguide.python.org/versions/
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        # python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        # Include 3.14 when psycopg supports 3.14 or we drop pyam dependency
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
         include:
-          # Include other OS for latest Python
+          # Include other OS for Python 3.13
+          # (move to 3.14 when psycopg supports 3.14
+          # or we remove pyam as a dependency)
           # because these seem to be the flakiest from experience
           # so are worth the extra testing
           - os: "windows-latest"
-            python-version: "3.14"
+            python-version: "3.13"
           - os: "macos-latest"
-            python-version: "3.14"
+            python-version: "3.13"
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
