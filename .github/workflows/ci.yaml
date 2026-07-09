@@ -252,6 +252,7 @@ jobs:
         run: |
           tar -tvf dist/gcages-*.tar.gz --wildcards '*gcages/py.typed'
           tar -tvf dist/gcages-*.tar.gz --wildcards 'gcages-*/LICENCE'
+          tar -tvf dist/gcages-*.tar.gz --wildcards '*gcages/databases/emissions_variables.csv'
 
   check-dependency-licences:
     strategy:
