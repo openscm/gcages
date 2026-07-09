@@ -14,8 +14,7 @@ theme:
     # Light mode (toggle to dark mode)
     - scheme: default
       # Other colour choices at https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/#color-palette
-      primary: blue
-      accent: orange
+      primary: blue-grey
       # More info on toggles at https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/#color-palette-toggle
       toggle:
         icon: material/weather-night
@@ -23,8 +22,7 @@ theme:
 
     # Dark mode (toggle back to light mode)
     - scheme: slate
-      primary: deep orange
-      accent: blue
+      primary: pink
       toggle:
         icon: material/brightness-7
         name: Switch to light mode
@@ -70,9 +68,8 @@ plugins:
       handlers:
         python_xref:
           paths: [src]
-          import:
+          inventories:
             # Cross-ref helpers (lots included here, remove what you don't want)
-            - https://aneris.readthedocs.io/en/stable/objects.inv
             - https://www.attrs.org/en/stable/objects.inv
             - https://unidata.github.io/cftime/objects.inv
             - https://ipython.readthedocs.io/en/stable/objects.inv
@@ -82,8 +79,6 @@ plugins:
             - https://numpy.org/doc/stable/objects.inv
             - https://openscm-units.readthedocs.io/en/stable/objects.inv
             - https://pandas.pydata.org/docs/objects.inv
-            - https://pandas-openscm.readthedocs.io/en/stable/objects.inv
-            - https://pandas-indexing.readthedocs.io/en/stable/objects.inv
             - https://pint.readthedocs.io/en/stable/objects.inv
             - https://www.fatiando.org/pooch/latest/objects.inv
             - https://docs.python.org/3/objects.inv
@@ -96,8 +91,19 @@ plugins:
             - https://validators.readthedocs.io/en/stable/objects.inv
             - http://xarray.pydata.org/en/stable/objects.inv
           options:
+            # It turns out that xref does this check without considering config.
+            # As a result, every docstring is parsed as a google-style docstring.
+            # As docstrings are only parsed once, this results in rendering failures.
+            # Hence, turn off the checks here.
+            # mkdocs_autorefs catches anything which doesn't end up being a correct reference.
+            # The fix might be as simple as changing
+            # `self.collect(ref, PythonOptions())`
+            # to `self.collect(ref, self.get_options({}))`
+            # in the python-xref source, but it's hard to predict the side effects
+            # so we haven't bothered with that route.
+            check_crossrefs: false
             docstring_style: numpy
-            relative_crossrefs: yes
+            relative_crossrefs: true
             separate_signature: true
             show_root_heading: false
             show_signature_annotations: true
@@ -156,6 +162,8 @@ extra_javascript:
 
 extra_css:
   - https://unpkg.com/katex@0/dist/katex.min.css
+
+copyright: Copyright &copy; 2026, gcages contributors
 
 watch:
   - README.md

@@ -1,9 +1,11 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: v0.12.3
+_commit: v0.15.2
 _src_path: gl:openscm/copier-core-python-repository
 conda_release: false
 email: zebedee.nicholls@climate-resource.com
 include_cli: false
+include_mypy: true
+include_ty: false
 name: Zebedee Nicholls
 notebook_based_docs: true
 package_manager: uv
