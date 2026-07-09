@@ -83,7 +83,7 @@ def check_ar6_magicc7_version() -> None:
     Check that the MAGICC7 version is what was used in AR6
     """
     try:
-        import openscm_runner.adapters
+        import openscm_runner.adapters  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "check_ar6_magicc7_version", requirement="openscm_runner"

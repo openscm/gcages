@@ -498,7 +498,7 @@ scm_runner = AR6SCMRunner.from_ar6_config(
 # You will likely want to skip this step if running yourself.
 
 # %% editable=true slideshow={"slide_type": ""}
-if os.environ.get("READTHEDOCS", False):
+if os.environ.get("READTHEDOCS", "False") == "True":
     scm_runner.climate_models_cfgs["MAGICC7"] = scm_runner.climate_models_cfgs[
         "MAGICC7"
     ][:10]

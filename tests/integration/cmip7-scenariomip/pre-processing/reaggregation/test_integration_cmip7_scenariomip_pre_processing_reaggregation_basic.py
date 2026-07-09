@@ -1141,9 +1141,9 @@ def test_to_complete_missing_timeseries(to_remove):
             {
                 "unit": (
                     "variable",
-                    lambda x: "Gt C/yr"
-                    if x.startswith("Carbon Removal")
-                    else vu_map[x],
+                    lambda x: (
+                        "Gt C/yr" if x.startswith("Carbon Removal") else vu_map[x]
+                    ),
                 )
             },
         )
@@ -1211,9 +1211,9 @@ def test_to_complete_extra_and_missing_optional_timeseries(to_remove, to_add):
             {
                 "unit": (
                     "variable",
-                    lambda x: "Gt C/yr"
-                    if x.startswith("Carbon Removal")
-                    else vu_map[x],
+                    lambda x: (
+                        "Gt C/yr" if x.startswith("Carbon Removal") else vu_map[x]
+                    ),
                 )
             },
         )

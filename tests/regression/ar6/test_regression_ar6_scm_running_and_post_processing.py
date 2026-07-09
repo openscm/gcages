@@ -117,7 +117,7 @@ def get_post_processed_metadata_comparable(res_pp: PostProcessingResult):
         if q == 0.5:
             return "Median"
 
-        return f"P{q*100:.0f}"
+        return f"P{q * 100:.0f}"
 
     quantile_metadata_l = []
     for v_str, metric_id in (

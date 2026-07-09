@@ -178,7 +178,7 @@ def calculate_kyoto_ghg(  # noqa: PLR0913
 
     if ur is None:
         try:
-            import openscm_units
+            import openscm_units  # noqa: PLC0415
 
             ur_use: pint.facets.PlainRegistry = openscm_units.unit_registry  # type: ignore # openscm_units type info incorrect?
         except ImportError:

@@ -6,10 +6,10 @@ from __future__ import annotations
 
 import functools
 import platform
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, cast
+from typing import TYPE_CHECKING, cast
 
 import pandas as pd
 from attrs import define
@@ -94,9 +94,11 @@ def load_massaged_ar6_infilling_db(filepath: Path, cfcs: bool) -> pd.DataFrame:
             {
                 # Another naming convention?
                 # Probably have to check RCMIP...
-                "variable": lambda x: x.replace("|HFC|", "|")
-                .replace("|PFC|", "|")
-                .replace("Energy and Industrial Processes", "Fossil"),
+                "variable": lambda x: (
+                    x.replace("|HFC|", "|")
+                    .replace("|PFC|", "|")
+                    .replace("Energy and Industrial Processes", "Fossil")
+                ),
             },
         )
 
@@ -150,8 +152,8 @@ def get_ar6_full_historical_emissions(filepath: Path) -> pd.DataFrame:
         `filepath` points to a file that does not have the expected hash
     """
     try:
-        from pandas_indexing.core import assignlevel, projectlevel
-        from pandas_indexing.selectors import isin, ismatch
+        from pandas_indexing.core import assignlevel, projectlevel  # noqa: PLC0415
+        from pandas_indexing.selectors import isin, ismatch  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_full_historical_emissions", requirement="pandas_indexing"
@@ -229,8 +231,8 @@ def infill_scenario(
         Infilled scenario
     """
     try:
-        from pandas_indexing.core import concat, uniquelevel
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.core import concat, uniquelevel  # noqa: PLC0415
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "infill_scenario", requirement="pandas_indexing"
@@ -356,7 +358,7 @@ def get_ar6_infiller(  # type: ignore # silicone has no type hints
         Infilled timeseries
     """
     try:
-        import pyam  # type: ignore # pyam not typed
+        import pyam  # type: ignore # pyam not typed# noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_infiller", requirement="pyam"
@@ -630,7 +632,7 @@ class AR6Infiller:
             Initialised harmoniser
         """
         try:
-            import silicone.database_crunchers  # type: ignore # silicone has no type hints
+            import silicone.database_crunchers  # type: ignore # silicone has no type hints# noqa: PLC0415
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "get_ar6_infiller", requirement="silicone"

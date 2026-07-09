@@ -5,8 +5,8 @@ Aggregation helpers
 from __future__ import annotations
 
 import string
+from collections.abc import Callable
 from functools import partial
-from typing import Callable
 
 import pandas as pd
 from pandas_openscm.grouping import groupby_except
@@ -75,7 +75,7 @@ def aggregate_df_level(
     # will require writing our own extract and format functions
     # will require moving compare_close too
     try:
-        from pandas_indexing.core import extractlevel, formatlevel
+        from pandas_indexing.core import extractlevel, formatlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "assert_frame_equal", requirement="pandas_indexing"

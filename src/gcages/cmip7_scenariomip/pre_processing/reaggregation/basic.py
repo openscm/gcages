@@ -8,8 +8,8 @@ It assumes that domestic aviation is reported at the model region level.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Callable
+from collections.abc import Callable, Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -816,7 +816,7 @@ def get_default_internal_conistency_checking_tolerances() -> (
         Tolerances to use when checking the internal consistency of the data
     """
     try:
-        import openscm_units
+        import openscm_units  # noqa: PLC0415
 
         Q = openscm_units.unit_registry.Quantity
 
@@ -923,7 +923,7 @@ def assert_is_internally_consistent(  # noqa: PLR0913
         The data is not internally consistent at the given tolerances
     """
     try:
-        import pint
+        import pint  # noqa: PLC0415
     except ModuleNotFoundError:
         pint = None  # type: ignore
 

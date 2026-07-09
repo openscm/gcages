@@ -12,8 +12,8 @@ from pathlib import Path
 # and we haven't set that up
 # (this should work fine once the record is no longer embargoed).
 def main() -> None:
-    import pandas_indexing  # noqa: F401
-    import pooch
+    import pandas_indexing  # noqa: F401, PLC0415
+    import pooch  # noqa: PLC0415
 
     URL = "https://zenodo.org/records/17844114/files/infiling-db_202512021030_202512071232_202511040855_202511040855.csv?download=1"
     KNOWN_HASH = "md5:3a55491330c0160a0c0abc011766559a"

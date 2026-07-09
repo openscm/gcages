@@ -5,9 +5,9 @@ Pre-processing part of the workflow
 from __future__ import annotations
 
 import multiprocessing
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from functools import partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import pandas as pd
 from attrs import define
@@ -26,7 +26,9 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.units_helpers import strip_pint_incompatible_characters_from_units
 
 if TYPE_CHECKING:
-    from typing_extensions import Concatenate, ParamSpec
+    from typing import Concatenate
+
+    from typing_extensions import ParamSpec
 
     P = ParamSpec("P")
 
@@ -65,8 +67,8 @@ def add_conditional_sums(
         `indf` with conditional sums added if all enabling conditions were fulfilled.
     """
     try:
-        from pandas_indexing.core import concat
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.core import concat  # noqa: PLC0415
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "add_conditional_sums", requirement="pandas_indexing"
@@ -133,7 +135,7 @@ def reclassify_variables(
         `indf`, reclassified as needed.
     """
     try:
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "reclassify_variables", requirement="pandas_indexing"
@@ -186,7 +188,7 @@ def condtionally_remove_variables(
         `indf` with variables removed according to this function's logic.
     """
     try:
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "condtionally_remove_variables", requirement="pandas_indexing"
@@ -240,7 +242,7 @@ def drop_variables_if_identical(
         `indf` with variables removed according to this function's logic.
     """
     try:
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "drop_variables_if_identical", requirement="pandas_indexing"
@@ -477,7 +479,7 @@ class AR6PreProcessor:
             Pre-processed emissions
         """
         try:
-            from pandas_indexing.selectors import isin, ismatch
+            from pandas_indexing.selectors import isin, ismatch  # noqa: PLC0415
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "AR6PreProcessor.__call__", requirement="pandas_indexing"

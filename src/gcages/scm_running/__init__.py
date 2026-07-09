@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterable
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import pandas as pd
 from pandas_openscm.db import EmptyDBError, OpenSCMDB
@@ -36,7 +36,7 @@ def convert_openscm_runner_output_names_to_magicc_output_names(
     # TODO: move this to OpenSCM-Runner or fix up pymagicc
     # (not doing now because of the headache of upgrading those packages)
     try:
-        import pymagicc.definitions  # type: ignore
+        import pymagicc.definitions  # type: ignore  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "convert_openscm_runner_output_names_to_magicc_output_names",
@@ -115,14 +115,14 @@ def run_batch(
     # (not there at the moment because of maintenance issues)
 
     try:
-        import openscm_runner.run
+        import openscm_runner.run  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "run_batch", requirement="openscm_runner"
         ) from exc
 
     try:
-        import scmdata
+        import scmdata  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "run_batch", requirement="scmdata"
@@ -301,7 +301,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
     # TODO: move to openscm-runner
     # (not there at the moment because of maintenance issues)
     try:
-        import openscm_runner.adapters
+        import openscm_runner.adapters  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "run_scms", requirement="openscm_runner"
@@ -324,7 +324,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
     for climate_model, cfg in climate_models_cfgs_iter:
         cfg_use = cfg
         if force_rerun or db is None:
-            scenarios_use: Optional[pd.DataFrame] = scenarios
+            scenarios_use: pd.DataFrame | None = scenarios
 
         else:
             if climate_model == "MAGICC7":
