@@ -23,7 +23,9 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         # Test against all security and bugfix versions: https://devguide.python.org/versions/
-        python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        # python-version: [ "3.10", "3.11", "3.12", "3.13", "3.14" ]
+        # Include 3.14 when psycopg supports 3.14 or we drop pyam dependency
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
         # Check both 'library' install and the 'application' (i.e. locked) install
         install-target: ["gcages", "gcages[locked]"]
     runs-on: "${{ matrix.os }}"

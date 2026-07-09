@@ -14,7 +14,8 @@ theme:
     # Light mode (toggle to dark mode)
     - scheme: default
       # Other colour choices at https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/#color-palette
-      primary: blue-grey
+      primary: blue
+      accent: orange
       # More info on toggles at https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/#color-palette-toggle
       toggle:
         icon: material/weather-night
@@ -22,7 +23,8 @@ theme:
 
     # Dark mode (toggle back to light mode)
     - scheme: slate
-      primary: pink
+      primary: deep orange
+      accent: blue
       toggle:
         icon: material/brightness-7
         name: Switch to light mode
