@@ -159,7 +159,7 @@ def check_cmip7_scenariomip_magicc7_version() -> None:
     Check that the MAGICC7 version is what was used in CMIP7 ScenarioMIP
     """
     try:
-        import openscm_runner.adapters
+        import openscm_runner.adapters  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "check_cmip7_scenariomip_magicc7_version", requirement="openscm_runner"
@@ -450,7 +450,7 @@ class CMIP7ScenarioMIPSCMRunner:
 
         if self.run_checks:
             # All scenarios have output
-            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
+            pd.testing.assert_index_equal(
                 out.index.droplevel(
                     out.index.names.difference(["model", "scenario"])  # type: ignore # pandas-stubs out of date
                 ).drop_duplicates(),

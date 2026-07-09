@@ -35,7 +35,7 @@ class MissingHarmonisationYear(ValueError):
 
 def _check_data(hist: pd.DataFrame, scen: pd.DataFrame, year: int) -> None:
     try:
-        from pandas_indexing.core import projectlevel
+        from pandas_indexing.core import projectlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -67,8 +67,8 @@ def _convert_units_to_match(
     start: pd.DataFrame, match: pd.DataFrame, copy_on_entry: bool = True
 ) -> pd.DataFrame:
     try:
-        from pandas_indexing.core import concat, projectlevel
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.core import concat, projectlevel  # noqa: PLC0415
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
@@ -139,7 +139,7 @@ def _knead_overrides(
             scen.index.droplevel(
                 scen.index.names.difference(check_cols)  # type: ignore # pandas-stubs confused
             ).drop_duplicates(),
-        ).droplevel(check_cols)  # type: ignore # pandas-stubs confused
+        ).droplevel(check_cols)
 
         # None of the overrides relevant for this scenario
         if _overrides.empty:
@@ -151,12 +151,12 @@ def _knead_overrides(
     # do checks
     if _overrides.isnull().any():
         missing: pd.Series[str] = _overrides.loc[_overrides.isnull().any(axis=1)]  # type: ignore # pandas-stubs wrong
-        msg = f"Overrides are missing for provided data:\n" f"{missing}"
+        msg = f"Overrides are missing for provided data:\n{missing}"
         raise AmbiguousHarmonisationMethod(msg)
 
     if _overrides.index.to_frame().isnull().any().any():
         missing = _overrides[_overrides.index.to_frame().isnull().any(axis=1)]
-        msg = f"Defined overrides are missing data:\n" f"{missing}"
+        msg = f"Defined overrides are missing data:\n{missing}"
         raise AmbiguousHarmonisationMethod(msg)
 
     if _overrides.index.duplicated().any():
@@ -240,15 +240,15 @@ def harmonise_all(
         the harmonisation method for a given timeseries.
     """
     try:
-        from aneris.harmonize import Harmonizer  # type: ignore
+        from aneris.harmonize import Harmonizer  # type: ignore # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="aneris"
         ) from exc
 
     try:
-        from pandas_indexing.core import assignlevel, concat, semijoin
-        from pandas_indexing.selectors import isin
+        from pandas_indexing.core import assignlevel, concat, semijoin  # noqa: PLC0415
+        from pandas_indexing.selectors import isin  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "harmonise_all", requirement="pandas_indexing"
