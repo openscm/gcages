@@ -173,7 +173,7 @@ def convert_unit_like(
 
     if ur is None:
         try:
-            import openscm_units
+            import openscm_units  # noqa: PLC0415
 
             ur = openscm_units.unit_registry
         except ImportError:

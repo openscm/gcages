@@ -75,7 +75,7 @@ def get_key_testing_model_scenario_parameters(
     ... def test_func(model, scenario): ...
     """
     try:
-        import pytest
+        import pytest  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_key_testing_model_scenario_parameters", requirement="pytest"
@@ -151,7 +151,7 @@ def get_ar6_raw_emissions(
         All raw emissions from AR6 for `model`-`scenario`
     """
     try:
-        from pandas_indexing.selectors import ismatch
+        from pandas_indexing.selectors import ismatch  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_raw_emissions", requirement="pandas_indexing"
@@ -195,7 +195,7 @@ def get_ar6_harmonised_emissions(
         All harmonised emissions from AR6 for `model`-`scenario`
     """
     try:
-        from pandas_indexing.selectors import ismatch
+        from pandas_indexing.selectors import ismatch  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_harmonised_emissions", requirement="pandas_indexing"
@@ -239,7 +239,7 @@ def get_ar6_infilled_emissions(
         All infilled emissions from AR6 for `model`-`scenario`
     """
     try:
-        from pandas_indexing.selectors import ismatch
+        from pandas_indexing.selectors import ismatch  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_ar6_infilled_emissions", requirement="pandas_indexing"
@@ -437,7 +437,7 @@ def get_cmip7_scenariomip_complete_emissions(
         All complete emissions from CMIP7 ScenarioMIP for `model`-`scenario`
     """
     try:
-        from pandas_indexing.selectors import ismatch as pix_ismatch
+        from pandas_indexing.selectors import ismatch as pix_ismatch  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_cmip7_scenariomip_complete_emissions", requirement="pandas_indexing"
@@ -552,7 +552,7 @@ def assert_frame_equal(
         The frames aren't equal
     """
     try:
-        from pandas_indexing.core import uniquelevel
+        from pandas_indexing.core import uniquelevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "assert_frame_equal", requirement="pandas_indexing"

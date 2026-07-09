@@ -95,7 +95,7 @@ def get_df_with_times(times):
                 MissingDataForTimesError,
                 match=re.escape(
                     "inp is missing data for the following times: "
-                    f"{[2025., 2027.5, 2028.]}. "
+                    f"{[2025.0, 2027.5, 2028.0]}. "
                     "Available times:"
                 ),
             ),
@@ -156,9 +156,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 MissingDataForTimesError,
                 match=" ".join(
                     [
-                        re.escape(
-                            "inp has NaNs for the following times: " f"{[2020]}."
-                        ),
+                        re.escape(f"inp has NaNs for the following times: {[2020]}."),
                         r".*sb\s*vb\s*ub",
                     ]
                 ),
@@ -188,9 +186,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 MissingDataForTimesError,
                 match=" ".join(
                     [
-                        re.escape(
-                            "inp has NaNs for the following times: " f"{[2025]}."
-                        ),
+                        re.escape(f"inp has NaNs for the following times: {[2025]}."),
                         r".*sa\s*va\s*ua",
                         r".*sb\s*vb\s*ub",
                         r".*sc\s*vc\s*uc",
@@ -223,7 +219,7 @@ def test_assert_has_data_for_times(inp, expected_times, exp):
                 match=" ".join(
                     [
                         re.escape(
-                            "inp has NaNs for the following times: " f"{[2020, 2025]}."
+                            f"inp has NaNs for the following times: {[2020, 2025]}."
                         ),
                         r".*sa\s*va\s*ua",
                         r".*sb\s*vb\s*ub",
