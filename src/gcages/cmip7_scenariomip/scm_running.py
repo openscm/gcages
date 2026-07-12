@@ -428,8 +428,7 @@ class CMIP7ScenarioMIPSCMRunner:
             db=self.db,
             verbose=self.verbose,
             batch_size_scenarios=self.batch_size_scenarios,
-            # TODO: fix this so it's not hard-coded
-            force_rerun=False,
+            force_rerun=force_rerun,
         )
 
         if self.db is not None:
