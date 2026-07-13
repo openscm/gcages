@@ -30,7 +30,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
 
     Parameters
     ----------
-    infilling_leader_emissions_file
+    infilling_leader_emissions
         Infilling leaders data base for each variable.
 
     ghg_inversions

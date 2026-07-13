@@ -299,7 +299,7 @@ class SCIJune2026SCMRunner:
 
         if self.run_checks:
             # All scenarios have output
-            pd.testing.assert_index_equal(  # type: ignore # pandas-stubs out of date
+            pd.testing.assert_index_equal(
                 out.index.droplevel(
                     out.index.names.difference(["model", "scenario"])  # type: ignore # pandas-stubs out of date
                 ).drop_duplicates(),
