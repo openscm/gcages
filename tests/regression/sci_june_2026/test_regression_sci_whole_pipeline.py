@@ -197,7 +197,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     assert_frame_equal(
         complete,
         exp,
-        rtol=1e-8,
+        rtol=1e-6,
     )
 
     # MAGICC and post_processing

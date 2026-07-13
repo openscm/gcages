@@ -40,13 +40,16 @@ import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
+from pandas_openscm.io import load_timeseries_csv
 
+from gcages.renaming import SupportedNamingConventions, rename_variables
 from gcages.sci_june_2026 import (
-    SCIJune2026Infiller,
     SCIJune2026PostProcessor,
     SCIJune2026PreProcessor,
     SCIJune2026SCMRunner,
     create_scijune2026_global_harmoniser,
+    create_scijune2026_infiller,
+    load_historical_emissions,
 )
 
 # %%
@@ -365,15 +368,48 @@ if not INFILLING_DB_CFCS_FILE.exists():
 # %% [markdown]
 # With the infilling databases, we can initialise our infiller.
 
-# %% editable=true slideshow={"slide_type": ""}
-infiller = SCIJune2026Infiller.from_files(
-    infilling_leader_emissions_file=INFILLING_DB_FILE,
-    ghg_inversions_file=INFILLING_DB_CFCS_FILE,
+# %%
+infilling_leader_emissions = load_timeseries_csv(
+    INFILLING_DB_FILE,
+    lower_column_names=True,
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_type=int,
+)
+
+# CMIP7 GHG inversions
+ghg_inversions = load_timeseries_csv(
+    INFILLING_DB_CFCS_FILE,
+    lower_column_names=True,
+    index_columns=["model", "scenario", "region", "variable", "unit"],
+    out_columns_type=int,
+)
+# History
+historical_emissions = load_historical_emissions(
     historical_emissions_file=HISTORICAL_EMISSIONS_FILE,
+)
+
+# Use gcages naming convention.
+infilling_leader_emissions = rename_variables(
+    infilling_leader_emissions,
+    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
+    to_convention=SupportedNamingConventions.GCAGES,
+)
+
+ghg_inversions = rename_variables(
+    ghg_inversions,
+    from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
+    to_convention=SupportedNamingConventions.GCAGES,
+)
+
+infiller = create_scijune2026_infiller(
+    infilling_leader_emissions=infilling_leader_emissions,
+    ghg_inversions=ghg_inversions,
+    historical_emissions=historical_emissions,
     harmonisation_year=HARMONISATION_YEAR,
     pre_industrial_year=1750,
-    ur=None,
+    run_checks=True,
 )
+
 
 # %% [markdown]
 # And infill. Right now the result is the infilled + harmonised dataframe
@@ -480,7 +516,7 @@ elif platform.system() == "Windows":
 
 # %%
 scm_runner = SCIJune2026SCMRunner.from_files(
-    magicc_exe_path=MAGICC_EXE_PATH,
+    magicc_exe_path=MAGICC_EXE,
     magicc_prob_distribution_path=MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE,
     output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
     historical_emissions_path=HISTORICAL_EMISSIONS_FILE,

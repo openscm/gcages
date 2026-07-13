@@ -81,15 +81,15 @@ def test_individual_scenario_global(model, scenario):
 
 
 @pytest.mark.slow
-def test_key_testing_scenarios_all_at_once_parallel(input_file):
+def test_key_testing_scenarios_all_at_once_parallel():
     input_file = (
         Path(__file__).parents[0]
         / "sci_workflow_expected_outputs"
-        / "sci_pre-processed.csv",
+        / "sci_pre-processed.csv"
     )
     pre_processed = load_timeseries_csv(
         input_file,
-        index_columns=["model", "scenario", "variable", "region", "unit"],
+        index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
 
@@ -109,7 +109,6 @@ def test_key_testing_scenarios_all_at_once_parallel(input_file):
     file = SCI_OUTPUT_DIR / "sci_harmonised.csv"
     exp = load_timeseries_csv(
         file,
-        lower_column_names=True,
         index_columns=[
             "model",
             "scenario",
