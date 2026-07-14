@@ -13,14 +13,11 @@ build:
   apt_packages:
     - libgfortran5
   jobs:
-    post_install:
-      # RtD seems to be not happy with pdm installs,
-      # hence use pip directly instead.
+    install:
+      # For simplicity, use requirements files and pip directly.
       - python -m pip install -r requirements-docs-locked.txt
+      - python -m pip install --no-deps .
       - python -m pip list
-    pre_build:
-      - pip install --no-deps .
-
-mkdocs:
-  configuration: mkdocs.yml
-  fail_on_warning: true
+    build:
+      html:
+        - python -m properdocs build --strict --site-dir "$READTHEDOCS_OUTPUT/html"

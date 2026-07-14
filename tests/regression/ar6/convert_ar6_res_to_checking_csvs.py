@@ -15,9 +15,9 @@ OUTPUT_DIR = HERE / "ar6-output-processed"
 
 
 def main():
-    import pandas as pd
-    import pandas_indexing as pix
-    import tqdm
+    import pandas as pd  # noqa: PLC0415
+    import pandas_indexing as pix  # noqa: PLC0415
+    import tqdm  # noqa: PLC0415
 
     raw = pd.read_csv(
         AR6_OUTPUT_DIR / "AR6_Scenarios_Database_World_ALL_CLIMATE_v1.1.csv"

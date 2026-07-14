@@ -214,17 +214,21 @@ def test_overrides_multi_scenario_aneris():
     # Check the overrides were used
     for locator, check_start in (
         [
-            lambda x: (x.index.get_level_values("variable") == "v1"),
+            lambda x: x.index.get_level_values("variable") == "v1",
             2050.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s1"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s1")
+            ),
             2080.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s2"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s2")
+            ),
             2100.0,
         ],
     ):
@@ -316,18 +320,24 @@ def test_overrides_multi_scenario_aneris_not_all_scenarios_specified():
     # Check the overrides were used
     for locator, check_start in (
         [
-            lambda x: (x.index.get_level_values("variable") == "v1")
-            & (x.index.get_level_values("scenario").isin(["s1", "s2"])),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v1")
+                & (x.index.get_level_values("scenario").isin(["s1", "s2"]))
+            ),
             2050.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s1"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s1")
+            ),
             2080.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s2"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s2")
+            ),
             2100.0,
         ],
     ):
@@ -426,17 +436,21 @@ def test_overrides_multi_scenario_multi_unit_aneris():
     # Check the overrides were used
     for locator, check_start in (
         [
-            lambda x: (x.index.get_level_values("variable") == "v1"),
+            lambda x: x.index.get_level_values("variable") == "v1",
             2050.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s1"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s1")
+            ),
             2080.0,
         ],
         [
-            lambda x: (x.index.get_level_values("variable") == "v2")
-            & (x.index.get_level_values("scenario") == "s2"),
+            lambda x: (
+                (x.index.get_level_values("variable") == "v2")
+                & (x.index.get_level_values("scenario") == "s2")
+            ),
             2100.0,
         ],
     ):

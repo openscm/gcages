@@ -20,7 +20,7 @@ jobs:
         os: [ "ubuntu-latest" ]
         # Test against all bugfix versions: https://devguide.python.org/versions/
         # as they are latest and ones most likely to support new features
-        python-version: [ "3.12", "3.13" ]
+        python-version: [ "3.13", "3.14" ]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:
@@ -31,12 +31,12 @@ jobs:
         shell: bash
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup uv
         id: setup-uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v8.1.0
         with:
-          version: "0.5.21"
+          version: "0.11.16"
           python-version: ${{ matrix.python-version }}
       # Often you need a step like this for e.g. numpy, scipy, pandas
       - name: Setup compilation dependencies
@@ -54,5 +54,8 @@ jobs:
           uv pip install --requirements pyproject.toml --all-extras .
           uv pip install --requirements requirements-upstream-dev.txt
       - name: Run tests
+        env:
+          # Don't need interactive plots
+          MPLBACKEND: Agg
         run: |
           uv run --no-sync pytest tests -r a -v

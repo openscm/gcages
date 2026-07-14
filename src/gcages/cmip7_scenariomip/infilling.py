@@ -135,7 +135,7 @@ def get_silicone_based_infiller(  # type: ignore # silicone has no type hints
         Function which can be used to infill `follower_variable` in scenarios
     """
     try:
-        import pyam  # type: ignore
+        import pyam  # type: ignore# noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "get_silicone_based_infiller", requirement="pyam"
@@ -182,7 +182,7 @@ def get_direct_copy_infiller(
 
     def infiller(inp: pd.DataFrame) -> pd.DataFrame:
         try:
-            from pandas_indexing.selectors import isin as pix_isin
+            from pandas_indexing.selectors import isin as pix_isin  # noqa: PLC0415
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "get_direct_copy_infiller", requirement="pandas_indexing"
@@ -264,7 +264,7 @@ def infill(
         If nothing was infilled, `None` is returned
     """
     try:
-        from pandas_indexing.core import concat
+        from pandas_indexing.core import concat  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "infill", requirement="pandas_indexing"
@@ -303,7 +303,7 @@ def get_complete(indf: pd.DataFrame, infilled: pd.DataFrame | None) -> pd.DataFr
         Complete data i.e. the combination of `indf` and `infilled`
     """
     try:
-        from pandas_indexing.core import concat
+        from pandas_indexing.core import concat  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "infill", requirement="pandas_indexing"
@@ -585,7 +585,7 @@ class CMIP7ScenarioMIPInfiller:
         """
         if self.ur is None:
             try:
-                import openscm_units
+                import openscm_units  # noqa: PLC0415
 
                 self.ur = openscm_units.unit_registry
             except ImportError as exc:
@@ -595,7 +595,7 @@ class CMIP7ScenarioMIPInfiller:
                 ) from exc
 
         try:
-            import silicone.database_crunchers  # type: ignore # silicone has no type hints
+            import silicone.database_crunchers  # type: ignore # silicone has no type hints# noqa: PLC0415
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "get_silicone_based_infiller", requirement="silicone"
@@ -792,7 +792,7 @@ class CMIP7ScenarioMIPInfiller:
 
         if ur is None:
             try:
-                import openscm_units
+                import openscm_units  # noqa: PLC0415
 
                 ur = openscm_units.unit_registry
             except ImportError as exc:

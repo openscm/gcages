@@ -163,7 +163,7 @@ but was released with the wrong version number.
 
 ### 🆕 Features
 
-- Added pre-processing to support CMIP7's ScenarioMIP, see [How to run the CMIP7 ScenarioMIP workflow][how-to-run-the-cmip7-scenariomip-workflow] and [gcages.cmip7_scenariomip][]. ([#14](https://github.com/openscm/gcages/pull/14))
+- Added pre-processing to support CMIP7's ScenarioMIP, see [How to run the CMIP7 ScenarioMIP workflow](https://gcages.readthedocs.io/en/latest/how-to-guides/how-to-run-the-cmip7-scenariomip-workflow/) and [gcages.cmip7_scenariomip][]. ([#14](https://github.com/openscm/gcages/pull/14))
 
 
 ## gcages v0.3.0 (2025-04-15)

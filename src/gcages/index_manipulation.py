@@ -123,7 +123,7 @@ def split_sectors(  # noqa: PLR0913
              t / yr  Emissions CO2 sector                        3.4   2.1
     """
     try:
-        from pandas_indexing.core import extractlevel
+        from pandas_indexing.core import extractlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "split_sectors", requirement="pandas_indexing"
@@ -242,7 +242,7 @@ def split_species(  # noqa: PLR0913
              t / yr  Emissions N2O                     3.4   2.1
     """
     try:
-        from pandas_indexing.core import extractlevel
+        from pandas_indexing.core import extractlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "split_species", requirement="pandas_indexing"
@@ -368,7 +368,7 @@ def combine_sectors(  # noqa: PLR0913
              t / yr  Emissions-CO2-sector              3.4   2.1
     """
     try:
-        from pandas_indexing.core import formatlevel
+        from pandas_indexing.core import formatlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "combine_sectors", requirement="pandas_indexing"
@@ -486,7 +486,7 @@ def combine_species(  # noqa: PLR0913
              t / yr  Emissions-CO2                     3.4   2.1
     """
     try:
-        from pandas_indexing.core import formatlevel
+        from pandas_indexing.core import formatlevel  # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "combine_species", requirement="pandas_indexing"
