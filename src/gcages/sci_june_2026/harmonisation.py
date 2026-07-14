@@ -95,7 +95,6 @@ def create_scijune2026_global_harmoniser(  # noqa: PLR0913
     )
 
     aneris_overrides = load_aneris_overrides_file(aneris_overrides_file)
-    # TODO: remove this as it isn't needed for pandas-openscm 0.8.1
     aneris_overrides_df = aneris_overrides.to_frame(name="method")
 
     updated_df = rename_variables(

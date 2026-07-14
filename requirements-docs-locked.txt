@@ -128,7 +128,8 @@ parso==0.8.4
 pathspec==0.12.1
 pexpect==4.9.0 ; (python_full_version < '3.10' and sys_platform == 'emscripten') or (sys_platform != 'emscripten' and sys_platform != 'win32')
 pillow==11.3.0
-pint==0.24.4
+pint==0.24.4 ; python_full_version < '3.11'
+pint==0.25.3 ; python_full_version >= '3.11'
 pint-pandas==0.7.1
 platformdirs==4.3.6
 ply==3.11 ; python_full_version >= '3.10'

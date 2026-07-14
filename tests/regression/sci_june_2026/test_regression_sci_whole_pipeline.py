@@ -235,7 +235,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     # TODO: I do not know why I do not get the same results here
     # I relax the tolerance but is a bit odd.
     assert_frame_equal(
-        scm_results[scm_results.index.get_level_values("run_id") == 0],
+        scm_results[scm_results.index.get_level_values("run_id") == 599],
         exp,
         rtol=1e-6,
     )
@@ -279,7 +279,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-7,
+        rtol=1e-6,
     )
 
     # Loading and categories

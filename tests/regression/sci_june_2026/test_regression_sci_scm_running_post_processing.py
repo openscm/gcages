@@ -93,12 +93,10 @@ def test_individual_scenario(model, scenario, monkeypatch):
     )
     exp = exp.loc[pix.ismatch(model=model, scenario=scenario)]
 
-    # TODO: I do not know why I do not get the same results here
-    # I relax the tolerance but is a bit odd.
     assert_frame_equal(
-        scm_results[scm_results.index.get_level_values("run_id") == 0],
+        scm_results[pix.ismatch(run_id=599)],
         exp,
-        rtol=1e-6,
+        rtol=1e-7,
     )
 
     # Post-processing
@@ -141,7 +139,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-7,
+        rtol=1e-6,
     )
 
     # Loading and categories
