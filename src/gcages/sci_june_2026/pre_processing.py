@@ -102,7 +102,7 @@ class SCIJune2026PreProcessor:
             Pre-processed emissions
         """
         try:
-            from pandas_indexing.selectors import isin, ismatch
+            from pandas_indexing.selectors import isin, ismatch  # noqa: PLC0415
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "SCIPreProcessor.__call__", requirement="pandas_indexing"

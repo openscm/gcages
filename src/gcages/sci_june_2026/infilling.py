@@ -62,7 +62,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
     """
     if ur is None:
         try:
-            import openscm_units
+            import openscm_units  # noqa: PLC0415
 
             ur = openscm_units.unit_registry
         except ImportError as exc:

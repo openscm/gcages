@@ -419,7 +419,16 @@ pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
     # via ipython
 pillow==11.3.0
     # via matplotlib
-pint==0.24.4
+pint==0.24.4 ; python_full_version < '3.11'
+    # via
+    #   iam-units
+    #   openscm-units
+    #   pandas-indexing
+    #   pint-pandas
+    #   pyam-iamc
+    #   scmdata
+    #   silicone
+pint==0.25.3 ; python_full_version >= '3.11'
     # via
     #   iam-units
     #   openscm-units
