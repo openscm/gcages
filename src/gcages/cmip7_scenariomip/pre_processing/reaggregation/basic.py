@@ -815,6 +815,62 @@ class InternalConsistencyCheckingTolerance:
     Absolute tolerance
     """
 
+    def to_numpy_inputs(self, atol_units: str | None = None) -> dict[str, float]:
+        """
+        Convert to the inputs required for [np.isclose][]
+
+        Parameters
+        ----------
+        atol_units
+            Units to use for `atol`
+
+        Returns
+        -------
+        :
+            `atol` and `rtol` arguments that can be used with [np.isclose][]
+            and similar functions
+        """
+        res = {}
+
+        if self.atol is None:
+            # Do not set atol
+            pass
+
+        elif isinstance(self.atol, float):
+            if atol_units is not None:
+                msg = (
+                    f"{atol_units=}, which is not `None`, but {self.atol=}, "
+                    "which is a float. "
+                    "No unit conversion can be done "
+                    "i.e. `atol_units` cannot be respected."
+                )
+                raise ValueError(msg)
+
+            res["atol"] = self.atol
+
+        else:
+            if atol_units is None:
+                msg = (
+                    f"{atol_units=}, but {self.atol=}, which is not a float. "
+                    "Therefore we expect to do unit conversion "
+                    "so `atol_units` must be supplied."
+                )
+                raise ValueError(msg)
+
+            res["atol"] = self.atol.to(atol_units).m
+
+        if self.rtol is None:
+            # Do not set rtol
+            pass
+
+        elif isinstance(self.rtol, float):
+            res["rtol"] = self.rtol
+
+        else:
+            res["rtol"] = self.rtol.to("dimensionless").m
+
+        return res
+
 
 def get_default_internal_conistency_checking_tolerances() -> Mapping[
     str, InternalConsistencyCheckingTolerance
@@ -1018,40 +1074,26 @@ def assert_is_internally_consistent(  # noqa: PLR0913
         ).reorder_levels(df_species.index.names)
 
         tolerances_species = tolerances[species_total_variable]
-
-        tolerances_species_for_numpy = {}
-        if tolerances_species.atol is None:
-            # Do not set atol
-            pass
-
-        elif isinstance(tolerances_species.atol, float):
-            tolerances_species_for_numpy["atol"] = tolerances_species.atol
-
-        else:
-            species_units = df_species.index.get_level_values(unit_level).unique()
-            if len(species_units) > 1:
+        if tolerances_species.atol is not None and not isinstance(
+            tolerances_species.atol, float
+        ):
+            species_units_l = df_species.index.get_level_values(unit_level).unique()
+            if len(species_units_l) > 1:
                 msg = (
                     "Cannot use pint conversion "
                     "if your data contains different units. "
-                    f"For {species_total_variable=}, we have {species_units=}"
+                    f"For {species_total_variable=}, we have {species_units_l=}"
                 )
                 raise ValueError(msg)
 
-            tolerances_species_for_numpy["atol"] = tolerances_species.atol.to(
-                species_units[0]
-            ).m
-
-        if tolerances_species.rtol is None:
-            # Do not set rtol
-            pass
-
-        elif isinstance(tolerances_species.rtol, float):
-            tolerances_species_for_numpy["rtol"] = tolerances_species.rtol
+            species_units = species_units_l[0]
 
         else:
-            tolerances_species_for_numpy["rtol"] = tolerances_species.rtol.to(
-                "dimensionless"
-            ).m
+            species_units = None
+
+        tolerances_species_for_numpy = tolerances_species.to_numpy_inputs(
+            atol_units=species_units
+        )
 
         comparison_species = compare_close(
             left=df_species_total_reported,
