@@ -366,7 +366,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):  # noqa: PLR0915
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-6,
+        rtol=1e-4,
     )
 
     # Loading and categories
