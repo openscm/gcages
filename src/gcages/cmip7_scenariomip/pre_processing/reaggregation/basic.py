@@ -817,7 +817,7 @@ class InternalConsistencyCheckingTolerance:
 
     def to_numpy_inputs(self, atol_units: str | None = None) -> dict[str, float]:
         """
-        Convert to the inputs required for [np.isclose][]
+        Convert to the inputs required for [np.isclose][numpy.isclose]
 
         Parameters
         ----------
@@ -827,7 +827,8 @@ class InternalConsistencyCheckingTolerance:
         Returns
         -------
         :
-            `atol` and `rtol` arguments that can be used with [np.isclose][]
+            `atol` and `rtol` arguments
+            that can be used with [np.isclose][numpy.isclose]
             and similar functions
         """
         res = {}
