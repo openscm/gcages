@@ -815,6 +815,34 @@ def get_default_internal_conistency_checking_tolerances() -> (
     :
         Tolerances to use when checking the internal consistency of the data
     """
+    default_tolerances_base = {
+        "Emissions|BC": dict(rtol=1e-3, atol=1e-3, unit="Mt BC/yr"),
+        "Emissions|CH4": dict(rtol=1e-3, atol=1e-2, unit="Mt CH4/yr"),
+        "Emissions|CO": dict(rtol=1e-3, atol=1e-1, unit="Mt CO/yr"),
+        "Emissions|CO2": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+        "Emissions|NH3": dict(rtol=1e-3, atol=1e-2, unit="Mt NH3/yr"),
+        "Emissions|NOx": dict(rtol=1e-3, atol=1e-2, unit="Mt NO2/yr"),
+        "Emissions|OC": dict(rtol=1e-3, atol=1e-3, unit="Mt OC/yr"),
+        "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-2, unit="Mt SO2/yr"),
+        "Emissions|VOC": dict(rtol=1e-3, atol=1e-2, unit="Mt VOC/yr"),
+        "Emissions|N2O": dict(rtol=1e-3, atol=1e-1, unit="kt N2O/yr"),
+        "Carbon Removal|Enhanced Weathering": dict(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Geological Storage": dict(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Long-Lived Materials": dict(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+        "Carbon Removal|Land Use": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+        "Carbon Removal|Land Use|Biochar": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+        "Carbon Removal|Land Use|Soil Carbon Management": dict(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Other": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+    }
     try:
         import openscm_units  # noqa: PLC0415
 
@@ -823,51 +851,14 @@ def get_default_internal_conistency_checking_tolerances() -> (
         default_tolerances: (
             Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
         ) = {  # type: ignore # some issue with openscm-units type hints
-            "Emissions|BC": dict(rtol=1e-3, atol=Q(1e-3, "Mt BC/yr")),
-            "Emissions|CH4": dict(rtol=1e-3, atol=Q(1e-2, "Mt CH4/yr")),
-            "Emissions|CO": dict(rtol=1e-3, atol=Q(1e-1, "Mt CO/yr")),
-            "Emissions|CO2": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Emissions|NH3": dict(rtol=1e-3, atol=Q(1e-2, "Mt NH3/yr")),
-            "Emissions|NOx": dict(rtol=1e-3, atol=Q(1e-2, "Mt NO2/yr")),
-            "Emissions|OC": dict(rtol=1e-3, atol=Q(1e-3, "Mt OC/yr")),
-            "Emissions|Sulfur": dict(rtol=1e-3, atol=Q(1e-2, "Mt SO2/yr")),
-            "Emissions|VOC": dict(rtol=1e-3, atol=Q(1e-2, "Mt VOC/yr")),
-            "Emissions|N2O": dict(rtol=1e-3, atol=Q(1e-1, "kt N2O/yr")),
-            "Carbon Removal|Enhanced Weathering": dict(
-                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
-            ),
-            "Carbon Removal|Geological Storage": dict(
-                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
-            ),
-            "Carbon Removal|Long-Lived Materials": dict(
-                rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")
-            ),
-            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Carbon Removal|Land Use": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
-            "Carbon Removal|Other": dict(rtol=1e-3, atol=Q(1e0, "Mt CO2/yr")),
+            k: {"rtol": v["rtol"], "atol": Q(v["atol"], v["unit"])}
+            for k, v in default_tolerances_base.items()
         }
 
     except ImportError:
         default_tolerances = {
-            "Emissions|BC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|CH4": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|CO": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|CO2": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|NH3": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|NOx": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|OC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|VOC": dict(rtol=1e-3, atol=1e-6),
-            "Emissions|N2O": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Enhanced Weathering": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Geological Storage": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Long-Lived Materials": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Land Use|Biochar": dict(rtol=1e-3, atol=1e-6),
-            "Carbon Removal|Land Use|Soil Carbon Management": dict(
-                rtol=1e-3, atol=1e-6
-            ),
-            "Carbon Removal|Other": dict(rtol=1e-3, atol=1e-6),
+            k: {"rtol": v["rtol"], "atol": v["atol"]}
+            for k, v in default_tolerances_base.items()
         }
 
     return default_tolerances
