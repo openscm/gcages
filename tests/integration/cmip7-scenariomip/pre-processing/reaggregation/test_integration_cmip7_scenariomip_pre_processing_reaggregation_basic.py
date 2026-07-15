@@ -41,6 +41,7 @@ from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from gcages.aggregation import aggregate_df_level
 from gcages.cmip7_scenariomip.gridding_emissions import get_complete_gridding_index
 from gcages.cmip7_scenariomip.pre_processing.reaggregation.basic import (
+    InternalConsistencyCheckingTolerance,
     assert_has_all_required_timeseries,
     assert_is_internally_consistent,
     get_default_internal_conistency_checking_tolerances,
@@ -1060,7 +1061,7 @@ def test_assert_is_internally_consistent_tolerance(delta, tol_kwargs, exp):
     to_check.iloc[to_modify_locator, :] += delta
 
     tols = get_default_internal_conistency_checking_tolerances() | {
-        "Emissions|CO2": tol_kwargs
+        "Emissions|CO2": InternalConsistencyCheckingTolerance(**tol_kwargs)
     }
     with exp:
         assert_is_internally_consistent(
@@ -1462,8 +1463,8 @@ def test_complete_to_gridding_sectors_cdr_and_related(complete_to_gridding_res):
         "Carbon Removal|Ocean": "Other Capture and Removal",
     }
     for cdr_sector, raw_sector in carbon_removal_map.items():
-        input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}")] = (
-            input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}")].add(
+        input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}"), :] = (
+            input_regional.loc[pix.isin(variable=f"Emissions|CO2|{raw_sector}"), :].add(
                 pix.projectlevel(
                     12.0
                     / 44.0

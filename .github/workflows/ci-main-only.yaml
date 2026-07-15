@@ -64,7 +64,7 @@ jobs:
         # Only test against the oldest supported python version
         # because python is itself a direct dependency
         # (so we're testing against the lowest direct python too).
-        python-version: [ "3.9" ]
+        python-version: [ "3.10" ]
     runs-on: "${{ matrix.os }}"
     defaults:
       run:

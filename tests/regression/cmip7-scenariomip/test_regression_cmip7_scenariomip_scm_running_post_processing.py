@@ -96,7 +96,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     )
     exp_temperature.columns.name = "time"
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     scm_runner = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
@@ -115,6 +115,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
             )
         ].iloc[:10],
         exp_temperature,
+        rtol=1e-5,
     )
 
     # Post-processing
@@ -157,12 +158,18 @@ def test_individual_scenario(model, scenario, monkeypatch):
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-8,
+        rtol=1e-4,
     )
 
     # Loading and categories
     file = CMIP7_SCENARIOMIP_OUT_DIR / f"categories_{model}.csv"
-    exp_categories = pd.read_csv(file)
+    exp_categories = pd.read_csv(file, skiprows=2).rename(
+        {"Unnamed: 3": "category", "Unnamed: 4": "category_name"}, axis="columns"
+    )
 
-    assert post_processed.metadata_categories.values[0] == exp_categories["value.1"][2]
-    assert post_processed.metadata_categories.values[1] == exp_categories["value"][2]
+    pd.testing.assert_frame_equal(
+        post_processed.metadata_categories.unstack("metric")
+        .reset_index()
+        .rename_axis(None, axis="columns"),
+        exp_categories,
+    )

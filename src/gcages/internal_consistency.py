@@ -5,12 +5,13 @@ Internal consistency checking helpers
 # TODO: move this to pandas-openscm
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pandas as pd
 
 if TYPE_CHECKING:
-    from gcages.typing import PINT_SCALAR
+    pass
 
 
 class InternalConsistencyError(ValueError):
@@ -24,7 +25,7 @@ class InternalConsistencyError(ValueError):
         self,
         differences: pd.DataFrame,
         data_that_was_summed: pd.DataFrame,
-        tolerances: dict[str, float | PINT_SCALAR],
+        tolerances: Mapping[str, float],
     ) -> None:
         differences_variables = differences.index.get_level_values("variable").unique()
         data_that_was_summed_relevant_for_differences = data_that_was_summed[
