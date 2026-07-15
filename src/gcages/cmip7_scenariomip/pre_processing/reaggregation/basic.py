@@ -799,9 +799,26 @@ def assert_has_all_required_timeseries(
     )
 
 
-def get_default_internal_conistency_checking_tolerances() -> (
-    Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
-):
+@define
+class InternalConsistencyCheckingTolerance:
+    """
+    Definition of internal consistency checking tolerance
+    """
+
+    rtol: float | PINT_SCALAR | None = None
+    """
+    Relative tolerance
+    """
+
+    atol: float | PINT_SCALAR | None = None
+    """
+    Absolute tolerance
+    """
+
+
+def get_default_internal_conistency_checking_tolerances() -> Mapping[
+    str, InternalConsistencyCheckingTolerance
+]:
     """
     Get default tolerances used when checking the internal consistency of data
 
@@ -815,49 +832,78 @@ def get_default_internal_conistency_checking_tolerances() -> (
     :
         Tolerances to use when checking the internal consistency of the data
     """
+
+    @define
+    class DefaultToleranceBaseDefn:
+        """Default tolerance definition"""
+
+        rtol: float
+        atol: float
+        unit: str
+
     default_tolerances_base = {
-        "Emissions|BC": dict(rtol=1e-3, atol=1e-3, unit="Mt BC/yr"),
-        "Emissions|CH4": dict(rtol=1e-3, atol=1e-2, unit="Mt CH4/yr"),
-        "Emissions|CO": dict(rtol=1e-3, atol=1e-1, unit="Mt CO/yr"),
-        "Emissions|CO2": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
-        "Emissions|NH3": dict(rtol=1e-3, atol=1e-2, unit="Mt NH3/yr"),
-        "Emissions|NOx": dict(rtol=1e-3, atol=1e-2, unit="Mt NO2/yr"),
-        "Emissions|OC": dict(rtol=1e-3, atol=1e-3, unit="Mt OC/yr"),
-        "Emissions|Sulfur": dict(rtol=1e-3, atol=1e-2, unit="Mt SO2/yr"),
-        "Emissions|VOC": dict(rtol=1e-3, atol=1e-2, unit="Mt VOC/yr"),
-        "Emissions|N2O": dict(rtol=1e-3, atol=1e-1, unit="kt N2O/yr"),
-        "Carbon Removal|Enhanced Weathering": dict(
+        "Emissions|BC": DefaultToleranceBaseDefn(rtol=1e-3, atol=1e-3, unit="Mt BC/yr"),
+        "Emissions|CH4": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-2, unit="Mt CH4/yr"
+        ),
+        "Emissions|CO": DefaultToleranceBaseDefn(rtol=1e-3, atol=1e-1, unit="Mt CO/yr"),
+        "Emissions|CO2": DefaultToleranceBaseDefn(
             rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
         ),
-        "Carbon Removal|Geological Storage": dict(
+        "Emissions|NH3": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-2, unit="Mt NH3/yr"
+        ),
+        "Emissions|NOx": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-2, unit="Mt NO2/yr"
+        ),
+        "Emissions|OC": DefaultToleranceBaseDefn(rtol=1e-3, atol=1e-3, unit="Mt OC/yr"),
+        "Emissions|Sulfur": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-2, unit="Mt SO2/yr"
+        ),
+        "Emissions|VOC": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-2, unit="Mt VOC/yr"
+        ),
+        "Emissions|N2O": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e-1, unit="kt N2O/yr"
+        ),
+        "Carbon Removal|Enhanced Weathering": DefaultToleranceBaseDefn(
             rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
         ),
-        "Carbon Removal|Long-Lived Materials": dict(
+        "Carbon Removal|Geological Storage": DefaultToleranceBaseDefn(
             rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
         ),
-        "Carbon Removal|Ocean": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
-        "Carbon Removal|Land Use": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
-        "Carbon Removal|Land Use|Biochar": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
-        "Carbon Removal|Land Use|Soil Carbon Management": dict(
+        "Carbon Removal|Long-Lived Materials": DefaultToleranceBaseDefn(
             rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
         ),
-        "Carbon Removal|Other": dict(rtol=1e-3, atol=1e0, unit="Mt CO2/yr"),
+        "Carbon Removal|Ocean": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Land Use": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Land Use|Biochar": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Land Use|Soil Carbon Management": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
+        "Carbon Removal|Other": DefaultToleranceBaseDefn(
+            rtol=1e-3, atol=1e0, unit="Mt CO2/yr"
+        ),
     }
     try:
         import openscm_units  # noqa: PLC0415
 
         Q = openscm_units.unit_registry.Quantity
 
-        default_tolerances: (
-            Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
-        ) = {  # type: ignore # some issue with openscm-units type hints
-            k: {"rtol": v["rtol"], "atol": Q(v["atol"], v["unit"])}
+        default_tolerances = {
+            k: InternalConsistencyCheckingTolerance(rtol=v.rtol, atol=Q(v.atol, v.unit))
             for k, v in default_tolerances_base.items()
         }
 
     except ImportError:
         default_tolerances = {
-            k: {"rtol": v["rtol"], "atol": v["atol"]}
+            k: InternalConsistencyCheckingTolerance(rtol=v.rtol, atol=v.atol)
             for k, v in default_tolerances_base.items()
         }
 
@@ -867,8 +913,7 @@ def get_default_internal_conistency_checking_tolerances() -> (
 def assert_is_internally_consistent(  # noqa: PLR0913
     df: pd.DataFrame,
     model_regions: tuple[str, ...],
-    tolerances: Mapping[str, Mapping[str, float]]
-    | Mapping[str, Mapping[str, PINT_SCALAR]],
+    tolerances: Mapping[str, InternalConsistencyCheckingTolerance],
     world_region: str = "World",
     region_level: str = "region",
     unit_level: str = "unit",
@@ -913,11 +958,6 @@ def assert_is_internally_consistent(  # noqa: PLR0913
     InternalConsistencyError
         The data is not internally consistent at the given tolerances
     """
-    try:
-        import pint  # noqa: PLC0415
-    except ModuleNotFoundError:
-        pint = None  # type: ignore
-
     internal_consistency_checking_index = get_internal_consistency_checking_index(
         model_regions=model_regions,
         world_region=world_region,
@@ -977,38 +1017,48 @@ def assert_is_internally_consistent(  # noqa: PLR0913
             world_region=world_region,
         ).reorder_levels(df_species.index.names)
 
-        tolerances_species = {}
-        for kwarg, value in tolerances[species_total_variable].items():
-            if pint is not None and isinstance(value, pint.Quantity):
-                if kwarg == "atol":
-                    species_units = df_species.index.get_level_values(
-                        unit_level
-                    ).unique()
-                    if len(species_units) > 1:
-                        msg = (
-                            "Cannot use pint conversion "
-                            "if your data contains different units. "
-                            f"For {species_total_variable=}, we have {species_units=}"
-                        )
-                        raise ValueError(msg)
+        tolerances_species = tolerances[species_total_variable]
 
-                    tolerances_species[kwarg] = value.to(species_units[0]).m
+        tolerances_species_for_numpy = {}
+        if tolerances_species.atol is None:
+            # Do not set atol
+            pass
 
-                elif kwarg == "rtol":
-                    tolerances_species[kwarg] = value.to("dimensionless").m
+        elif isinstance(tolerances_species.atol, float):
+            tolerances_species_for_numpy["atol"] = tolerances_species.atol
 
-                else:
-                    raise NotImplementedError(kwarg)
+        else:
+            species_units = df_species.index.get_level_values(unit_level).unique()
+            if len(species_units) > 1:
+                msg = (
+                    "Cannot use pint conversion "
+                    "if your data contains different units. "
+                    f"For {species_total_variable=}, we have {species_units=}"
+                )
+                raise ValueError(msg)
 
-            else:
-                tolerances_species[kwarg] = value
+            tolerances_species_for_numpy["atol"] = tolerances_species.atol.to(
+                species_units[0]
+            ).m
+
+        if tolerances_species.rtol is None:
+            # Do not set rtol
+            pass
+
+        elif isinstance(tolerances_species.rtol, float):
+            tolerances_species_for_numpy["rtol"] = tolerances_species.rtol
+
+        else:
+            tolerances_species_for_numpy["rtol"] = tolerances_species.rtol.to(
+                "dimensionless"
+            ).m
 
         comparison_species = compare_close(
             left=df_species_total_reported,
             right=df_species_aggregate,
             left_name="reported_total",
             right_name="derived_from_input",
-            **tolerances_species,
+            **tolerances_species_for_numpy,
         )
 
         if not comparison_species.empty:
@@ -1017,7 +1067,7 @@ def assert_is_internally_consistent(  # noqa: PLR0913
                 data_that_was_summed=df_species,
                 # Would need something like this to give full details
                 # data_that_was_not_summed=data_that_was_not_summed,
-                tolerances=tolerances_species,
+                tolerances=tolerances_species_for_numpy,
             )
 
 
@@ -1446,9 +1496,9 @@ class ReaggregatorBasic:
     but this is the data format used so we have to follow this convention.)
     """
 
-    internal_consistency_tolerances: (
-        Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]
-    ) = field()
+    internal_consistency_tolerances: Mapping[
+        str, InternalConsistencyCheckingTolerance
+    ] = field()
     """
     Tolerances to apply when checking the internal consistency of the data
     """
@@ -1456,7 +1506,7 @@ class ReaggregatorBasic:
     @internal_consistency_tolerances.default
     def default_tols_internal_consistency(
         self,
-    ) -> Mapping[str, Mapping[str, float]] | Mapping[str, Mapping[str, PINT_SCALAR]]:
+    ) -> Mapping[str, InternalConsistencyCheckingTolerance]:
         """
         Get default tolerances for internal consistency checks
         """
