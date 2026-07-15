@@ -70,7 +70,9 @@ def test_load_magicc_cfgs_sets_common_and_physical_cfgs(tmp_path: Path):
 
 @pytest.mark.skip_ci_default
 @pytest.mark.slow
-def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
+def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios(
+    monkeypatch,
+):
     scenario = pd.DataFrame(
         {
             2015: [10.0, 10.0],
@@ -109,6 +111,7 @@ def test_get_complete_scenarios_for_magicc_adds_history_and_keeps_scenarios():
     assert out.loc[("M1", "S1", "World", "Emissions|CO2", "MtCO2/yr"), 2015] == 10.0
     assert out.loc[("M1", "S1", "World", "Emissions|CH4", "MtCH4/yr"), 2016] == 14.0
 
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     scm_runner_cfg = CMIP7ScenarioMIPSCMRunner.from_cmip7_scenariomip_config(
         magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
         magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
