@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.sci_june_2026.harmonisation import create_scijune2026_global_harmoniser
+from gcages.sci_june_2026.harmonisation import create_scijune2026_harmoniser
 from gcages.testing import (
     KEY_SCI_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -24,11 +24,11 @@ pix = pytest.importorskip("pandas_indexing")
 SCI_INPUT_DIR = Path(__file__).parents[0] / "sci_workflow_inputs"
 SCI_OUTPUT_DIR = Path(__file__).parents[0] / "sci_workflow_expected_outputs"
 
-PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
+PROCESSED_SCI_INPUT_DIR = (
     Path(__file__).parents[1] / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
 )
-CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
-    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
+SCI_HISTORICAL_EMISSIONS_FILE = (
+    PROCESSED_SCI_INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 HARMONISATION_YEAR = 2023
 
@@ -50,8 +50,8 @@ def test_individual_scenario_global(model, scenario):
     # Harmonise
     # Only works if aneris installed
     pytest.importorskip("aneris")
-    harmoniser = create_scijune2026_global_harmoniser(
-        historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+    harmoniser = create_scijune2026_harmoniser(
+        historical_emissions_file=SCI_HISTORICAL_EMISSIONS_FILE,
         aneris_overrides_file=SCI_INPUT_DIR / "sci_overrides.csv",
         harmonisation_year=HARMONISATION_YEAR,
         n_processes=None,  # not parallel
@@ -96,8 +96,8 @@ def test_key_testing_scenarios_all_at_once_parallel():
     # Harmonise
     # Only works if aneris installed
     pytest.importorskip("aneris")
-    harmoniser = create_scijune2026_global_harmoniser(
-        historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
+    harmoniser = create_scijune2026_harmoniser(
+        historical_emissions_file=SCI_HISTORICAL_EMISSIONS_FILE,
         aneris_overrides_file=SCI_INPUT_DIR / "sci_overrides.csv",
         harmonisation_year=HARMONISATION_YEAR,
         n_processes=None,  # not parallel

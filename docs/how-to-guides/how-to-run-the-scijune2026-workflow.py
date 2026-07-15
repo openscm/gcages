@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -40,16 +40,13 @@ import pandas_indexing as pix
 import pandas_openscm
 import pint
 import seaborn as sns
-from pandas_openscm.io import load_timeseries_csv
 
-from gcages.renaming import SupportedNamingConventions, rename_variables
 from gcages.sci_june_2026 import (
     SCIJune2026PostProcessor,
     SCIJune2026PreProcessor,
     SCIJune2026SCMRunner,
-    create_scijune2026_global_harmoniser,
+    create_scijune2026_harmoniser,
     create_scijune2026_infiller,
-    load_historical_emissions,
 )
 
 # %%
@@ -113,6 +110,33 @@ ch4_decline[np.logical_and(time > 2030, time < 2060)] = (
 ) + 150.0
 ch4_decline[time >= 2050] = 150.0
 
+# BC and OC (aerosol) trajectories for two of the scenarios.
+# Aerosol emissions broadly track combustion, so here they follow a shape
+# similar to each scenario's fossil CO2 pathway (falling as fossil use falls).
+bc_flatline = np.ones_like(time) * 6.5
+bc_flatline[np.logical_and(time > 2040, time < 2075)] = 6.5 * (
+    1 - 0.75 / (1 + np.exp(-(np.arange(2075 - 2041) - 15) / 3.0))
+)
+bc_flatline[time >= 2075] = 6.5 * 0.25
+
+oc_flatline = np.ones_like(time) * 34.0
+oc_flatline[np.logical_and(time > 2040, time < 2075)] = 34.0 * (
+    1 - 0.75 / (1 + np.exp(-(np.arange(2075 - 2041) - 15) / 3.0))
+)
+oc_flatline[time >= 2075] = 34.0 * 0.25
+
+bc_decline = np.ones_like(time) * 6.5
+bc_decline[np.logical_and(time > 2030, time < 2060)] = (
+    (6.5 - 1.5) * (1 - 1 / (1 + np.exp(-(np.arange(2060 - 2031) - 10) / 3.0)))
+) + 1.5
+bc_decline[time >= 2050] = 1.5
+
+oc_decline = np.ones_like(time) * 34.0
+oc_decline[np.logical_and(time > 2030, time < 2060)] = (
+    (34.0 - 10.0) * (1 - 1 / (1 + np.exp(-(np.arange(2060 - 2031) - 10) / 3.0)))
+) + 10.0
+oc_decline[time >= 2050] = 10.0
+
 # %%
 # Put it altogether into a DataFrame
 start = pd.DataFrame(
@@ -120,9 +144,13 @@ start = pd.DataFrame(
         [
             co2_flatline,
             ch4_flatline,
+            bc_flatline,
+            oc_flatline,
             co2_flatline,
             co2_decline,
             ch4_decline,
+            bc_decline,
+            oc_decline,
             co2_decline * 0.85,
             co2_decline * 0.13
             + np.arange(co2_decline.size) * 10.0
@@ -141,6 +169,8 @@ start = pd.DataFrame(
                 "Mt CO2/yr",
             ),
             ("demo", "flatline", "World", "Emissions|CH4", "Mt CH4/yr"),
+            ("demo", "flatline", "World", "Emissions|BC", "Mt BC/yr"),
+            ("demo", "flatline", "World", "Emissions|OC", "Mt OC/yr"),
             (
                 "demo",
                 "flatline-co2-only",
@@ -156,6 +186,8 @@ start = pd.DataFrame(
                 "Mt CO2/yr",
             ),
             ("demo", "decline", "World", "Emissions|CH4", "Mt CH4/yr"),
+            ("demo", "decline", "World", "Emissions|BC", "Mt BC/yr"),
+            ("demo", "decline", "World", "Emissions|OC", "Mt OC/yr"),
             (
                 "demo",
                 "decline_co2_fossil_split",
@@ -208,7 +240,7 @@ fg.axes.flatten()[1].set_ylim(ymin=0.0)
 # and extracts only those variables that are understood by the workflow.
 
 # %%
-pre_processor = SCIJune2026PreProcessor.from_standard_config(
+pre_processor = SCIJune2026PreProcessor.from_sci_june2026_config(
     n_processes=None,  # run serially for this demo
     progress=False,
     run_checks=True,
@@ -276,16 +308,15 @@ if not ANERIS_OVERRIDES_FILE.exists():
 # %% [markdown]
 # With this file, we can initialise a harmoniser.
 #
-# `HARMONISATION_YEAR` is a custom variable, we fix it here to 2023.
+# `harmonisation_year` is a custom variable, by default is fixed to 2023.
 #
 
 # %% editable=true slideshow={"slide_type": ""}
-HARMONISATION_YEAR = 2023
-harmoniser = create_scijune2026_global_harmoniser(
+harmoniser = create_scijune2026_harmoniser(
     historical_emissions_file=HISTORICAL_EMISSIONS_FILE,
     aneris_overrides_file=ANERIS_OVERRIDES_FILE,
-    harmonisation_year=HARMONISATION_YEAR,
 )
+harmonisation_year = harmoniser.harmonisation_year
 
 # %% [markdown]
 # And harmonise
@@ -369,43 +400,11 @@ if not INFILLING_DB_CFCS_FILE.exists():
 # With the infilling databases, we can initialise our infiller.
 
 # %%
-infilling_leader_emissions = load_timeseries_csv(
-    INFILLING_DB_FILE,
-    lower_column_names=True,
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_columns_type=int,
-)
-
-# CMIP7 GHG inversions
-ghg_inversions = load_timeseries_csv(
-    INFILLING_DB_CFCS_FILE,
-    lower_column_names=True,
-    index_columns=["model", "scenario", "region", "variable", "unit"],
-    out_columns_type=int,
-)
-# History
-historical_emissions = load_historical_emissions(
-    historical_emissions_file=HISTORICAL_EMISSIONS_FILE,
-)
-
-# Use gcages naming convention.
-infilling_leader_emissions = rename_variables(
-    infilling_leader_emissions,
-    from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-    to_convention=SupportedNamingConventions.GCAGES,
-)
-
-ghg_inversions = rename_variables(
-    ghg_inversions,
-    from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
-    to_convention=SupportedNamingConventions.GCAGES,
-)
-
 infiller = create_scijune2026_infiller(
-    infilling_leader_emissions=infilling_leader_emissions,
-    ghg_inversions=ghg_inversions,
-    historical_emissions=historical_emissions,
-    harmonisation_year=HARMONISATION_YEAR,
+    infilling_leader_emissions_file=INFILLING_DB_FILE,
+    ghg_inversions_file=INFILLING_DB_CFCS_FILE,
+    historical_emissions_file=HISTORICAL_EMISSIONS_FILE,
+    harmonisation_year=harmonisation_year,
     pre_industrial_year=1750,
     run_checks=True,
 )
@@ -515,12 +514,12 @@ elif platform.system() == "Windows":
 # With the MAGICC executable and config file, we can initialise our SCM runner.
 
 # %%
-scm_runner = SCIJune2026SCMRunner.from_files(
+scm_runner = SCIJune2026SCMRunner.from_cmip7_scenariomip_config(
     magicc_exe_path=MAGICC_EXE,
     magicc_prob_distribution_path=MAGICC_CMIP7_SCENARIOMIP_PROBABILISTIC_CONFIG_FILE,
     output_variables=("Surface Air Temperature Change", "Effective Radiative Forcing"),
     historical_emissions_path=HISTORICAL_EMISSIONS_FILE,
-    harmonisation_year=HARMONISATION_YEAR,
+    harmonisation_year=harmonisation_year,
     # Generally, you want to run SCMs in parallel
     n_processes=multiprocessing.cpu_count(),
     batch_size_scenarios=15,

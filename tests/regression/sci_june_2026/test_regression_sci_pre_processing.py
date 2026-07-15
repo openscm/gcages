@@ -38,7 +38,7 @@ def test_pre_processing_regression(model, scenario):
         )
     ]
 
-    pre_processor = SCIJune2026PreProcessor.from_standard_config(
+    pre_processor = SCIJune2026PreProcessor.from_sci_june2026_config(
         n_processes=None,  # run serially
         progress=False,
         run_checks=True,

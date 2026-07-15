@@ -1,5 +1,5 @@
 """
-Harmonisation helpers for the CMIP7 ScenarioMIP workflow
+Harmonisation helpers for the SCI workflow
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ def load_historical_emissions(
     historical_emissions_file: Path,
 ) -> pd.DataFrame:
     """
-    Load historical emissions for CMIP7 ScenarioMIP harmonisation.
+    Load historical emissions for harmonisation.
 
     Parameters
     ----------
@@ -54,10 +54,10 @@ def load_historical_emissions(
     return historical_emissions
 
 
-def create_scijune2026_global_harmoniser(  # noqa: PLR0913
+def create_scijune2026_harmoniser(  # noqa: PLR0913
     historical_emissions_file: Path,
     aneris_overrides_file: Path,
-    harmonisation_year: int,
+    harmonisation_year: int = 2023,
     run_checks: bool = True,
     progress: bool = True,
     n_processes: int | None = multiprocessing.cpu_count(),

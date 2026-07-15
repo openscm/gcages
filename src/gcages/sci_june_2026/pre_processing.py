@@ -113,26 +113,26 @@ class SCIJune2026PreProcessor:
             assert_data_is_all_numeric(in_emissions)
             assert_has_index_levels(in_emissions, ["variable", "unit"])
 
+            # Negative values checking
+            co2_locator = ismatch(variable="**CO2**")
+            non_co2 = in_emissions.loc[~co2_locator]
+            keep_condition = (non_co2 >= 0.0) | non_co2.isnull()
+            rows_unexpected_negative = ~keep_condition.all(axis=1)
+
+            if rows_unexpected_negative.any():
+                negatives = (
+                    non_co2.loc[rows_unexpected_negative]
+                    .reset_index()[["model", "scenario", "region", "variable"]]
+                    .to_string(index=False)
+                )
+                msg = f"Below threshold values found in: \n {negatives}"
+                raise ValueError(msg)
+
         rp = partial(
             run_parallel_pre_processing,
             progress=self.progress,
             n_processes=self.n_processes,
         )
-
-        # Negative values checking
-        co2_locator = ismatch(variable="**CO2**")
-        non_co2 = in_emissions.loc[~co2_locator]
-        keep_condition = (non_co2 >= 0.0) | non_co2.isnull()
-        rows_to_drop = ~keep_condition.all(axis=1)
-
-        if rows_to_drop.any():
-            negatives = (
-                non_co2.loc[rows_to_drop]
-                .reset_index()[["model", "scenario", "region", "variable"]]
-                .to_string(index=False)
-            )
-            msg = f"Below threshold values found in: \n {negatives}"
-            raise ValueError(msg)
 
         if self.reclassifications is not None:
             # TODO: switch to using something like the ScenarioMIP reaggregator.
@@ -168,14 +168,14 @@ class SCIJune2026PreProcessor:
         return res
 
     @classmethod
-    def from_standard_config(
+    def from_sci_june2026_config(
         cls,
         run_checks: bool = True,
         progress: bool = True,
         n_processes: int | None = multiprocessing.cpu_count(),
     ) -> SCIJune2026PreProcessor:
         """
-        Initialise from config that was used in AR6
+        Initialise from config that was used in the June 2026 SCI release
 
         Parameters
         ----------

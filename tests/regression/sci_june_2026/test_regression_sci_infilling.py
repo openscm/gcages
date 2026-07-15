@@ -10,8 +10,6 @@ from pathlib import Path
 import pytest
 from pandas_openscm.io import load_timeseries_csv
 
-from gcages.renaming import SupportedNamingConventions, rename_variables
-from gcages.sci_june_2026.harmonisation import load_historical_emissions
 from gcages.sci_june_2026.infilling import create_scijune2026_infiller
 from gcages.testing import (
     KEY_SCI_TESTING_MODEL_SCENARIOS,
@@ -27,7 +25,7 @@ SCI_OUTPUT_DIR = Path(__file__).parents[0] / "sci_workflow_expected_outputs"
 PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
     Path(__file__).parents[1] / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
 )
-CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
+SCI_HISTORICAL_EMISSIONS_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 
@@ -50,43 +48,12 @@ def test_individual_scenario_class(model, scenario):
     )
     harmonised = input_df.loc[pix.ismatch(model=model, scenario=scenario)]
 
-    infilling_leader_emissions = load_timeseries_csv(
-        SCI_INPUT_DIR / "infilling_db_sci.csv",
-        lower_column_names=True,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_columns_type=int,
-    )
-
-    # CMIP7 GHG inversions
-    ghg_inversions = load_timeseries_csv(
-        PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "cmip7_ghg_inversions.csv",
-        lower_column_names=True,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_columns_type=int,
-    )
-    # History
-    historical_emissions = load_historical_emissions(
-        historical_emissions_file=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
-    )
-
-    # Use gcages naming convention.
-    infilling_leader_emissions = rename_variables(
-        infilling_leader_emissions,
-        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-        to_convention=SupportedNamingConventions.GCAGES,
-    )
-
-    ghg_inversions = rename_variables(
-        ghg_inversions,
-        from_convention=SupportedNamingConventions.OPENSCM_RUNNER,
-        to_convention=SupportedNamingConventions.GCAGES,
-    )
-
     # INFILLING
     infiller = create_scijune2026_infiller(
-        infilling_leader_emissions=infilling_leader_emissions,
-        ghg_inversions=ghg_inversions,
-        historical_emissions=historical_emissions,
+        infilling_leader_emissions_file=SCI_INPUT_DIR / "infilling_db_sci.csv",
+        ghg_inversions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
+        / "cmip7_ghg_inversions.csv",
+        historical_emissions_file=SCI_HISTORICAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
         pre_industrial_year=1750,
         run_checks=True,

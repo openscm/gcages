@@ -31,10 +31,8 @@ SCI_OUTPUT_DIR = Path(__file__).parents[0] / "sci_workflow_expected_outputs"
 PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
     Path(__file__).parents[1] / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
 )
-CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR = (
-    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin"
-)
-CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE = (
+MAGICC_EXECUTABLES_DIR = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin"
+MAGICC_PROBABILISTIC_CONFIG_FILE = (
     PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
     / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
@@ -63,9 +61,9 @@ def test_individual_scenario(model, scenario, monkeypatch):
     complete = input_df.loc[pix.ismatch(model=model, scenario=scenario)]
 
     monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
-    scm_runner = SCIJune2026SCMRunner.from_files(
-        magicc_exe_path=guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR),
-        magicc_prob_distribution_path=CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE,
+    scm_runner = SCIJune2026SCMRunner.from_cmip7_scenariomip_config(
+        magicc_exe_path=guess_magicc_exe(MAGICC_EXECUTABLES_DIR),
+        magicc_prob_distribution_path=MAGICC_PROBABILISTIC_CONFIG_FILE,
         output_variables=("Surface Air Temperature Change",),
         historical_emissions_path=CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
@@ -146,15 +144,13 @@ def test_individual_scenario(model, scenario, monkeypatch):
     file = SCI_OUTPUT_DIR / "sci_post-processed-metadata_categories.csv"
     exp_categories = pd.read_csv(file)
     exp_categories = exp_categories.set_index(
-        ["model", "scenario", "climate_model", "metric", "0"]
+        ["climate_model", "model", "scenario", "metric"]
     )
+
     exp_categories = exp_categories.loc[pix.ismatch(model=model, scenario=scenario)]
 
-    assert (
-        post_processed.metadata_categories.values[0]
-        == exp_categories.index.get_level_values("0")[0]
-    )
-    assert (
-        post_processed.metadata_categories.values[1]
-        == exp_categories.index.get_level_values("0")[1]
+    pd.testing.assert_frame_equal(
+        post_processed.metadata_categories.to_frame("0"),
+        exp_categories,
+        check_like=True,
     )
