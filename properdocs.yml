@@ -94,7 +94,7 @@ plugins:
             # # https://github.com/tqdm/tqdm/issues/705
             # - https://tqdm.github.io/objects.inv
             - https://validators.readthedocs.io/en/stable/objects.inv
-            - http://xarray.pydata.org/en/stable/objects.inv
+            - https://docs.xarray.dev/en/stable/objects.inv
           options:
             # It turns out that xref does this check without considering config.
             # As a result, every docstring is parsed as a google-style docstring.
