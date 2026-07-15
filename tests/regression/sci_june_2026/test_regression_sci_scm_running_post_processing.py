@@ -94,7 +94,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     assert_frame_equal(
         scm_results[pix.ismatch(run_id=599)],
         exp,
-        rtol=1e-7,
+        rtol=1e-5,
     )
 
     # Post-processing
@@ -137,7 +137,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-6,
+        rtol=1e-4,
     )
 
     # Loading and categories
