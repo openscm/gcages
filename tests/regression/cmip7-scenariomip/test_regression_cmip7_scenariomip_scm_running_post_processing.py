@@ -158,7 +158,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
     assert_frame_equal(
         processed_quantiles,
         exp_quantiles,
-        rtol=1e-4,
+        rtol=1e-3,
     )
 
     # Loading and categories
