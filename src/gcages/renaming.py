@@ -76,6 +76,13 @@ class SupportedNamingConventions(StrEnum):
     - https://rcmip-protocols-au.s3-ap-southeast-2.amazonaws.com/v5.1.0/rcmip-radiative-forcing-annual-means-v5-1-0.csv
     """
 
+    RCMIP3 = "rcmip3"
+    """
+    Reduced Complexity Model Intercomparison Project (RCMIP) Phase 3 naming convention
+
+    See rcmip.org and https://doi.org/10.5194/egusphere-2025-5775
+    """
+
 
 def convert_variable_name(
     variable_in: str,

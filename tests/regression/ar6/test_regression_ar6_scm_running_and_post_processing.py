@@ -170,7 +170,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
         ]
     )
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         # Has to be parallel otherwise this is too slow
@@ -286,7 +286,7 @@ def test_parallel(tmp_path, monkeypatch):
     exp_temperature_percentiles = pd.concat(exp_temperature_percentiles_l)
     exp_metadata = pd.concat(exp_metadata_l)
 
-    monkeypatch.delenv("MAGICC_EXECUTABLE_7")
+    monkeypatch.delenv("MAGICC_EXECUTABLE_7", raising=False)
     magicc_exe = guess_magicc_exe(AR6_MAGICC_EXECUTABLES_DIR)
     scm_runner = AR6SCMRunner.from_ar6_config(
         n_processes=multiprocessing.cpu_count(),

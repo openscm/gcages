@@ -5,7 +5,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.16.6
+#       jupytext_version: 1.17.2
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -104,6 +104,13 @@ convert_variable_name(
     "Emissions|CO2|Energy and Industrial Processes",
     from_convention=SupportedNamingConventions.IAMC,
     to_convention=SupportedNamingConventions.RCMIP,
+)
+
+# %%
+convert_variable_name(
+    "Emissions|CO2|Energy and Industrial Processes",
+    from_convention=SupportedNamingConventions.IAMC,
+    to_convention=SupportedNamingConventions.RCMIP3,
 )
 
 # %%
@@ -311,6 +318,19 @@ disp_same = EMISSIONS_VARIABLES[
     EMISSIONS_VARIABLES["gcages"] == EMISSIONS_VARIABLES["rcmip"]
 ][["gcages", "rcmip"]]
 disp_same
+
+# %% [markdown]
+# #### gcages vs. RCMIP3
+#
+# RCMIP phase 3 (https://doi.org/10.5194/egusphere-2025-5775)
+# used almost the same names as RCMIP,
+# except they altered the CO2 sub-sector naming.
+
+# %%
+disp = EMISSIONS_VARIABLES[
+    EMISSIONS_VARIABLES["rcmip"] != EMISSIONS_VARIABLES["rcmip3"]
+][["rcmip", "rcmip3"]]
+disp
 
 # %% [markdown]
 # ### gcages vs. AR6 CFC infilling database
