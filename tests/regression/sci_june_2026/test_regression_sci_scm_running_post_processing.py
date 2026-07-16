@@ -28,16 +28,15 @@ CMIP7_SCENARIOMIP_OUT_DIR = Path(__file__).parents[0] / "cmip7-scenariomip-outpu
 SCI_INPUT_DIR = Path(__file__).parents[0] / "sci_workflow_inputs"
 SCI_OUTPUT_DIR = Path(__file__).parents[0] / "sci_workflow_expected_outputs"
 
-PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
+INPUT_DIR = (
     Path(__file__).parents[1] / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
 )
-MAGICC_EXECUTABLES_DIR = PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "magicc-v7.6.0a3/bin"
+MAGICC_EXECUTABLES_DIR = INPUT_DIR / "magicc-v7.6.0a3/bin"
 MAGICC_PROBABILISTIC_CONFIG_FILE = (
-    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
-    / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
+    INPUT_DIR / "magicc-v7.6.0a3/configs/magicc-ar7-fast-track-drawnset-v0-3-0.json"
 )
 CMIP7_SCENARIOMIP_HISTORICAL_GLOBAL_EMISSIONS_FILE = (
-    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
+    INPUT_DIR / "history_cmip7_scenariomip.csv"
 )
 
 HARMONISATION_YEAR = 2023

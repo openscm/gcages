@@ -22,12 +22,10 @@ pix = pytest.importorskip("pandas_indexing")
 SCI_INPUT_DIR = Path(__file__).parents[0] / "sci_workflow_inputs"
 SCI_OUTPUT_DIR = Path(__file__).parents[0] / "sci_workflow_expected_outputs"
 
-PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR = (
+INPUT_DIR = (
     Path(__file__).parents[1] / "cmip7-scenariomip/cmip7-scenariomip-workflow-inputs"
 )
-SCI_HISTORICAL_EMISSIONS_FILE = (
-    PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR / "history_cmip7_scenariomip.csv"
-)
+SCI_HISTORICAL_EMISSIONS_FILE = INPUT_DIR / "history_cmip7_scenariomip.csv"
 
 HARMONISATION_YEAR = 2023
 
@@ -51,8 +49,7 @@ def test_individual_scenario_class(model, scenario):
     # INFILLING
     infiller = create_scijune2026_infiller(
         infilling_leader_emissions_file=SCI_INPUT_DIR / "infilling_db_sci.csv",
-        ghg_inversions_file=PROCESSED_CMIP7_SCENARIOMIP_INPUT_DIR
-        / "cmip7_ghg_inversions.csv",
+        ghg_inversions_file=INPUT_DIR / "cmip7_ghg_inversions.csv",
         historical_emissions_file=SCI_HISTORICAL_EMISSIONS_FILE,
         harmonisation_year=HARMONISATION_YEAR,
         pre_industrial_year=1750,
