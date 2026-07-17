@@ -111,31 +111,40 @@ ch4_decline[np.logical_and(time > 2030, time < 2060)] = (
 ch4_decline[time >= 2050] = 150.0
 
 # BC and OC (aerosol) trajectories for two of the scenarios.
-# Aerosol emissions broadly track combustion, so here they follow a shape
-# similar to each scenario's fossil CO2 pathway (falling as fossil use falls).
-bc_flatline = np.ones_like(time) * 6.5
-bc_flatline[np.logical_and(time > 2040, time < 2075)] = 6.5 * (
-    1 - 0.75 / (1 + np.exp(-(np.arange(2075 - 2041) - 15) / 3.0))
+# History in 2023 is ~7.2 Mt BC and ~34 Mt OC. We deliberately start these
+# scenarios well ABOVE history so the `reduce_ratio_2050` harmonisation rule is
+# easy to see in the harmonisation plot below: harmonisation pulls the pathway
+# onto history in 2023, then linearly closes the gap so the harmonised path
+# rejoins the raw scenario by 2050.
+
+# flatline: held roughly constant well above history through 2050 (any decline is
+# pushed past 2050), so the harmonised ramp from history up to the raw level is a
+# clean wedge that closes exactly at 2050.
+bc_flatline = np.ones_like(time) * 13.0
+bc_flatline[np.logical_and(time > 2055, time < 2090)] = 13.0 * (
+    1 - 0.6 / (1 + np.exp(-(np.arange(2090 - 2056) - 15) / 3.0))
 )
-bc_flatline[time >= 2075] = 6.5 * 0.25
+bc_flatline[time >= 2090] = 13.0 * 0.4
 
-oc_flatline = np.ones_like(time) * 34.0
-oc_flatline[np.logical_and(time > 2040, time < 2075)] = 34.0 * (
-    1 - 0.75 / (1 + np.exp(-(np.arange(2075 - 2041) - 15) / 3.0))
+oc_flatline = np.ones_like(time) * 62.0
+oc_flatline[np.logical_and(time > 2055, time < 2090)] = 62.0 * (
+    1 - 0.6 / (1 + np.exp(-(np.arange(2090 - 2056) - 15) / 3.0))
 )
-oc_flatline[time >= 2075] = 34.0 * 0.25
+oc_flatline[time >= 2090] = 62.0 * 0.4
 
-bc_decline = np.ones_like(time) * 6.5
-bc_decline[np.logical_and(time > 2030, time < 2060)] = (
-    (6.5 - 1.5) * (1 - 1 / (1 + np.exp(-(np.arange(2060 - 2031) - 10) / 3.0)))
-) + 1.5
-bc_decline[time >= 2050] = 1.5
+# decline: starts above history in 2023 and falls through it, so the harmonised
+# path (anchored on history in 2023) converges down onto the raw scenario by 2050.
+bc_decline = np.ones_like(time) * 13.0
+bc_decline[np.logical_and(time > 2025, time < 2065)] = (
+    (13.0 - 3.0) * (1 - 1 / (1 + np.exp(-(np.arange(2065 - 2026) - 15) / 4.0)))
+) + 3.0
+bc_decline[time >= 2065] = 3.0
 
-oc_decline = np.ones_like(time) * 34.0
-oc_decline[np.logical_and(time > 2030, time < 2060)] = (
-    (34.0 - 10.0) * (1 - 1 / (1 + np.exp(-(np.arange(2060 - 2031) - 10) / 3.0)))
-) + 10.0
-oc_decline[time >= 2050] = 10.0
+oc_decline = np.ones_like(time) * 62.0
+oc_decline[np.logical_and(time > 2025, time < 2065)] = (
+    (62.0 - 15.0) * (1 - 1 / (1 + np.exp(-(np.arange(2065 - 2026) - 15) / 4.0)))
+) + 15.0
+oc_decline[time >= 2065] = 15.0
 
 # %%
 # Put it altogether into a DataFrame
