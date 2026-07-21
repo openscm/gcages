@@ -1,0 +1,19 @@
+region,variable,method
+World,Emissions|C2F6,reduce_ratio_2150_cov
+World,Emissions|C6F14,reduce_ratio_2150_cov
+World,Emissions|CF4,reduce_ratio_2150_cov
+World,Emissions|CO,reduce_ratio_2150_cov
+World,Emissions|CO2,reduce_ratio_2080
+World,Emissions|CO2|AFOLU,reduce_offset_2050
+World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+World,Emissions|HFC|HFC125,constant_ratio
+World,Emissions|HFC|HFC134a,constant_ratio
+World,Emissions|HFC|HFC143a,constant_ratio
+World,Emissions|HFC|HFC227ea,constant_ratio
+World,Emissions|HFC|HFC23,constant_ratio
+World,Emissions|HFC|HFC32,constant_ratio
+World,Emissions|HFC|HFC43-10,constant_ratio
+World,Emissions|BC,reduce_ratio_2050
+World,Emissions|OC,reduce_ratio_2050
+World,Emissions|SF6,constant_ratio
+World,Emissions|VOC,reduce_ratio_2150_cov

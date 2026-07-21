@@ -1,0 +1,209 @@
+climate_model,model,scenario,metric,0
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP1-19,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP3-34,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP5-Baseline,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,AIM/CGE 2.1,CD-LINKS-NDC2030i_1000,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,AIM/CGE 2.1,COMMIT-Bridge,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,AIM/Hub-Global 2.0,SDI-1.5°C,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,AIM/Hub-Global 2.4,GEO7-Current Trends,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,CGEM-ESM 1.0,China-2060-SSP2-2°C,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.1,COMMIT-2°C-2020,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.1,COMMIT-Bridge,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.1,ENGAGE-INDCi2030-1000,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.1,ENGAGE-INDCi2030-1000f,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.5,NAVIGATE Demand-1.5°C-act_u,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,COFFEE 1.5,NAVIGATE Demand-1.5°C-all_u,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,GCAM 4.2,SSP1-19,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,GCAM 4.2,SSP5-Baseline,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,GCAM 5.2,NGFS Phase 1-Current Policies,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,GCAM 5.3,Deep-Mitigation-Baseline,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,GCAM 5.3,NGFS Phase 2-Below 2°C,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,GCAM 6.0 NGFS,NGFS Phase 5-Below 2°C,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,category_name,C6: limit warming to 3°C (>50%)
+MAGICCv7.6.0a3,GCAM-PR 5.3,ParisReinforce-Baseline,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,GEM-E3 V2021,ENGAGE-INDCi2030-1000,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,GEM-E3 V2021,ENGAGE-INDCi2030-1000f,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0,COMMIT-2°C-2020,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,IMAGE 3.0,COMMIT-Bridge,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,IMAGE 3.0,ENGAGE-INDCi2030-1000,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0,ENGAGE-INDCi2030-1000f,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-2020-1.5°C-2100,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-2020-medium-2°C,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-NoPolicy,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,CD-LINKS-NDC2030i_1000,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,EMF30-BCOC-EndU,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP1-19,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP3-34,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP5-Baseline,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,IMAGE 3.2,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,IMAGE 3.2,SSP2021-SSP1-Baseline,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,MERGE-ETL 6.0,DAC-2°C-66%,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,ADVANCE-2020-medium-2°C,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,EMF33-1.5°C-cost100,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,SSP1-19,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,SSP3-34,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,CD-LINKS-NDC2030i_1000,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000f,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,MINES 0.1.0,China-NZP-SSP2-com,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-2020-1.5°C-2100,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-2020-medium-2°C,category_name,C5: limit warming to 2.5°C (>50%)
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-NoPolicy,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,POLES GECO2019,COMMIT-2°C-2020,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,POLES GECO2019,COMMIT-Bridge,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-INDCi2030-1000,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-INDCi2030-1000f,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,REMIND 1.6,EMF30-BCOC-EndU,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-2020-1.5°C-2100,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-2020-medium-2°C,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-NoPolicy,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,REMIND 1.7,CEMICS-1.5°C-CDR12,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,REMIND 1.7,CEMICS-Ref,category_name,C7: limit warming to 4°C (>50%)
+MAGICCv7.6.0a3,REMIND 2.1,CEMICS-GDPgrowth-1.5°C,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND 2.1,CEMICS-GDPgrowth-2.0°C,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND 2.1,ECEMF-DIAG-C400-lin,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND 3.0,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND 3.0,NAVIGATE Demand-1.5°C-all_u,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,CD-LINKS-INDC2030i_1600,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,COMMIT-2°C-2020,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,COMMIT-Bridge,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,category_name,C2: return warming to 1.5°C (>50%) after a high overshoot
+MAGICCv7.6.0a3,REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Low Demand,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,WITCH 4.6,DISCRATE-Reference-dr2p,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,WITCH 5.0,COMMIT-2°C-2020,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,WITCH 5.0,COMMIT-Bridge,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,WITCH 5.0,ECEMF-DIAG-C400-lin,category_name,C1: limit warming to 1.5°C (>50%) with no or limited overshoot
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-Feasibility-1000/Cost-Effective,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-INDCi2030-1000,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-INDCi2030-1000f,category_name,C4: limit warming to 2°C (>50%)
+MAGICCv7.6.0a3,WITCH 5.0,NAVIGATE Demand-1.5°C-act_u,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,WITCH 5.0,NAVIGATE Demand-1.5°C-all_u,category_name,C3: limit warming to 2°C (>67%)
+MAGICCv7.6.0a3,WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,category_name,C8: exceed warming of 4°C (>=50%)
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP1-19,category,C1
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP3-34,category,C5
+MAGICCv7.6.0a3,AIM/CGE 2.0,SSP5-Baseline,category,C8
+MAGICCv7.6.0a3,AIM/CGE 2.1,CD-LINKS-INDC2030i_1600,category,C5
+MAGICCv7.6.0a3,AIM/CGE 2.1,CD-LINKS-NDC2030i_1000,category,C3
+MAGICCv7.6.0a3,AIM/CGE 2.1,COMMIT-Bridge,category,C3
+MAGICCv7.6.0a3,AIM/CGE V2.2,ENGAGE-Feasibility-1000/Cost-Effective,category,C3
+MAGICCv7.6.0a3,AIM/CGE V2.2,ENGAGE-INDCi2030-1000f,category,C3
+MAGICCv7.6.0a3,AIM/Hub-Global 2.0,SDI-1.5°C,category,C1
+MAGICCv7.6.0a3,AIM/Hub-Global 2.4,GEO7-Current Trends,category,C8
+MAGICCv7.6.0a3,CGEM-ESM 1.0,China-2060-SSP2-2°C,category,C5
+MAGICCv7.6.0a3,COFFEE 1.1,COMMIT-2°C-2020,category,C4
+MAGICCv7.6.0a3,COFFEE 1.1,COMMIT-Bridge,category,C4
+MAGICCv7.6.0a3,COFFEE 1.1,ENGAGE-INDCi2030-1000,category,C4
+MAGICCv7.6.0a3,COFFEE 1.1,ENGAGE-INDCi2030-1000f,category,C4
+MAGICCv7.6.0a3,COFFEE 1.5,ENGAGE-Feasibility-1000/Cost-Effective,category,C4
+MAGICCv7.6.0a3,COFFEE 1.5,NAVIGATE Demand-1.5°C-act_u,category,C4
+MAGICCv7.6.0a3,COFFEE 1.5,NAVIGATE Demand-1.5°C-all_u,category,C4
+MAGICCv7.6.0a3,GCAM 4.2,SSP1-19,category,C2
+MAGICCv7.6.0a3,GCAM 4.2,SSP5-Baseline,category,C8
+MAGICCv7.6.0a3,GCAM 5.2,NGFS Phase 1-Current Policies,category,C7
+MAGICCv7.6.0a3,GCAM 5.3,Deep-Mitigation-Baseline,category,C7
+MAGICCv7.6.0a3,GCAM 5.3,NGFS Phase 2-Below 2°C,category,C4
+MAGICCv7.6.0a3,GCAM 6.0 NGFS,NGFS Phase 5-Below 2°C,category,C3
+MAGICCv7.6.0a3,GCAM 6.0 NGFS,NGFS Phase 5-Low Demand,category,C2
+MAGICCv7.6.0a3,GCAM 7.0,IAM-COMPACT-Current-Policies-Emissions-Intensity,category,C6
+MAGICCv7.6.0a3,GCAM-PR 5.3,ParisReinforce-Baseline,category,C7
+MAGICCv7.6.0a3,GEM-E3 V2021,ENGAGE-INDCi2030-1000,category,C3
+MAGICCv7.6.0a3,GEM-E3 V2021,ENGAGE-INDCi2030-1000f,category,C5
+MAGICCv7.6.0a3,GEM-E3 V2023,ENGAGE-Feasibility-1000/Cost-Effective,category,C4
+MAGICCv7.6.0a3,IMAGE 3.0,COMMIT-2°C-2020,category,C3
+MAGICCv7.6.0a3,IMAGE 3.0,COMMIT-Bridge,category,C3
+MAGICCv7.6.0a3,IMAGE 3.0,ENGAGE-INDCi2030-1000,category,C4
+MAGICCv7.6.0a3,IMAGE 3.0,ENGAGE-INDCi2030-1000f,category,C4
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-2020-1.5°C-2100,category,C2
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-2020-medium-2°C,category,C4
+MAGICCv7.6.0a3,IMAGE 3.0.1,ADVANCE-NoPolicy,category,C7
+MAGICCv7.6.0a3,IMAGE 3.0.1,CD-LINKS-INDC2030i_1600,category,C5
+MAGICCv7.6.0a3,IMAGE 3.0.1,CD-LINKS-NDC2030i_1000,category,C3
+MAGICCv7.6.0a3,IMAGE 3.0.1,EMF30-BCOC-EndU,category,C7
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP1-19,category,C2
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP3-34,category,C5
+MAGICCv7.6.0a3,IMAGE 3.0.1,SSP5-Baseline,category,C8
+MAGICCv7.6.0a3,IMAGE 3.2,ENGAGE-Feasibility-1000/Cost-Effective,category,C4
+MAGICCv7.6.0a3,IMAGE 3.2,SSP2021-SSP1-Baseline,category,C7
+MAGICCv7.6.0a3,MERGE-ETL 6.0,DAC-2°C-66%,category,C5
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,ADVANCE-2020-1.5°C-2100,category,C2
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,ADVANCE-2020-medium-2°C,category,C5
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,EMF30-BCOC-EndU,category,C7
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,EMF33-1.5°C-cost100,category,C2
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,SSP1-19,category,C2
+MAGICCv7.6.0a3,MESSAGE-GLOBIOM 1.0,SSP3-34,category,C4
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,CD-LINKS-INDC2030i_1600,category,C5
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,CD-LINKS-NDC2030i_1000,category,C2
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.0,LowEnergyDemand (1.3/IPCC-AR6),category,C2
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ECEMF-DIAG-C400-lin,category,C2
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-Feasibility-1000/Cost-Effective,category,C3
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000,category,C3
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,ENGAGE-INDCi2030-1000f,category,C4
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,GENIE DACCS DACl-MP-median-stor3-final_1000,category,C4
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1,NGFS Phase 2-Below 2°C,category,C4
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.1-BMT-R12,NAVIGATE Demand-1.5°C-all_u,category,C3
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM 1.2,COVID-Shift-GreenPush,category,C7
+MAGICCv7.6.0a3,MESSAGEix-GLOBIOM GEI 1.0,GEI-SSP2-int-lc-15,category,C5
+MAGICCv7.6.0a3,MINES 0.1.0,China-NZP-SSP2-com,category,C5
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-2020-1.5°C-2100,category,C1
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-2020-medium-2°C,category,C5
+MAGICCv7.6.0a3,POLES ADVANCE,ADVANCE-NoPolicy,category,C7
+MAGICCv7.6.0a3,POLES GECO2019,COMMIT-2°C-2020,category,C4
+MAGICCv7.6.0a3,POLES GECO2019,COMMIT-Bridge,category,C4
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-Feasibility-1000/Cost-Effective,category,C3
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-INDCi2030-1000,category,C4
+MAGICCv7.6.0a3,POLES-JRC ENGAGE,ENGAGE-INDCi2030-1000f,category,C4
+MAGICCv7.6.0a3,REMIND 1.6,EMF30-BCOC-EndU,category,C7
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-2020-1.5°C-2100,category,C2
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-2020-medium-2°C,category,C4
+MAGICCv7.6.0a3,REMIND 1.7,ADVANCE-NoPolicy,category,C7
+MAGICCv7.6.0a3,REMIND 1.7,CEMICS-1.5°C-CDR12,category,C1
+MAGICCv7.6.0a3,REMIND 1.7,CEMICS-Ref,category,C7
+MAGICCv7.6.0a3,REMIND 2.1,CEMICS-GDPgrowth-1.5°C,category,C2
+MAGICCv7.6.0a3,REMIND 2.1,CEMICS-GDPgrowth-2.0°C,category,C3
+MAGICCv7.6.0a3,REMIND 2.1,ECEMF-DIAG-C400-lin,category,C2
+MAGICCv7.6.0a3,REMIND 3.0,ENGAGE-Feasibility-1000/Cost-Effective,category,C3
+MAGICCv7.6.0a3,REMIND 3.0,NAVIGATE Demand-1.5°C-act_u,category,C2
+MAGICCv7.6.0a3,REMIND 3.0,NAVIGATE Demand-1.5°C-all_u,category,C2
+MAGICCv7.6.0a3,REMIND 3.5,Rescuing-1.5°C-Highest-Possible-Ambition,category,C2
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,CD-LINKS-INDC2030i_1600,category,C4
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,CD-LINKS-NDC2030i_1000,category,C3
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,COMMIT-2°C-2020,category,C3
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,COMMIT-Bridge,category,C3
+MAGICCv7.6.0a3,REMIND-MAgPIE 1.7-3.0,EMF33-1.5°C-cost100,category,C2
+MAGICCv7.6.0a3,REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Below 2°C,category,C3
+MAGICCv7.6.0a3,REMIND-MAgPIE 3.3-4.8,NGFS Phase 5-Low Demand,category,C1
+MAGICCv7.6.0a3,WITCH 4.6,DISCRATE-Reference-dr2p,category,C8
+MAGICCv7.6.0a3,WITCH 5.0,COMMIT-2°C-2020,category,C3
+MAGICCv7.6.0a3,WITCH 5.0,COMMIT-Bridge,category,C4
+MAGICCv7.6.0a3,WITCH 5.0,ECEMF-DIAG-C400-lin,category,C1
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-Feasibility-1000/Cost-Effective,category,C3
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-INDCi2030-1000,category,C4
+MAGICCv7.6.0a3,WITCH 5.0,ENGAGE-INDCi2030-1000f,category,C4
+MAGICCv7.6.0a3,WITCH 5.0,NAVIGATE Demand-1.5°C-act_u,category,C3
+MAGICCv7.6.0a3,WITCH 5.0,NAVIGATE Demand-1.5°C-all_u,category,C3
+MAGICCv7.6.0a3,WITCH-GLOBIOM 4.2,ADVANCE-NoPolicy,category,C8
+MAGICCv7.6.0a3,WITCH-GLOBIOM 4.2,EMF30-BCOC-EndU,category,C8
