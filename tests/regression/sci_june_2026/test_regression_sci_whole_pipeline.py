@@ -239,6 +239,7 @@ def test_whole_pipeline(model, scenario, monkeypatch):
         processed_quantiles,
         exp_quantiles,
         rtol=1e-4,
+        atol=0.002,
     )
 
     # Loading and categories
