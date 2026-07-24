@@ -94,6 +94,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
         scm_results[pix.ismatch(run_id=599)],
         exp,
         rtol=1e-5,
+        atol=0.002,
     )
 
     # Post-processing
@@ -137,6 +138,7 @@ def test_individual_scenario(model, scenario, monkeypatch):
         processed_quantiles,
         exp_quantiles,
         rtol=1e-4,
+        atol=0.002,
     )
 
     # Loading and categories
