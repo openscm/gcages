@@ -195,9 +195,17 @@ def get_complete_scenarios_for_magicc(
     """
     scenarios_start_year = scenarios.columns.min()
 
+    if (
+        scenarios.index.to_frame(index=False)
+        .duplicated(subset=["model", "scenario", "variable"])
+        .any()
+    ):
+        msg = "'scenarios' has duplicate index: model, scenario, variable"
+        raise ValueError(msg)
+
     scenario_index = cast(
         pd.MultiIndex,
-        scenarios.reset_index(["model", "scenario"], drop=True).drop_duplicates().index,
+        scenarios.reset_index(["model", "scenario"], drop=True).index,
     )
 
     history_to_add = (
