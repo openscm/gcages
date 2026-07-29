@@ -195,12 +195,18 @@ def get_complete_scenarios_for_magicc(
     """
     scenarios_start_year = scenarios.columns.min()
 
-    if (
-        scenarios.index.to_frame(index=False)
-        .duplicated(subset=["model", "scenario", "variable"])
-        .any()
-    ):
-        msg = "'scenarios' has duplicate index: model, scenario, variable"
+    # Check for duplicated index
+    scenario_id = scenarios.index.to_frame(index=False)
+    duplicate_subset = ["model", "scenario", "variable"]
+    if scenario_id.duplicated(subset=duplicate_subset).any():
+        duplicated_id = scenario_id.loc[
+            scenario_id.duplicated(subset=duplicate_subset, keep=False),
+            duplicate_subset,
+        ].drop_duplicates()
+        msg = (
+            "'scenarios' has duplicate index: model, scenario, variable:\n"
+            f"{duplicated_id.to_string(index=False)}"
+        )
         raise ValueError(msg)
 
     scenario_index = cast(

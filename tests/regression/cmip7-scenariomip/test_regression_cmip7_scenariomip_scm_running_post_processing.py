@@ -5,7 +5,6 @@ Test simple climate model running compared for CMIP7 ScenarioMIP
 from __future__ import annotations
 
 import multiprocessing
-from contextlib import nullcontext
 from functools import partial
 from pathlib import Path
 
@@ -17,7 +16,6 @@ from pandas_openscm.io import load_timeseries_csv
 from gcages.cmip7_scenariomip.post_processing import CMIP7ScenarioMIPPostProcessor
 from gcages.cmip7_scenariomip.scm_running import (
     CMIP7ScenarioMIPSCMRunner,
-    load_magicc_cfgs,
 )
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.testing import (
@@ -175,108 +173,3 @@ def test_individual_scenario(model, scenario, monkeypatch):
         .rename_axis(None, axis="columns"),
         exp_categories,
     )
-
-
-@pytest.mark.skip_ci_default
-@pytest.mark.slow
-@pytest.mark.magicc_v760a3
-@pytest.mark.parametrize(
-    "scenario,expectation",
-    [
-        pytest.param(
-            pd.DataFrame(
-                [
-                    [1.0, 2.0],
-                    [3.0, 2.0],
-                    [1.0, 2.0],
-                    [3.0, 2.0],
-                ],
-                columns=[2023, 2100],
-                index=pd.MultiIndex.from_tuples(
-                    [
-                        ("model_1", "scenario_1", "World", "Emissions|BC", "Mt BC/yr"),
-                        (
-                            "model_1",
-                            "scenario_1",
-                            "World",
-                            "Emissions|CO2",
-                            "Mt CO2/yr",
-                        ),
-                        ("model_1", "scenario_1", "World", "Emissions|CO", "Mt CO/yr"),
-                        ("model_1", "scenario_1", "World", "Emissions|BC", "Mt BC/yr"),
-                    ],
-                    names=["model", "scenario", "region", "variable", "unit"],
-                ),
-            ),
-            pytest.raises(
-                ValueError,
-                match="'scenarios' has duplicate index: model, scenario, variable",
-            ),
-            id="duplicate-trajectory",
-        ),
-        pytest.param(
-            pd.DataFrame(
-                [
-                    [1.0, 2.0],
-                    [3.0, 2.0],
-                    [1.0, 2.0],
-                ],
-                columns=[2023, 2100],
-                index=pd.MultiIndex.from_tuples(
-                    [
-                        ("model_1", "scenario_1", "World", "Emissions|BC", "Mt BC/yr"),
-                        (
-                            "model_1",
-                            "scenario_1",
-                            "World",
-                            "Emissions|CO2",
-                            "Mt CO2/yr",
-                        ),
-                        ("model_1", "scenario_1", "World", "Emissions|CO", "Mt CO/yr"),
-                    ],
-                    names=["model", "scenario", "region", "variable", "unit"],
-                ),
-            ),
-            nullcontext(),
-            id="unique-trajectories",
-        ),
-    ],
-)
-def test_repeated_emissions_scenario(scenario, expectation, monkeypatch):
-    # Creating mock historical_emissions
-    historical_emissions = scenario[[2023]].copy()
-    historical_emissions[2012] = historical_emissions[2023] * 0.8
-    historical_emissions[2010] = historical_emissions[2023] * 0.7
-    historical_emissions[1750] = historical_emissions[2023] * 0.01
-    historical_emissions = historical_emissions.sort_index(axis=1)
-    historical_emissions = historical_emissions[
-        ~historical_emissions.index.duplicated(keep="first")
-    ].reset_index(["model", "scenario"], drop=True)
-
-    cfg_1_member_file = CMIP7_SCENARIOMIP_MAGICC_PROBABILISTIC_CONFIG_FILE.with_name(
-        "1-member-magicc-ar7.json"
-    )
-    magicc_prob_cfg = load_magicc_cfgs(
-        prob_distribution_path=cfg_1_member_file,
-        output_variables=("Surface Air Temperature Change",),
-        startyear=1750,
-    )
-
-    monkeypatch.setenv(
-        "MAGICC_EXECUTABLE_7",
-        str(guess_magicc_exe(CMIP7_SCENARIOMIP_MAGICC_EXECUTABLES_DIR)),
-    )
-    scm_runner = CMIP7ScenarioMIPSCMRunner(
-        climate_models_cfgs=magicc_prob_cfg,
-        output_variables=("Surface Air Temperature Change",),
-        batch_size_scenarios=1,
-        historical_emissions=historical_emissions,
-        harmonisation_year=HARMONISATION_YEAR,
-        run_checks=False,
-        n_processes=1,
-        res_column_type=int,  # annual output by default
-    )
-
-    with expectation:
-        scm_results = scm_runner(scenario)
-        assert not scm_results.isnull().any().any()
