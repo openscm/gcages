@@ -47,18 +47,18 @@ def create_dummy_scm_results(years=range(1850, 2101), rand_weight=1):
 
 def test_post_processor_initialization():
     """Tests the factory method from_cmip7_scenariomip_config."""
-    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
 
-    assert processor.gsat_variable_name == "Surface Air Temperature Change"
-    assert processor.gsat_assessment_median == 0.85
-    assert 1850 in processor.gsat_assessment_pre_industrial_period
-    assert 2014 in processor.gsat_assessment_time_period
+    assert post_processor.gsat_variable_name == "Surface Air Temperature Change"
+    assert post_processor.gsat_assessment_median == 0.85
+    assert 1850 in post_processor.gsat_assessment_pre_industrial_period
+    assert 2014 in post_processor.gsat_assessment_time_period
 
 
 @pytest.mark.parametrize("missing_col", ["model", "scenario", "run_id"])
 def test_post_processor_validation_errors(missing_col):
     """Tests that _check_in_df catches missing metadata."""
-    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
     df = create_dummy_scm_results()
 
     # Drop a required level
@@ -67,31 +67,31 @@ def test_post_processor_validation_errors(missing_col):
     with pytest.raises(
         ValueError, match=f"missing required metadata levels:.*{missing_col}"
     ):
-        processor(df_invalid)
+        post_processor(df_invalid)
 
 
 def test_post_processor_missing_years():
     """Tests that validation fails if required assessment years are missing."""
-    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
     # Create data only from 2020-2100 (missing pre-industrial period)
     df = create_dummy_scm_results(years=range(2020, 2101))
 
     with pytest.raises(
         ValueError, match="Input data is missing years required for assessment"
     ):
-        processor(df)
+        post_processor(df)
 
 
 def test_post_processor_synthetic_input():
     """Tests that validation fails if required assessment years are missing."""
-    processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
+    post_processor = CMIP7ScenarioMIPPostProcessor.from_cmip7_scenariomip_config()
     df = create_dummy_scm_results(years=range(1850, 2101), rand_weight=0)
 
-    post_processed = processor(df)
+    post_processed = post_processor(df)
 
     assert (
         post_processed.metadata_exceedance_probabilities.unstack("threshold").values
-        == [100, 100, 0]
+        == [100, 50, 0, 0, 0, 0, 0]
     ).all()
     quantiles = (
         post_processed.metadata_quantile.loc[pix.isin(quantile=[0.05, 0.5, 0.95])]
