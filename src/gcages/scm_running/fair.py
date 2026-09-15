@@ -27,7 +27,74 @@ from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import run_scms
 from gcages.units_helpers import assert_has_no_pint_incompatible_characters
 
+FAIR_START_YEAR = 1750
 FAIR_END_YEAR_MAX = 2110
+
+FAIR_OUTPUT_VARIABLES_DEFAULT = (
+    "Atmospheric Concentrations|CH4",
+    "Atmospheric Concentrations|CO2",
+    "Atmospheric Concentrations|N2O",
+    "Effective Radiative Forcing",
+    "Effective Radiative Forcing|Aerosols",
+    "Effective Radiative Forcing|Aerosols|Direct Effect",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
+    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
+    "Effective Radiative Forcing|Aerosols|Indirect Effect",
+    "Effective Radiative Forcing|Anthropogenic",
+    "Effective Radiative Forcing|C2F6",
+    "Effective Radiative Forcing|C6F14",
+    "Effective Radiative Forcing|CF4",
+    "Effective Radiative Forcing|CFC11",
+    "Effective Radiative Forcing|CFC12",
+    "Effective Radiative Forcing|CH4",
+    "Effective Radiative Forcing|CO2",
+    "Effective Radiative Forcing|F-Gases",
+    "Effective Radiative Forcing|Greenhouse Gases",
+    "Effective Radiative Forcing|HCFC22",
+    "Effective Radiative Forcing|HFC125",
+    "Effective Radiative Forcing|HFC134a",
+    "Effective Radiative Forcing|HFC143a",
+    "Effective Radiative Forcing|HFC227ea",
+    "Effective Radiative Forcing|HFC23",
+    "Effective Radiative Forcing|HFC245fa",
+    "Effective Radiative Forcing|HFC32",
+    "Effective Radiative Forcing|HFC4310mee",
+    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
+    "Effective Radiative Forcing|N2O",
+    "Effective Radiative Forcing|Ozone",
+    "Effective Radiative Forcing|SF6",
+    "Heat Uptake",
+    "Surface Air Ocean Blended Temperature Change",
+    "Surface Air Temperature Change",
+)
+
+FAIR_VERSION_REQUIRED = "1.6.2.1"
+FAIR_SOURCE_URL = "https://github.com/OMS-NetZero/FAIR.git"
+FAIR_SOURCE_REV = "f87269b7f968b8786d2446e3a4eed85b7e719191"
+
+
+def check_fair_version() -> None:
+    """
+    Check that the installed FaIR is the build our configuration requires
+    """
+    try:
+        import fair  # noqa: PLC0415
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "check_fair_version", requirement="fair"
+        ) from exc
+
+    if fair.__version__ != FAIR_VERSION_REQUIRED:
+        msg = (
+            f"Expected fair v{FAIR_VERSION_REQUIRED}, found v{fair.__version__}. "
+            f"v{FAIR_VERSION_REQUIRED} is not on PyPI: it is fair v1.6.2 plus "
+            "NumPy-compatibility fixes, installable with\n"
+            f"    pip install 'fair @ git+{FAIR_SOURCE_URL}@{FAIR_SOURCE_REV}'\n"
+            "Note that `pip install openscm-runner[fair]` pins fair<2 and will "
+            "install a PyPI release (e.g. v1.6.4) that does NOT contain these fixes."
+        )
+        raise AssertionError(msg)
 
 
 def load_fair_probabilistic_config(
@@ -163,72 +230,48 @@ def load_fair_probabilistic_config(
     return cfgs
 
 
-FAIR_VERSION_REQUIRED = "1.6.2.1"
-FAIR_SOURCE_URL = "https://github.com/OMS-NetZero/FAIR.git"
-FAIR_SOURCE_REV = "f87269b7f968b8786d2446e3a4eed85b7e719191"
-
-
-def check_fair_version() -> None:
+def apply_scm_specific_patches(scm: str, scm_version: str) -> None:
     """
-    Check that the installed FaIR is the build our configuration requires
+    Apply model specific patches
+
+    This is for any oddities that need to be performed in order
+    to make the SCM run.
+    It basically allows us to patch over any cracks in the rest of our stack.
+    In an ideal world, we would go and fix these, but time may not allow that.
+
+    Parameters
+    ----------
+    scm
+        Simple climate model
+
+    scm_version
+        Simple climate model version
     """
-    try:
-        import fair  # noqa: PLC0415
-    except ImportError as exc:
-        raise MissingOptionalDependencyError(
-            "check_fair_version", requirement="fair"
-        ) from exc
+    if scm == "fair" and scm_version == "1.6.2":
+        # urgh yuck monkey patching, stupid openscm-runner
+        # TODO: patch openscm-runner instead
 
-    if fair.__version__ != FAIR_VERSION_REQUIRED:
-        msg = (
-            f"Expected fair v{FAIR_VERSION_REQUIRED}, found v{fair.__version__}. "
-            f"v{FAIR_VERSION_REQUIRED} is not on PyPI: it is fair v1.6.2 plus "
-            "NumPy-compatibility fixes, installable with\n"
-            f"    pip install 'fair @ git+{FAIR_SOURCE_URL}@{FAIR_SOURCE_REV}'\n"
-            "Note that `pip install openscm-runner[fair]` pins fair<2 and will "
-            "install a PyPI release (e.g. v1.6.4) that does NOT contain these fixes."
-        )
-        raise AssertionError(msg)
+        def _get_fair_col_unit_context_fixed(variable):
+            from openscm_runner.adapters.fair_adapter._scmdf_to_emissions import (  # noqa: PLC0415
+                EMISSIONS_SPECIES_UNITS_CONTEXT,
+            )
 
+            row = EMISSIONS_SPECIES_UNITS_CONTEXT["species"].apply(
+                lambda x: variable.endswith(x)  # noqa: PLW0108
+            )
+            in_unit = EMISSIONS_SPECIES_UNITS_CONTEXT[row]["in_unit"]
+            if in_unit.shape[0] != 1:
+                raise AssertionError(in_unit)
 
-FAIR_OUTPUT_VARIABLES_DEFAULT = (
-    "Atmospheric Concentrations|CH4",
-    "Atmospheric Concentrations|CO2",
-    "Atmospheric Concentrations|N2O",
-    "Effective Radiative Forcing",
-    "Effective Radiative Forcing|Aerosols",
-    "Effective Radiative Forcing|Aerosols|Direct Effect",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|BC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|OC",
-    "Effective Radiative Forcing|Aerosols|Direct Effect|SOx",
-    "Effective Radiative Forcing|Aerosols|Indirect Effect",
-    "Effective Radiative Forcing|Anthropogenic",
-    "Effective Radiative Forcing|C2F6",
-    "Effective Radiative Forcing|C6F14",
-    "Effective Radiative Forcing|CF4",
-    "Effective Radiative Forcing|CFC11",
-    "Effective Radiative Forcing|CFC12",
-    "Effective Radiative Forcing|CH4",
-    "Effective Radiative Forcing|CO2",
-    "Effective Radiative Forcing|F-Gases",
-    "Effective Radiative Forcing|Greenhouse Gases",
-    "Effective Radiative Forcing|HCFC22",
-    "Effective Radiative Forcing|HFC125",
-    "Effective Radiative Forcing|HFC134a",
-    "Effective Radiative Forcing|HFC143a",
-    "Effective Radiative Forcing|HFC227ea",
-    "Effective Radiative Forcing|HFC23",
-    "Effective Radiative Forcing|HFC245fa",
-    "Effective Radiative Forcing|HFC32",
-    "Effective Radiative Forcing|HFC4310mee",
-    "Effective Radiative Forcing|Montreal Protocol Halogen Gases",
-    "Effective Radiative Forcing|N2O",
-    "Effective Radiative Forcing|Ozone",
-    "Effective Radiative Forcing|SF6",
-    "Heat Uptake",
-    "Surface Air Ocean Blended Temperature Change",
-    "Surface Air Temperature Change",
-)
+            fair_col = int(row[row].index.values.squeeze()) + 1  # first col is time
+            in_unit = in_unit.iloc[0]
+            context = EMISSIONS_SPECIES_UNITS_CONTEXT[row]["context"].iloc[0]
+
+            return fair_col, in_unit, context
+
+        import openscm_runner.adapters.fair_adapter._scmdf_to_emissions as fair_emms  # noqa: PLC0415
+
+        fair_emms._get_fair_col_unit_context = _get_fair_col_unit_context_fixed
 
 
 @define
@@ -326,6 +369,11 @@ class FairSCMRunner:
         :
             Raw results from the simple climate model
         """
+        apply_scm_specific_patches(
+            scm="fair", scm_version="1.6.2"
+        )  # TODO: check the version number
+        check_fair_version()
+
         if self.run_checks:
             assert_index_is_multiindex(in_emissions)
             assert_has_index_levels(
