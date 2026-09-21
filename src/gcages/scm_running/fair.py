@@ -79,7 +79,7 @@ def check_fair_version() -> None:
     Check that the installed FaIR is the build our configuration requires
     """
     try:
-        import fair  # noqa: PLC0415
+        import fair  # type: ignore # noqa: PLC0415
     except ImportError as exc:
         raise MissingOptionalDependencyError(
             "check_fair_version", requirement="fair"
@@ -251,7 +251,9 @@ def apply_scm_specific_patches(scm: str, scm_version: str) -> None:
         # urgh yuck monkey patching, stupid openscm-runner
         # TODO: patch openscm-runner instead
 
-        def _get_fair_col_unit_context_fixed(variable):
+        def _get_fair_col_unit_context_fixed(
+            variable: str,
+        ) -> tuple[int, str, str | None]:
             from openscm_runner.adapters.fair_adapter._scmdf_to_emissions import (  # noqa: PLC0415
                 EMISSIONS_SPECIES_UNITS_CONTEXT,
             )

@@ -18,7 +18,6 @@ from gcages.scm_running.fair import (
     check_fair_version,
     load_fair_probabilistic_config,
 )
-from gcages.testing import assert_frame_equal
 
 CONFIG_DIR = Path(__file__).parents[0] / "configs"
 CFG_COMMON = CONFIG_DIR / "fair-1.6.2-wg3-params-common.json"
@@ -91,7 +90,9 @@ def test_check_fair_version(monkeypatch):
         check_fair_version()
 
 
-def test_run_fair_162():
+def test_run_fair_162(dataframe_regression):
+    pytest.importorskip("fair")
+    pytest.importorskip("openscm_runner.adapters")
 
     file = (
         CMIP7_SCENARIOMIP_OUT_DIR
@@ -126,25 +127,4 @@ def test_run_fair_162():
     )
     res = runner(complete)
 
-    file = Path(__file__).parents[0] / "data" / "expected.csv"
-    expected = load_timeseries_csv(
-        file,
-        lower_column_names=True,
-        index_columns=[
-            "climate_model",
-            "model",
-            "region",
-            "run_id",
-            "scenario",
-            "unit",
-            "variable",
-        ],
-        out_columns_type=int,
-        out_columns_name="time",
-    )
-
-    assert_frame_equal(
-        res,
-        expected,
-        rtol=1e-5,
-    )
+    dataframe_regression.check(res, default_tolerance=dict(rtol=1e-7))
