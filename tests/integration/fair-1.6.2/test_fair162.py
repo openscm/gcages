@@ -8,26 +8,52 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pandas as pd
 import pytest
-from pandas_openscm.io import load_timeseries_csv
+from pandas_openscm.index_manipulation import (
+    update_index_levels_func,
+)
 
 from gcages.exceptions import MissingOptionalDependencyError
-from gcages.renaming import SupportedNamingConventions, rename_variables
+from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running.fair import (
     FairSCMRunner,
     check_fair_version,
     load_fair_probabilistic_config,
 )
+from gcages.testing import get_ar6_infilled_emissions
+from gcages.units_helpers import strip_pint_incompatible_characters_from_unit_string
+
+# Only works if openscm-runner installed
+pytest.importorskip("openscm_runner.adapters")
 
 CONFIG_DIR = Path(__file__).parents[0] / "configs"
 CFG_COMMON = CONFIG_DIR / "fair-1.6.2-wg3-params-common.json"
 CFG_SLIM = CONFIG_DIR / "fair-1.6.2-wg3-params-slim.json"
-CMIP7_SCENARIOMIP_OUT_DIR = (
-    CONFIG_DIR.parents[2]
-    / "regression"
-    / "cmip7-scenariomip"
-    / "cmip7-scenariomip-output"
+PROCESSED_AR6_DB_DIR = (
+    CONFIG_DIR.parents[2] / "regression" / "ar6" / "ar6-output-processed"
 )
+
+
+def strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
+    indf: pd.DataFrame,
+) -> pd.DataFrame:
+    indf = update_index_levels_func(
+        indf,
+        {
+            "variable": lambda x: convert_variable_name(
+                x.replace("AR6 climate diagnostics|Infilled|", ""),
+                from_convention=SupportedNamingConventions.AR6_WG3,
+                to_convention=SupportedNamingConventions.GCAGES,
+            ),
+            "unit": lambda x: strip_pint_incompatible_characters_from_unit_string(
+                x
+            ).replace("HFC245ca", "HFC245fa"),
+        },
+        copy=False,
+    )
+
+    return indf
 
 
 def test_load_fair_probabilistic_config():
@@ -94,15 +120,10 @@ def test_run_fair_162(dataframe_regression):
     pytest.importorskip("fair")
     pytest.importorskip("openscm_runner.adapters")
 
-    file = (
-        CMIP7_SCENARIOMIP_OUT_DIR
-        / "REMIND-MAgPIE 3.5-4.11_SSP1 - Very Low Emissions_complete.csv"
-    )
-    complete = load_timeseries_csv(
-        file,
-        lower_column_names=True,
-        index_columns=["model", "scenario", "region", "variable", "unit"],
-        out_columns_type=int,
+    complete = get_ar6_infilled_emissions(
+        model="GCAM_5.3",
+        scenario="NGFS2_Current_Policies",
+        processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
     )
     # Select scenario and drop aggregated/cumulative rows
     is_aggregate = complete.index.get_level_values("variable").str.endswith(
@@ -110,18 +131,17 @@ def test_run_fair_162(dataframe_regression):
     ) | complete.index.get_level_values("variable").str.contains("Kyoto", regex=False)
 
     complete = complete[~is_aggregate]
-    complete = rename_variables(
-        complete,
-        from_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
-        to_convention=SupportedNamingConventions.GCAGES,
+    complete = strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
+        complete
     )
+
     end_year = int(complete.columns.max())
 
     runner = FairSCMRunner.load_configs(
         config_file_slim=CFG_SLIM,
         config_file_common=CFG_COMMON,
         scenario_end_year=end_year,
-        num_cfgs=5,
+        num_cfgs=100,
         progress=False,
         output_variables=("Surface Air Temperature Change",),
     )
