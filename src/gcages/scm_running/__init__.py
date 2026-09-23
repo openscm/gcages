@@ -223,7 +223,7 @@ def get_scenarios_to_run_after_checking_cache(  # noqa: PLR0913
     return batch_to_run
 
 
-def run_scms(  # noqa: PLR0912, PLR0913
+def run_scms(  # noqa: PLR0912, PLR0913, PLR0915
     scenarios: pd.DataFrame,
     climate_models_cfgs: dict[str, list[dict[str, Any]]],
     output_variables: tuple[str, ...],
@@ -331,6 +331,10 @@ def run_scms(  # noqa: PLR0912, PLR0913
                 # Urgh
                 climate_model_check = (
                     f"MAGICC{openscm_runner.adapters.MAGICC7.get_version()}"  # type: ignore
+                )
+            elif climate_model == "FAIR":
+                climate_model_check = (
+                    f"FaIRv{openscm_runner.adapters.FAIR.get_version()}"  # type: ignore
                 )
             else:
                 climate_model_check = climate_model
