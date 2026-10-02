@@ -10,7 +10,6 @@ from functools import partial
 
 import pandas as pd
 from attrs import define
-from numpy import nan
 
 from gcages.ar6.pre_processing import reclassify_variables, run_parallel_pre_processing
 from gcages.assertions import (
@@ -149,7 +148,7 @@ class SCIJune2026PreProcessor:
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Interpolate to annual steps
-        res = res.reindex(columns=sorted(set(res.columns)|set(range(2010,2100+1))))
+        res = res.reindex(columns=sorted(set(res.columns) | set(range(2010, 2100 + 1))))
 
         res = res.T.interpolate(method="index").T.sort_index(axis="columns")
 
