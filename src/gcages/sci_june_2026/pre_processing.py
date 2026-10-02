@@ -149,9 +149,7 @@ class SCIJune2026PreProcessor:
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Interpolate to annual steps
-        for y in range(2010, 2100 + 1):
-            if y not in res:
-                res.loc[:, y] = nan
+        res = res.reindex(columns=sorted(set(res.columns)|set(range(2010,2100+1))))
 
         res = res.T.interpolate(method="index").T.sort_index(axis="columns")
 
