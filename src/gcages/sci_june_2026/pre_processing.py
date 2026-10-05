@@ -18,6 +18,7 @@ from gcages.assertions import (
     assert_index_is_multiindex,
 )
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.interpolation import interpolate_to_annual
 from gcages.renaming import (
     SupportedNamingConventions,
     rename_variables,
@@ -148,9 +149,7 @@ class SCIJune2026PreProcessor:
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Interpolate to annual steps
-        res = res.reindex(columns=sorted(set(res.columns) | set(range(2010, 2100 + 1))))
-
-        res = res.T.interpolate(method="index").T.sort_index(axis="columns")
+        res = interpolate_to_annual(res, 2010, 2100)
 
         # Convert to gcages naming conventions
         res = rename_variables(
