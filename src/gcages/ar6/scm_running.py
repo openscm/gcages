@@ -10,7 +10,6 @@ from functools import partial
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 from attrs import define, field
 from pandas_openscm.db import OpenSCMDB
@@ -26,6 +25,7 @@ from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
 from gcages.hashing import get_file_hash
+from gcages.interpolation import interpolate_to_annual
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
     convert_openscm_runner_output_names_to_magicc_output_names,
@@ -293,18 +293,7 @@ class AR6SCMRunner:
         if self.force_interpolate_to_yearly:
             # TODO: put interpolate to annual steps in pandas-openscm
             # Interpolate to ensure no nans.
-            for y in range(
-                openscm_runner_emissions.columns.min(),
-                openscm_runner_emissions.columns.max() + 1,
-            ):
-                if y not in openscm_runner_emissions:
-                    openscm_runner_emissions[y] = np.nan
-
-            openscm_runner_emissions = (
-                openscm_runner_emissions.sort_index(axis="columns")
-                .T.interpolate("index")
-                .T
-            )
+            openscm_runner_emissions = interpolate_to_annual(openscm_runner_emissions)
 
         scm_results_maybe = run_scms(
             openscm_runner_emissions,
