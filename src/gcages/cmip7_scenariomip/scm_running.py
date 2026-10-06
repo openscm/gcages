@@ -34,6 +34,7 @@ from gcages.cmip7_scenariomip.harmonisation import (
 from gcages.completeness import assert_all_groups_are_complete
 from gcages.exceptions import MissingOptionalDependencyError
 from gcages.harmonisation import assert_harmonised
+from gcages.interpolation import interpolate_to_annual
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running import (
     convert_openscm_runner_output_names_to_magicc_output_names,
@@ -231,7 +232,7 @@ def get_complete_scenarios_for_magicc(
         axis=1,
     )
     # Also interpolate for MAGICC
-    complete_magicc = complete_magicc.T.interpolate(method="index").T
+    complete_magicc = interpolate_to_annual(complete_magicc)
     return complete_magicc
 
 
