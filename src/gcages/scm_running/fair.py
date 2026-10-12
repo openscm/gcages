@@ -187,8 +187,6 @@ def load_fair_probabilistic_config(
             + np.array(cfgs_common["default_solar"])[270:351] * c["scale"][8]
         )
         f_solar[351:361] = cfgs_common["default_solar"][351:]
-        # Cut down to the correct length
-        f_solar = f_solar[:last_natural_forcers_index]
 
         this_cfg = {
             "run_id": i,
@@ -211,7 +209,7 @@ def load_fair_probabilistic_config(
             ],
             "ghan_params": c["ghan_params"],
             "scale": scale,
-            "F_solar": f_solar.tolist(),
+            "F_solar": f_solar[:last_natural_forcers_index].tolist(),
             "F_volcanic": cfgs_common["default_volcanic"],
             "C_pi": c_pi,
             "b_tro3": c["b_tro3"],
@@ -266,10 +264,9 @@ def apply_scm_specific_patches(scm: str, scm_version: str) -> None:
                 raise AssertionError(in_unit)
 
             fair_col = int(row[row].index.values.squeeze()) + 1  # first col is time
-            in_unit = in_unit.iloc[0]
             context = EMISSIONS_SPECIES_UNITS_CONTEXT[row]["context"].iloc[0]
 
-            return fair_col, in_unit, context
+            return fair_col, in_unit.iloc[0], context
 
         import openscm_runner.adapters.fair_adapter._scmdf_to_emissions as fair_emms  # noqa: PLC0415
 
@@ -371,9 +368,7 @@ class FairSCMRunner:
         :
             Raw results from the simple climate model
         """
-        apply_scm_specific_patches(
-            scm="fair", scm_version="1.6.2"
-        )  # TODO: check the version number
+        apply_scm_specific_patches(scm="fair", scm_version="1.6.2")
         check_fair_version()
 
         if self.run_checks:
@@ -512,7 +507,6 @@ class FairSCMRunner:
         -------
             FaIR configs
         """
-        # Check if it's v1.6.2
         check_fair_version()
 
         cfgs = load_fair_probabilistic_config(
