@@ -77,6 +77,11 @@ FAIR_SOURCE_REV = "f87269b7f968b8786d2446e3a4eed85b7e719191"
 def check_fair_version() -> None:
     """
     Check that the installed FaIR is the build our configuration requires
+
+    This is fair v1.6.2.1, which is not on PyPI.
+    It is fair v1.6.2 plus NumPy-compatibility fixes, available at
+    https://github.com/OMS-NetZero/FAIR at commit
+    f87269b7f968b8786d2446e3a4eed85b7e719191.
     """
     try:
         import fair  # type: ignore # noqa: PLC0415
