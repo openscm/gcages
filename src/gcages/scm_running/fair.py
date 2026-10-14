@@ -8,13 +8,14 @@ import json
 import multiprocessing
 from functools import partial
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
 from attrs import define, field
 from pandas_openscm.db import OpenSCMDB
 from pandas_openscm.index_manipulation import update_index_levels_func
+from pandas_openscm.indexing import multi_index_lookup
 
 from gcages.assertions import (
     assert_data_is_all_numeric,
@@ -278,6 +279,64 @@ def apply_scm_specific_patches(scm: str, scm_version: str) -> None:
         fair_emms._get_fair_col_unit_context = _get_fair_col_unit_context_fixed
 
 
+def add_historical_emissions(
+    emissions: pd.DataFrame,
+    history: pd.DataFrame,
+    start_year: int = FAIR_START_YEAR,
+) -> pd.DataFrame:
+    """
+    Prepend historical emissions to scenarios
+
+    Without this, openscm-runner fills every year before the scenarios'
+    first year with its built-in RCMIP historical (SSP2-4.5) emissions.
+
+    Parameters
+    ----------
+    emissions
+        Input emissions
+
+    history
+        Historical emissions.
+
+    start_year
+        First year to take from `history`
+
+    Returns
+    -------
+    :
+        Scenarios starting in `start_year`
+    """
+    emissions_start_year = int(emissions.columns.min())
+    if emissions_start_year <= start_year:
+        return emissions
+
+    emissions_index = cast(
+        pd.MultiIndex, emissions.reset_index(["model", "scenario"], drop=True).index
+    )
+    history_to_add = (
+        multi_index_lookup(
+            history,
+            emissions_index,
+        )
+        .align(emissions)[0]
+        .loc[:, start_year : emissions_start_year - 1]
+    )
+
+    out = pd.concat(
+        [history_to_add.reorder_levels(emissions.index.names), emissions], axis=1
+    )
+    out = out.T.interpolate(method="index").T
+    if out.isna().any().any():
+        missing = out.index[out.isna().any(axis=1)].to_frame(index=False)
+        msg = (
+            f"`history` does not cover {start_year}-{emissions_start_year - 1} "
+            f"for:\n{missing}"
+        )
+        raise AssertionError(msg)
+
+    return out
+
+
 @define
 class FairSCMRunner:
     """
@@ -301,6 +360,17 @@ class FairSCMRunner:
     output_variables: tuple[str, ...] = FAIR_OUTPUT_VARIABLES_DEFAULT
     """
     Variables to include in the output
+    """
+
+    historical_emissions: pd.DataFrame | None = None
+    """
+    Historical emissions to prepend to the scenarios before running
+
+    If supplied, the scenarios are extended back to `FAIR_START_YEAR`
+    with these values.
+    If not supplied, openscm-runner uses its built-in RCMIP historical
+    emissions for every year before the scenarios' first year
+    (this is what AR6 did).
     """
 
     batch_size_scenarios: int | None = None
@@ -386,8 +456,15 @@ class FairSCMRunner:
             )
             assert_data_is_all_numeric(in_emissions)
 
+        if self.historical_emissions is not None:
+            complete_emissions = add_historical_emissions(
+                in_emissions, self.historical_emissions
+            )
+        else:
+            complete_emissions = in_emissions
+
         openscm_runner_emissions = update_index_levels_func(
-            in_emissions,
+            complete_emissions,
             {
                 "variable": partial(
                     convert_variable_name,
@@ -455,6 +532,7 @@ class FairSCMRunner:
         scenario_end_year: int,
         num_cfgs: int | None = None,
         output_variables: tuple[str, ...] = FAIR_OUTPUT_VARIABLES_DEFAULT,
+        historical_emissions: pd.DataFrame | None = None,
         batch_size_scenarios: int | None = None,
         db: OpenSCMDB | None = None,
         res_column_type: type = int,
@@ -486,6 +564,9 @@ class FairSCMRunner:
 
         output_variables
             Variables to include in the output
+
+        historical_emissions
+            Historical emissions.
 
         batch_size_scenarios
             The number of scenarios to run at a time
@@ -520,6 +601,7 @@ class FairSCMRunner:
         return cls(
             climate_models_cfgs={"FAIR": cfgs},
             output_variables=output_variables,
+            historical_emissions=historical_emissions,
             batch_size_scenarios=batch_size_scenarios,
             db=db,
             res_column_type=res_column_type,
