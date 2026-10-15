@@ -27,6 +27,7 @@ from pandas_openscm.index_manipulation import (
 from gcages.ar6 import AR6PostProcessor, AR6SCMRunner, get_ar6_full_historical_emissions
 from gcages.post_processing import PostProcessingResult
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
+from gcages.scm_running.fair import FairSCMRunner
 from gcages.testing import (
     KEY_AR6_TESTING_MODEL_SCENARIOS,
     assert_frame_equal,
@@ -53,6 +54,12 @@ AR6_MAGICC_PROBABILISTIC_CONFIG_FILE = (
 AR6_MAGICC_EXECUTABLES_DIR = AR6_WORKFLOW_INPUTS_DIR / "magicc-v7.5.3/bin"
 AR6_OUTPUT_DIR = Path(__file__).parents[0] / "ar6-output"
 PROCESSED_AR6_DB_DIR = Path(__file__).parents[0] / "ar6-output-processed"
+
+AR6_FAIR_CONFIG_DIR = (
+    Path(__file__).parents[2] / "integration" / "fair-1.6.2" / "configs"
+)
+AR6_FAIR_CFG_COMMON = AR6_FAIR_CONFIG_DIR / "fair-1.6.2-wg3-params-common.json"
+AR6_FAIR_CFG_SLIM = AR6_FAIR_CONFIG_DIR / "fair-1.6.2-wg3-params-slim.json"
 
 
 def strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
@@ -347,6 +354,108 @@ def test_parallel(tmp_path, monkeypatch):
     post_processed_metadata_comparable = get_post_processed_metadata_comparable(
         post_processed
     )
+    pd.testing.assert_frame_equal(
+        post_processed_metadata_comparable[metadata_compare_cols],
+        exp_metadata[metadata_compare_cols],
+        rtol=1e-5,
+    )
+
+
+@pytest.mark.skip_ci_default
+@pytest.mark.slow
+@get_key_testing_model_scenario_parameters(KEY_AR6_TESTING_MODEL_SCENARIOS)
+def test_individual_scenario_fair162(model, scenario):
+    pytest.importorskip("fair")
+    exp_metadata = get_ar6_metadata_outputs(
+        model=model,
+        scenario=scenario,
+        ar6_output_data_dir=AR6_OUTPUT_DIR,
+    )
+    if (
+        exp_metadata["Median peak warming (FaIRv1.6.2)"] == "no-climate-assessment"
+    ).all():
+        pytest.skip(f"No climate assessment in AR6 for {model} {scenario}")
+
+    infilled = strip_off_ar6_infilled_prefix_and_convert_to_gcages_and_fix_units(
+        get_ar6_infilled_emissions(
+            model=model,
+            scenario=scenario,
+            processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR,
+        )
+        # Ignore aggregate stuff
+        .loc[
+            ~pix.ismatch(variable=["**CO2", "**Kyoto**", "**F-Gases", "**HFC", "**PFC"])
+        ]
+    )
+
+    scm_runner = FairSCMRunner.load_configs(
+        config_file_slim=AR6_FAIR_CFG_SLIM,
+        config_file_common=AR6_FAIR_CFG_COMMON,
+        scenario_end_year=2100,
+        progress=False,
+        n_processes=multiprocessing.cpu_count(),
+        output_variables=("Surface Air Temperature Change",),
+    )
+
+    post_processor = AR6PostProcessor.from_ar6_config(n_processes=None)
+
+    scm_results = scm_runner(infilled)
+    # gcages labels the exact FaIR build, AR6 used v1.6.2
+    scm_results = update_index_levels_func(
+        scm_results,
+        {"climate_model": lambda x: x.replace("FaIRv1.6.2.1", "FaIRv1.6.2")},
+    )
+    post_processed = post_processor(scm_results)
+
+    res_temperature_percentiles_comparable = convert_to_ar6_percentile_output(
+        post_processed.timeseries_quantile.loc[
+            pix.ismatch(variable="Surface Temperature (GSAT)")
+        ]
+    )
+
+    exp_temperature_percentiles = get_ar6_temperature_outputs(
+        model=model,
+        scenario=scenario,
+        processed_ar6_output_data_dir=PROCESSED_AR6_DB_DIR / "fair-v1.6.2.1",
+    )
+
+    assert_frame_equal(
+        res_temperature_percentiles_comparable.loc[
+            :, exp_temperature_percentiles.columns
+        ],
+        exp_temperature_percentiles,
+        rtol=1e-5,
+    )
+
+    metadata_compare_cols = [
+        "Category_FaIRv1.6.2",
+        "Category_name_FaIRv1.6.2",
+        "Median peak warming (FaIRv1.6.2)",
+        "P33 peak warming (FaIRv1.6.2)",
+        "Median warming in 2100 (FaIRv1.6.2)",
+        "Median year of peak warming (FaIRv1.6.2)",
+        "Exceedance Probability 1.5C (FaIRv1.6.2)",
+        "Exceedance Probability 2.0C (FaIRv1.6.2)",
+    ]
+    exp_numerical_cols = list(
+        set(metadata_compare_cols) - {"Category_FaIRv1.6.2", "Category_name_FaIRv1.6.2"}
+    )
+    exp_metadata[exp_numerical_cols] = exp_metadata[exp_numerical_cols].astype(float)
+
+    post_processed_metadata_comparable = get_post_processed_metadata_comparable(
+        post_processed
+    ).rename(
+        columns={
+            "Category": "Category_FaIRv1.6.2",
+            "Category_name": "Category_name_FaIRv1.6.2",
+        }
+    )
+    # If needed, use the failed vetting flag
+    post_processed_metadata_comparable.loc[
+        exp_metadata["Category_FaIRv1.6.2"] == "failed-vetting",
+        ["Category_FaIRv1.6.2", "Category_name_FaIRv1.6.2"],
+    ] = "failed-vetting"
+
     pd.testing.assert_frame_equal(
         post_processed_metadata_comparable[metadata_compare_cols],
         exp_metadata[metadata_compare_cols],
