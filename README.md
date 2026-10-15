@@ -141,6 +141,8 @@ gcages' developers are grateful for the support of:
 1. the European Space Agency (ESA),
    which funded the GHG Forcing For CMIP project of the Climate Change Initiative (CCI) (ESA Contract No. 4000146681/24/I-LR-cl)
 
+<!--- --8<-- [end:acknowledgements] -->
+
 <p align="center">
   <picture>
     <source
@@ -158,7 +160,6 @@ gcages' developers are grateful for the support of:
     >
   </picture>
 </p>
-<!--- --8<-- [end:acknowledgements] -->
 
 ## Original template
 
