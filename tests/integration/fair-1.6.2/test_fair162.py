@@ -18,6 +18,7 @@ from gcages.exceptions import MissingOptionalDependencyError
 from gcages.renaming import SupportedNamingConventions, convert_variable_name
 from gcages.scm_running.fair import (
     FairSCMRunner,
+    add_historical_emissions,
     check_fair_version,
     load_fair_probabilistic_config,
 )
@@ -114,6 +115,70 @@ def test_check_fair_version(monkeypatch):
     monkeypatch.setitem(sys.modules, "fair", SimpleNamespace(__version__="1.6.4"))
     with pytest.raises(AssertionError, match=re.escape("Expected fair v1.6.2.1")):
         check_fair_version()
+
+
+def test_add_historical_emissions():
+    history = pd.DataFrame(
+        [[0.0, 0.9], [0.0, 9.0]],
+        columns=[1750, 2019],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("World", "Emissions|CH4", "Mt CH4/yr"),
+                ("World", "Emissions|CO2|Fossil", "Gt C/yr"),
+            ],
+            names=["region", "variable", "unit"],
+        ),
+    )
+    scenarios = pd.DataFrame(
+        [[1.0, 2.0], [10.0, 20.0]],
+        columns=[2020, 2030],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("model", "scenario", "Emissions|CH4", "World", "Mt CH4/yr"),
+                ("model", "scenario", "Emissions|CO2|Fossil", "World", "Gt C/yr"),
+            ],
+            names=["model", "scenario", "variable", "region", "unit"],
+        ),
+    )
+    res = add_historical_emissions(scenarios, history, start_year=1750)
+
+    exp = pd.DataFrame(
+        [[0.0, 0.9, 1.0, 2.0], [0.0, 9.0, 10.0, 20.0]],
+        columns=[1750, 2019, 2020, 2030],
+        index=scenarios.index,
+    )
+
+    pd.testing.assert_frame_equal(res, exp)
+
+
+def test_add_historical_emissions_missing_history():
+    history = pd.DataFrame(
+        [[0.0, 0.9], [0.0, 9.0]],
+        columns=[1750, 2019],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("World", "Emissions|CH4", "Mt CH4/yr"),
+                ("World", "Emissions|CO2|Fossil", "Gt C/yr"),
+            ],
+            names=["region", "variable", "unit"],
+        ),
+    )
+    scenarios = pd.DataFrame(
+        [[1.0, 2.0], [10.0, 20.0]],
+        columns=[2020, 2030],
+        index=pd.MultiIndex.from_tuples(
+            [
+                ("model", "scenario", "Emissions|CH4", "World", "Mt CH4/yr"),
+                ("model", "scenario", "Emissions|CO2|Fossil", "World", "Gt C/yr"),
+            ],
+            names=["model", "scenario", "variable", "region", "unit"],
+        ),
+    )
+    with pytest.raises(
+        AssertionError,
+        match=re.escape("`history` does not cover 1750-2019 for:"),
+    ):
+        add_historical_emissions(scenarios, history.iloc[:1], start_year=1750)
 
 
 def test_run_fair_162(dataframe_regression):
