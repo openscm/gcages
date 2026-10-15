@@ -129,6 +129,9 @@ markdown_extensions:
   # https://squidfunk.github.io/mkdocs-material/setup/extensions/python-markdown/#attribute-lists
   - attr_list
   - footnotes
+  # Allow markdown inside HTML blocks (e.g. centred logos)
+  # https://python-markdown.github.io/extensions/md_in_html/
+  - md_in_html
   # https://squidfunk.github.io/mkdocs-material/reference/math/#katex-mkdocsyml
   - pymdownx.arithmatex:
       generic: true
