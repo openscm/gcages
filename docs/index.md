@@ -1,5 +1,7 @@
 ---8<--- "README.md:description"
 
+## Acknowledgements
+
 ---8<--- "README.md:acknowledgements"
 
 <p align="center" markdown>
