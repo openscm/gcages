@@ -125,6 +125,41 @@ For the rest of our developer docs, please see [development][development].
 
 <!--- --8<-- [end:installation] -->
 
+## Acknowledgements
+
+<!--- --8<-- [start:acknowledgements] -->
+gcages has been supported by a number of people and projects.
+
+This package is developed and maintained by multiple contributors to the simple climate modelling community,
+see https://github.com/openscm/gcages/graphs/contributors.
+It is released under the BSD 3-Clause License.
+
+gcages' developers are grateful for the support of:
+
+1. the Scenario Compass Initiative,
+   which is grateful for the generous support from the Bezos Earth Fund
+1. the European Space Agency (ESA),
+   which funded the GHG Forcing For CMIP project of the Climate Change Initiative (CCI) (ESA Contract No. 4000146681/24/I-LR-cl)
+
+<p align="center">
+  <picture>
+    <source
+        media="(prefers-color-scheme: dark)"
+        srcset="docs/assets/logos/sci-dark.svg"
+    >
+    <source
+        media="(prefers-color-scheme: light)"
+        srcset="docs/assets/logos/sci-light.svg"
+    >
+    <img
+        src="docs/assets/logos/sci-light.svg"
+        alt="SCI Logo"
+        height="50"
+    >
+  </picture>
+</p>
+<!--- --8<-- [end:acknowledgements] -->
+
 ## Original template
 
 This project was generated from this template:
