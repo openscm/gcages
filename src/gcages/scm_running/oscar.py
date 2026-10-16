@@ -10,6 +10,10 @@ from typing import TYPE_CHECKING, cast
 
 import pandas as pd
 from attrs import define
+from pandas_openscm.index_manipulation import (
+    update_index_levels_from_other_func,
+    update_index_levels_func,
+)
 from pandas_openscm.unit_conversion import convert_unit
 
 from gcages.renaming import (
@@ -97,37 +101,36 @@ def emissions_to_oscar_csv(
     registry = load_var_mapping("iamc-ar6-public")["anthropogenic_emissions"]
 
     emms = indf[~indf.index.isin(list(NOT_SUPPORTED), level="variable")]
-
     emms = rename_variables(
         emms,
         from_convention=SupportedNamingConventions.GCAGES,
         to_convention=SupportedNamingConventions.CMIP7_SCENARIOMIP,
     )
-    keys = [
-        CMIP7_TO_OSCAR_REGISTRY_KEY.get(v, v)
-        for v in emms.index.get_level_values("variable")
-    ]
+    emms = update_index_levels_func(
+        emms, {"variable": lambda v: CMIP7_TO_OSCAR_REGISTRY_KEY.get(v, v)}
+    )
+
     # Registry units spell some species with a hyphen, which pint cannot parse
-    units = [registry[k][3].replace("-", "") for k in keys]
+    variables = emms.index.droplevel("unit")
+    target_units = pd.Series(
+        [
+            registry[v][3].replace("-", "")
+            for v in variables.get_level_values("variable")
+        ],
+        index=variables,
+    )
     emms = convert_unit(
         emms,
-        pd.Series(units, index=emms.index.droplevel("unit")),
+        target_units,
         ur=openscm_units.unit_registry,  # type: ignore[arg-type]
     )
 
-    model_scenario = zip(
-        emms.index.get_level_values("model"), emms.index.get_level_values("scenario")
+    # OSCAR ignores Model and removes all whitespace from Scenario
+    emms = update_index_levels_from_other_func(
+        emms, {"scenario": (("model", "scenario"), scen_labels)}
     )
-    return pd.DataFrame(
-        {
-            "Model": "gcages",
-            # OSCAR ignores Model and strips whitespace from Scenario
-            "Scenario": [scen_labels[ms] for ms in model_scenario],
-            "Region": "World",
-            "Variable": keys,
-            "Unit": [registry[k][3] for k in keys],
-        }
-    ).join(emms.reset_index(drop=True))
+
+    return emms.rename_axis(index=str.capitalize).reset_index()
 
 
 def oscar_results_to_df(
