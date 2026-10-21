@@ -1,0 +1,28 @@
+/*
+ * Acknowledgement logos: all on one line, each with roughly the same area.
+ *
+ * Each logo's height is a base height times its `--logo-scale`
+ * (set on the image in `docs/index.md`).
+ * For equal areas, scale = sqrt(widest logo's aspect ratio / this logo's aspect ratio).
+ *
+ * The base height scales with the width of the content area (`cqi`)
+ * so the row still fits on narrow screens, capped at 40px on wide ones.
+ * With the current logos, the total width is ~19 x the base height,
+ * so 5cqi x 19 + the gaps fits in 100cqi.
+ * If you add a logo, reduce the 5cqi so the row still fits.
+ */
+.md-typeset .acknowledgement-logos {
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5cqi;
+}
+
+.md-typeset .acknowledgement-logos img {
+  flex: none;
+  height: calc(var(--logo-scale, 1) * min(40px, 5cqi));
+  width: auto;
+  max-width: none;
+}

@@ -125,6 +125,76 @@ For the rest of our developer docs, please see [development][development].
 
 <!--- --8<-- [end:installation] -->
 
+## Acknowledgements
+
+<!--- --8<-- [start:acknowledgements] -->
+gcages has been supported by a number of people and projects.
+
+This package is developed and maintained by multiple contributors to the simple climate modelling community,
+see https://github.com/openscm/gcages/graphs/contributors.
+It is released under the BSD 3-Clause License.
+
+gcages' developers are grateful for the support of:
+
+1. the Scenario Compass Initiative,
+   which is grateful for the generous support from the Bezos Earth Fund
+1. the European Space Agency (ESA),
+   which funded the GHG Forcing For CMIP project of the Climate Change Initiative (CCI) (ESA Contract No. 4000146681/24/I-LR-cl)
+1. the European Union's Horizon 2020 research and innovation programme,
+   which funded the Earth system models for the future (ESM2025) project (under grant agreement no. 101003536)
+
+<!--- --8<-- [end:acknowledgements] -->
+
+<p align="center">
+  <picture>
+    <source
+        media="(prefers-color-scheme: dark)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/sci-dark.svg"
+    >
+    <source
+        media="(prefers-color-scheme: light)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/sci-light.svg"
+    >
+    <img
+        src="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/sci-light.svg"
+        alt="SCI Logo"
+        height="40"
+    >
+  </picture>
+&nbsp;&nbsp;&nbsp;
+  <picture>
+    <source
+        media="(prefers-color-scheme: dark)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esa-dark.svg"
+    >
+    <source
+        media="(prefers-color-scheme: light)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esa-light.svg"
+    >
+    <img
+        src="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esa-light.svg"
+        alt="ESA Logo"
+        height="92"
+    >
+  </picture>
+&nbsp;&nbsp;&nbsp;
+  <picture>
+    <source
+        media="(prefers-color-scheme: dark)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esm2025-dark.png"
+    >
+    <source
+        media="(prefers-color-scheme: light)"
+        srcset="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esm2025-light.png"
+    >
+    <img
+        src="https://raw.githubusercontent.com/openscm/gcages/main/docs/assets/logos/esm2025-light.png"
+        alt="ESM2025 Logo"
+        height="76"
+    >
+  </picture>
+</p>
+
 ## Original template
 
 This project was generated from this template:
