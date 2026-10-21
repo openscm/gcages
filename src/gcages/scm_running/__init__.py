@@ -15,6 +15,7 @@ from pandas_openscm.indexing import multi_index_lookup, multi_index_match
 from pandas_openscm.parallelisation import ParallelOpConfig
 
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.interpolation import interpolate_to_annual
 
 
 def convert_openscm_runner_output_names_to_magicc_output_names(
@@ -361,9 +362,7 @@ def run_scms(  # noqa: PLR0912, PLR0913
             scenarios_use = scenarios_use.copy()
             last_year = scenarios_use.columns.max()
             scenarios_use[last_year + magicc_extra_years] = scenarios_use[last_year]
-            scenarios_use = (
-                scenarios_use.sort_index(axis="columns").T.interpolate("index").T
-            )
+            scenarios_use = interpolate_to_annual(scenarios_use)
 
         if scenarios_use is None:
             raise TypeError(scenarios_use)

@@ -10,7 +10,6 @@ from functools import partial
 
 import pandas as pd
 from attrs import define
-from numpy import nan
 
 from gcages.ar6.pre_processing import reclassify_variables, run_parallel_pre_processing
 from gcages.assertions import (
@@ -19,6 +18,7 @@ from gcages.assertions import (
     assert_index_is_multiindex,
 )
 from gcages.exceptions import MissingOptionalDependencyError
+from gcages.interpolation import interpolate_to_annual
 from gcages.renaming import (
     SupportedNamingConventions,
     rename_variables,
@@ -149,11 +149,7 @@ class SCIJune2026PreProcessor:
         res: pd.DataFrame = in_emissions.loc[isin(variable=self.emissions_out)]
 
         # Interpolate to annual steps
-        for y in range(2010, 2100 + 1):
-            if y not in res:
-                res.loc[:, y] = nan
-
-        res = res.T.interpolate(method="index").T.sort_index(axis="columns")
+        res = interpolate_to_annual(res, 2010, 2100)
 
         # Convert to gcages naming conventions
         res = rename_variables(
