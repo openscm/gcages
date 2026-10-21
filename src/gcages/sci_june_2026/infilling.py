@@ -64,6 +64,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
     Returns
     -------
     :
+        CMIP7ScenarioMIPInfiller object
     """
     if ur is None:
         try:
@@ -75,6 +76,13 @@ def create_scijune2026_infiller(  # noqa: PLR0913
                 "openscm_units",
                 requirement="openscm_units",
             ) from exc
+
+    try:
+        import silicone.database_crunchers  # type: ignore # silicone has no type hints# noqa: PLC0415
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_silicone_based_infiller", requirement="silicone"
+        ) from exc
 
     infilling_leader_emissions = load_timeseries_csv(
         infilling_leader_emissions_file,
@@ -121,6 +129,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
             ur=ur,
         )
 
+    silicone_db_cruncher = silicone.database_crunchers.RMSClosest
     # Notes: currently this uses RMSClosest under the hood.
     # That's probably not a bad decision, and avoids the OC-BC decoupling from AR6.
     # Can be investigated more in future in other applications.
@@ -134,4 +143,5 @@ def create_scijune2026_infiller(  # noqa: PLR0913
         # TODO: add something like this back in
         # progress=progress,
         ur=ur,
+        silicone_db_cruncher=silicone_db_cruncher,
     )

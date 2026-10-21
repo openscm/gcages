@@ -569,7 +569,17 @@ class CMIP7ScenarioMIPInfiller:
     UnitRegistry
     """
 
-    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:
+    silicone_db_cruncher: (
+        type[silicone.database_crunchers.base._DatabaseCruncher] | None
+    ) = None
+    """
+    Silicone method for infilling from the leader
+
+    If `None`, `silicone.database_crunchers.RMSClosest` is used
+    which is what CMIP7 ScenarioMIP used.
+    """
+
+    def __call__(self, in_emissions: pd.DataFrame) -> pd.DataFrame:  # noqa: PLR0915
         """
         Create an a infilled df for CMIP7 ScenarioMIP's simple climate model run.
 
@@ -596,6 +606,12 @@ class CMIP7ScenarioMIPInfiller:
 
         try:
             import silicone.database_crunchers  # type: ignore # silicone has no type hints# noqa: PLC0415
+
+            silicone_db_cruncher = (
+                silicone.database_crunchers.RMSClosest
+                if self.silicone_db_cruncher is None
+                else self.silicone_db_cruncher
+            )
         except ImportError as exc:
             raise MissingOptionalDependencyError(
                 "get_silicone_based_infiller", requirement="silicone"
@@ -654,7 +670,7 @@ class CMIP7ScenarioMIPInfiller:
                     infilling_db=infilling_silicone,
                     follower_variable=variable,
                     lead_variables=[lead_vl_marker],
-                    silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+                    silicone_db_cruncher=silicone_db_cruncher,
                 )
 
             infilled_vl_exception = infill(
@@ -677,7 +693,7 @@ class CMIP7ScenarioMIPInfiller:
                 infilling_db=infilling_silicone,
                 follower_variable=variable,
                 lead_variables=[lead],
-                silicone_db_cruncher=silicone.database_crunchers.RMSClosest,
+                silicone_db_cruncher=silicone_db_cruncher,
             )
 
         infilled_silicone = infill(
