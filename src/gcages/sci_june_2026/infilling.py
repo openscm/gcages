@@ -90,6 +90,17 @@ def create_scijune2026_infiller(  # noqa: PLR0913
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
+    # Keep only the selected Velders et al. (2022) scenario
+    is_velders = infilling_leader_emissions.index.get_level_values(
+        "model"
+    ).str.contains("Velders")
+    infilling_leader_emissions = infilling_leader_emissions[
+        ~is_velders
+        | (
+            infilling_leader_emissions.index.get_level_values("scenario")
+            == "Kigali2022-lower"  # TODO: Check which one to pick!!
+        )
+    ]
     # CMIP7 GHG inversions
     ghg_inversions = load_timeseries_csv(
         ghg_inversions_file,
@@ -129,10 +140,10 @@ def create_scijune2026_infiller(  # noqa: PLR0913
             ur=ur,
         )
 
-    silicone_db_cruncher = silicone.database_crunchers.RMSClosest
-    # Notes: currently this uses RMSClosest under the hood.
-    # That's probably not a bad decision, and avoids the OC-BC decoupling from AR6.
-    # Can be investigated more in future in other applications.
+    silicone_db_cruncher = silicone.database_crunchers.QuantileRollingWindows
+    # Phase-out gases are not infilled with silicone:
+    # WMO (Montreal) and Velders et al. (2022) (Kigali) rows
+    # in the infilling database are direct-copied.
     return CMIP7ScenarioMIPInfiller(
         infilling_db=infilling_leader_emissions,
         historical_emissions=historical_emissions,

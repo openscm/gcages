@@ -528,6 +528,11 @@ class CMIP7ScenarioMIPInfiller:
     """
     Infiller that follows the same logic as was used in CMIP7 ScenarioMIP
 
+    Gases with a phase-out are copied rather than infilled with silicone:
+    rows in `infilling_db` whose model contains "WMO" (Montreal Protocol gases)
+    or "Velders" (Kigali HFCs) are copied into every scenario.
+    Variables reported by the input scenario are always kept.
+
     If you want exactly the same behaviour as in CMIP7 ScenarioMIP,
     initialise using [`from_cmip7_scenariomip_config`][(c)]
     """
@@ -647,6 +652,11 @@ class CMIP7ScenarioMIPInfiller:
             ~self.infilling_db.index.get_level_values("model").str.contains("WMO")
             & ~self.infilling_db.index.get_level_values("model").str.contains("Velders")
         ]
+        # Phase-out gases (Kigali HFCs) are not infilled with silicone but copy-pasted
+        infilling_velders = self.infilling_db[
+            self.infilling_db.index.get_level_values("model").str.contains("Velders")
+        ]
+        phase_out_vars = infilling_velders.index.get_level_values("variable").unique()
 
         # Infill
 
@@ -661,7 +671,12 @@ class CMIP7ScenarioMIPInfiller:
         ) & in_emissions.index.get_level_values("scenario").str.contains(vl_scenario)
 
         vl_marker = in_emissions[mask]
-        unique_var = infilling_silicone.index.get_level_values("variable").unique()
+        unique_var = [
+            v
+            for v in infilling_silicone.index.get_level_values("variable").unique()
+            if v not in phase_out_vars
+        ]
+
         if not vl_marker.empty:
             lead_vl_marker = "Emissions|CO2|Fossil"
             infillers_silicone_vl_marker = {}
@@ -703,16 +718,21 @@ class CMIP7ScenarioMIPInfiller:
         complete_silicone = get_complete(complete_vl_exception, infilled_silicone)
 
         # Infill
+        # Direct copy of phase-out gases (WMO and Velders)
 
-        infillers_wmo = {}
-        unique_var = infilling_wmo.index.get_level_values("variable").unique()
-        for wmo_var in unique_var:
-            infillers_wmo[wmo_var] = get_direct_copy_infiller(
+        infillers_copy = {}
+        for wmo_var in infilling_wmo.index.get_level_values("variable").unique():
+            infillers_copy[wmo_var] = get_direct_copy_infiller(
                 variable=wmo_var,
                 copy_from=infilling_wmo,
             )
+        for velders_var in phase_out_vars:
+            infillers_copy[velders_var] = get_direct_copy_infiller(
+                variable=velders_var,
+                copy_from=infilling_velders,
+            )
 
-        infilled_wmo = infill(complete_silicone, infillers_wmo)
+        infilled_wmo = infill(complete_silicone, infillers_copy)
         complete_wmo = get_complete(complete_silicone, infilled_wmo)
 
         # Scale timeseries
@@ -820,8 +840,13 @@ class CMIP7ScenarioMIPInfiller:
         # Still embargoed
         infilling_db = load_cmip7_scenariomip_infilling_db(
             filepath=cmip7_scenariomip_infilling_leader_emissions_file,
-            check_hash=False,  # TODO: update when available
+            check_hash=False,  # TODO: update when available (MZ: now?)
         )
+
+        # CMIP7 ScenarioMIP did not use the Velders et al. (2022) scenarios
+        infilling_db = infilling_db[
+            ~infilling_db.index.get_level_values("model").str.contains("Velders")
+        ]
 
         # CMIP7 GHG inversions
         cmip7_ghg_inversions = load_cmip7_scenariomip_ghg_inversions(
