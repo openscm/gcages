@@ -1,3 +1,6 @@
 - figure out scenariomip versions and how to grab from ixmp4
 - set up tests as described in new docs
 - write out docs
+- script that shows the whole process including downloading data from database with pyam
+- script that shows the process failing when downloading the latest from ixmp4
+- script that shows the difference between the data downloaded from pyam which passes and the failing data from ixmp4 for the variables that matter
