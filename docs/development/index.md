@@ -1,6 +1,7 @@
 # Development
 
 Notes for developers.
+Notes on specific components are found in the other pages within this section.
 If you want to get involved, please do!
 We welcome all kinds of contributions, for example:
 
