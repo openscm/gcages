@@ -1,0 +1,3 @@
+- figure out scenariomip versions and how to grab from ixmp4
+- set up tests as described in new docs
+- write out docs
