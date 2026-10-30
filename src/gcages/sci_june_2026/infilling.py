@@ -64,6 +64,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
     Returns
     -------
     :
+        CMIP7ScenarioMIPInfiller object
     """
     if ur is None:
         try:
@@ -76,12 +77,30 @@ def create_scijune2026_infiller(  # noqa: PLR0913
                 requirement="openscm_units",
             ) from exc
 
+    try:
+        import silicone.database_crunchers  # type: ignore # silicone has no type hints# noqa: PLC0415
+    except ImportError as exc:
+        raise MissingOptionalDependencyError(
+            "get_silicone_based_infiller", requirement="silicone"
+        ) from exc
+
     infilling_leader_emissions = load_timeseries_csv(
         infilling_leader_emissions_file,
         lower_column_names=True,
         index_columns=["model", "scenario", "region", "variable", "unit"],
         out_columns_type=int,
     )
+    # Keep only the selected Velders et al. (2022) scenario
+    is_velders = infilling_leader_emissions.index.get_level_values(
+        "model"
+    ).str.contains("Velders")
+    infilling_leader_emissions = infilling_leader_emissions[
+        ~is_velders
+        | (
+            infilling_leader_emissions.index.get_level_values("scenario")
+            == "Kigali2022-upper"
+        )
+    ]
     # CMIP7 GHG inversions
     ghg_inversions = load_timeseries_csv(
         ghg_inversions_file,
@@ -121,9 +140,10 @@ def create_scijune2026_infiller(  # noqa: PLR0913
             ur=ur,
         )
 
-    # Notes: currently this uses RMSClosest under the hood.
-    # That's probably not a bad decision, and avoids the OC-BC decoupling from AR6.
-    # Can be investigated more in future in other applications.
+    silicone_db_cruncher = silicone.database_crunchers.QuantileRollingWindows
+    # Phase-out gases are not infilled with silicone:
+    # WMO (Montreal) and Velders et al. (2022) (Kigali) rows
+    # in the infilling database are direct-copied.
     return CMIP7ScenarioMIPInfiller(
         infilling_db=infilling_leader_emissions,
         historical_emissions=historical_emissions,
@@ -134,4 +154,5 @@ def create_scijune2026_infiller(  # noqa: PLR0913
         # TODO: add something like this back in
         # progress=progress,
         ur=ur,
+        silicone_db_cruncher=silicone_db_cruncher,
     )
