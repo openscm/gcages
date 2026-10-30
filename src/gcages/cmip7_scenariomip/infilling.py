@@ -574,9 +574,7 @@ class CMIP7ScenarioMIPInfiller:
     UnitRegistry
     """
 
-    silicone_db_cruncher: (
-        type[silicone.database_crunchers.base._DatabaseCruncher] | None
-    ) = None
+    silicone_db_cruncher: type[Any] | None = None
     """
     Silicone method for infilling from the leader
 

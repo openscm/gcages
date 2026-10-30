@@ -98,7 +98,7 @@ def create_scijune2026_infiller(  # noqa: PLR0913
         ~is_velders
         | (
             infilling_leader_emissions.index.get_level_values("scenario")
-            == "Kigali2022-lower"  # TODO: Check which one to pick!!
+            == "Kigali2022-upper"
         )
     ]
     # CMIP7 GHG inversions
