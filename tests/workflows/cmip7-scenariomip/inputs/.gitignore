@@ -1,0 +1,6 @@
+# Downloaded from Zenodo with pooch when the tests run,
+# see `test_workflow_cmip7_scenariomip.py`
+global-workflow-history_*
+gridding-history_*
+infiling-db_*
+ScenarioMIP_emissions_marker_scenarios_*

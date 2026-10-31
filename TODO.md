@@ -1,4 +1,4 @@
-- figure out scenariomip versions and how to grab from ixmp4
+- figure out scenariomip versions and how to grab from database
 - set up tests as described in new docs
 - write out docs
 - script that shows the whole process including downloading data from database with pyam

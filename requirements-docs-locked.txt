@@ -353,6 +353,7 @@ numpy==2.3.1 ; python_full_version >= '3.11'
 openpyxl==3.1.5
     # via
     #   aneris-iamc
+    #   gcages
     #   ixmp4
     #   pyam-iamc
 openscm-runner==0.13.0
@@ -377,6 +378,7 @@ packaging==24.2
     #   mkdocs
     #   nbconvert
     #   pandera
+    #   pooch
     #   properdocs
     #   scmdata
     #   xarray
@@ -444,9 +446,12 @@ platformdirs==4.3.6
     #   jupyter-core
     #   mkdocs-get-deps
     #   pint
+    #   pooch
     #   properdocs
 ply==3.11
     # via pyomo
+pooch==1.9.0
+    # via gcages
 prometheus-client==0.25.0
     # via jupyter-server
 prompt-toolkit==3.0.52
@@ -472,6 +477,8 @@ pure-eval==0.2.3
     # via stack-data
 pyam-iamc==3.0.0
     # via silicone
+pyarrow==21.0.0
+    # via gcages
 pycountry==24.6.1
     # via
     #   aneris-iamc
@@ -562,6 +569,7 @@ requests==2.34.2
     #   jupyterlab-server
     #   mkdocs-material
     #   pandas-datapackage-reader
+    #   pooch
     #   pyam-iamc
 rfc3339-validator==0.1.4
     # via

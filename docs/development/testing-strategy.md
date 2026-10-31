@@ -22,7 +22,11 @@ Instead, we take a more pragmatic approach.
 By default, we don't run any of the workflow reproduction tests.
 When opting in with flags specific to a given workflow,
 a given number of scenarios from the workflow will be run in full (default is 2).
-[TODO flag to pick the number]
+For example, `pytest tests --workflow-cmip7-scenariomip` runs two scenarios
+from the CMIP7 ScenarioMIP workflow.
+Use `--workflow-n-scenarios` to pick the number of scenarios
+(e.g. `--workflow-n-scenarios 7` runs all of the CMIP7 ScenarioMIP scenarios).
+The scenarios which were selected are printed at the start of the test run.
 These scenarios are picked randomly from the full set of available scenarios.
 If you wish to run some specific or otherwise custom set,
 update the testing code and then re-run.
