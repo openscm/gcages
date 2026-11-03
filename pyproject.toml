@@ -69,6 +69,10 @@ cmip7scenariomip = [
     "setuptools>=60.1.0 ; python_version >= '3.12'",
     "pandas-indexing[units]>=0.6.3",
     "pandas-openscm[db]>=0.8.1",
+    # Required to download and read the workflow's input data
+    "openpyxl>=3.1.0",
+    "pooch>=1.8.0",
+    "pyarrow>=19.0.1",
     "pymagicc>=2.1.5",
     "scipy>=1.13.0",
     "scmdata>=0.18.0",
@@ -150,6 +154,7 @@ tests-min = [
 ]
 tests-full = [
     "pandas-indexing>=0.6.3",
+    "pooch>=1.8.0",
     "pyarrow>=19.0.1",
     "pytest-cov>=6.0.0",
 ]
@@ -204,6 +209,21 @@ show_error_context = true
 warn_unreachable = true
 follow_imports = "normal"
 
+[[tool.mypy.overrides]]
+# Ported (as unchanged as possible) from emissions_harmonization_historical/FLEX
+# so that we reproduce the CMIP7 ScenarioMIP extensions exactly.
+# Making this pass our strict type checking would require changing the code.
+module = [
+    "gcages.workflows.cmip7_scenariomip.extension.afolu",
+    "gcages.workflows.cmip7_scenariomip.extension.cdr",
+    "gcages.workflows.cmip7_scenariomip.extension.fossil_co2",
+    "gcages.workflows.cmip7_scenariomip.extension.functionality",
+    "gcages.workflows.cmip7_scenariomip.extension.non_co2",
+    "gcages.workflows.cmip7_scenariomip.extension.regional",
+    "gcages.workflows.cmip7_scenariomip.extension.utils",
+]
+ignore_errors = true
+
 [tool.jupytext]
 formats = "ipynb,py:percent"
 
@@ -220,6 +240,7 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "superslow: marks tests as super slow i.e. taking multiple minutes to run (deselect with '-m \"not superslow\"')",
     "magicc_v760a3: tests requiring MAGICC 7.6.0a3",
+    "workflow_reproduction(workflow): tests which reproduce a key scientific workflow (opt in with --workflow-<workflow>)",
 ]
 
 [tool.ruff]
@@ -276,6 +297,11 @@ ignore = [
 ]
 "stubs/*" = [
     "PLR0913",
+]
+# Ported (as unchanged as possible) from emissions_harmonization_historical/FLEX,
+# which uses a longer line length
+"src/gcages/workflows/cmip7_scenariomip/extension/*" = [
+    "E501",
 ]
 
 [tool.ruff.lint.isort]

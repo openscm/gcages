@@ -1,0 +1,135 @@
+model,scenario,region,variable,method
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|BC,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|C2F6,constant_ratio
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|C6F14,constant_ratio
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|CF4,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|CH4,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|CO,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC125,constant_ratio
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC134a,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC143a,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC227ea,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC23,constant_ratio
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC245fa,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC32,constant_ratio
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|HFC|HFC43-10,reduce_offset_2150_cov
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|N2O,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|NH3,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|NOx,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|OC,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|SF6,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|Sulfur,reduce_ratio_2080
+AIM 3.0,SSP2 - Low Overshoot_a,World,Emissions|VOC,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|BC,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|CH4,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|CO,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|N2O,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|NH3,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|NOx,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|OC,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|Sulfur,reduce_ratio_2080
+COFFEE 1.6,SSP2 - Medium-Low Emissions,World,Emissions|VOC,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|BC,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|C2F6,constant_ratio
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CF4,constant_ratio
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CH4,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CO,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC125,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC134a,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC143a,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC227ea,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC23,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC245fa,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC32,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|HFC|HFC43-10,reduce_offset_2150_cov
+GCAM 8s,SSP3 - High Emissions,World,Emissions|N2O,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|NH3,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|NOx,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|OC,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|SF6,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|Sulfur,reduce_ratio_2080
+GCAM 8s,SSP3 - High Emissions,World,Emissions|VOC,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|BC,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|C2F6,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|C6F14,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|CF4,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|CH4,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|CO,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC125,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC134a,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC143a,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC227ea,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC23,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC245fa,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC32,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|HFC|HFC43-10,constant_ratio
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|N2O,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|NH3,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|NOx,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|OC,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|SF6,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|Sulfur,reduce_ratio_2080
+IMAGE 3.4,SSP2 - Medium Emissions,World,Emissions|VOC,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|BC,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CF4,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CH4,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CO,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC125,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC134a,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC143a,constant_ratio
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC227ea,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC23,model_zero
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC245fa,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC32,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|HFC|HFC43-10,constant_ratio
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|N2O,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|NH3,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|NOx,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|OC,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|SF6,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|Sulfur,reduce_ratio_2080
+MESSAGEix-GLOBIOM-GAINS 2.1-M-R12,SSP2 - Low Emissions,World,Emissions|VOC,reduce_ratio_2080
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|BC,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|CH4,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|CO,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|CO2|AFOLU,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|N2O,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|NH3,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|NOx,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|OC,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|Sulfur,reduce_ratio_2050
+REMIND-MAgPIE 3.5-4.11,SSP1 - Very Low Emissions,World,Emissions|VOC,reduce_ratio_2050
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|BC,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|C2F6,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|C6F14,constant_ratio
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|CF4,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|CH4,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|CO,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|CO2|AFOLU,reduce_offset_2150_cov
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|CO2|Energy and Industrial Processes,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC125,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC134a,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC143a,constant_ratio
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC227ea,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC23,constant_ratio
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC245fa,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC32,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|HFC|HFC43-10,reduce_offset_2150_cov
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|N2O,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|NH3,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|NOx,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|OC,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|SF6,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|Sulfur,reduce_ratio_2080
+WITCH 6.0,SSP5 - Medium-Low Emissions_a,World,Emissions|VOC,reduce_ratio_2080
